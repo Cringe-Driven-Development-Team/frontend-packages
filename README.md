@@ -24,26 +24,19 @@ bun add -d @iredtea/oxlint-plugin-jsdoc   # или npm install -D @iredtea/oxlin
 import { defineConfig } from 'oxlint';
 
 export default defineConfig({
-    plugins: ['jsdoc'],
     jsPlugins: ['@iredtea/oxlint-plugin-jsdoc'],
     rules: {
         'cdd/require-jsdoc': 'error',
         'cdd/check-param-names': 'error',
-        // встроенные правила oxlint: теги и типы в них
-        'jsdoc/require-param': ['error', { checkDestructured: false }],
-        'jsdoc/require-param-type': 'error',
-        'jsdoc/require-returns': 'error',
-        'jsdoc/require-returns-type': 'error',
     },
 });
 ```
 
-Правила плагина проверяют только наличие комментария и имена параметров. Встроенные `jsdoc/*` из
-примера не обязательны: `require-param` и `require-returns` требуют сами теги, а `*-type` — типы
-в них; с TSDoc правила `*-type` не включают. Настроек у правил плагина нет.
+Правила проверяют наличие комментария и имена параметров — этого достаточно. Настроек у них нет.
 
 Комментарии — в стиле [TSDoc](https://tsdoc.org): блок `/** … */`, типы в тегах не пишутся, их
-несёт TypeScript. JSDoc с типами (`@param {string} name`) правила тоже понимают.
+несёт TypeScript. Поэтому встроенные правила oxlint, которые требуют теги и типы в них, включать
+не нужно. JSDoc с типами (`@param {string} name`) правила плагина тоже понимают.
 
 ```ts
 /**
@@ -98,7 +91,7 @@ export function greet(title: string): string {
 - Сверка идёт по порядку: первый `@param` — с первым параметром, и так далее.
 - На месте деструктурированного параметра имя в JSDoc любое (`@param props`); вложенные теги
   (`@param props.id`) пропускаются.
-- Нехватку тегов правило не ловит — это `jsdoc/require-param`.
+- Нехватку тегов правило не ловит: описывать каждый параметр не обязательно.
 
 ## Разработка
 
