@@ -1,6 +1,6 @@
 {
   "name": "@iredtea/oxlint-plugin-jsdoc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Правила oxlint про JSDoc, которых нет в его плагине jsdoc: require-jsdoc для экспортов и check-param-names",
   "license": "MIT",
   "repository": "https://github.com/Cringe-Driven-Development-Team/oxlint-plugin-jsdoc",
