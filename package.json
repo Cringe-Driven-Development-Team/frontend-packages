@@ -7,12 +7,14 @@
 		"packages/*"
 	],
 	"scripts": {
-		"lint": "bun run --filter './packages/*' lint && oxlint -c oxlint.config.ts tests",
-		"fmt:check": "bun run --filter './packages/*' fmt:check && oxfmt -c oxfmt.config.ts --check tests",
+		"lint": "bun run --filter './packages/*' lint && oxlint -c oxlint.config.ts tests scripts",
+		"fmt:check": "bun run --filter './packages/*' fmt:check && oxfmt -c oxfmt.config.ts --check tests scripts",
 		"typecheck": "bun run --filter './packages/*' typecheck && tsc --noEmit",
 		"test": "bun run --filter './packages/*' test",
 		"test:integration": "bun test --preload ./tests/integration/setup-dom.ts tests/integration/react-zustand.test.tsx && bun test tests/integration/vanilla.test.ts",
-		"build": "bun run --filter './packages/*' build"
+		"build": "bun run --filter './packages/*' build",
+		"test:scripts": "bun test scripts/*.test.ts",
+		"verify:packages": "bun scripts/verify-packages.ts"
 	},
 	"devDependencies": {
 		"@cdd-team/react": "workspace:*",
