@@ -44,8 +44,8 @@ Playground React не входит в `workspaces`, CI и релизы. На Win
 
 ## Кто за что отвечает
 
-- **Bun** — установка зависимостей, тулинг, тесты и сборка.
-- **npm CLI** — только публикация по OIDC (`npm publish` в [release.yml](.github/workflows/release.yml)).
+- **Bun** — установка зависимостей, тулинг, тесты и сборка. `bunfig.toml` содержит `[run] bun = true`: утилиты с `#!/usr/bin/env node` (tsdown, oxlint, oxfmt) запускаются в рантайме Bun, а не в Node, поэтому версия Node на сборку не влияет.
+- **Node и npm CLI** — только публикация по OIDC (Node 22.14.0+, npm 11.5.1+ ставятся лишь в publish job) (`npm publish` в [release.yml](.github/workflows/release.yml)).
 - **release-please** — версии, `CHANGELOG.md`, теги и release PR. Режим manifest: у каждого пакета своя версия, свой changelog и свой тег (`react-v1.2.0`, `zustand-v1.0.0`, `openapi-v0.2.0`). Плагин `node-workspace` с `updatePeerDependencies` при выпуске React поднимает диапазон `@cdd-team/react` в Zustand (peer и dev), даёт Zustand patch-релиз и запись в его changelog, даже если исходники Zustand не менялись.
 
 ## Коммиты и релизы

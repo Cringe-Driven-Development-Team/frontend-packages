@@ -32,6 +32,8 @@ export async function publishReleased(
 	}
 }
 
+// Запускать напрямую (`bun scripts/publish-released.ts`), не через `bun run`: при `[run] bun = true`
+// `bun run` подменяет node на bun, а npm publish с OIDC должен выполняться настоящим Node.
 const root = resolve(import.meta.dir, "..");
 
 const runInRepo: Run = async (cmd, cwd) => {

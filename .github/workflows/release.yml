@@ -34,6 +34,10 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun run verify:packages
+      # Node нужен только для npm publish с OIDC; весь тулинг выше работает в рантайме Bun.
       - uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
@@ -47,9 +51,6 @@ jobs:
           echo "node $node_version, npm $npm_version"
           at_least "$node_version" 22.14.0 || { echo "Нужен Node 22.14.0 или новее"; exit 1; }
           at_least "$npm_version" 11.5.1 || { echo "Нужен npm 11.5.1 или новее"; exit 1; }
-      - run: bun install --frozen-lockfile
-      - run: bun run build
-      - run: bun run verify:packages
       - name: Опубликовать изменённые пакеты
         env:
           PATHS_RELEASED: ${{ needs.release-please.outputs.paths_released }}
