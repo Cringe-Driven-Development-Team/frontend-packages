@@ -1,5 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import { checkManifest } from "./verify-packages.ts";
+import { checkManifest, packageNames } from "./verify-packages.ts";
+
+describe("packageNames", () => {
+	test("проверяются все четыре пакета, включая плагин jsdoc", () => {
+		expect([...packageNames].sort()).toEqual([
+			"openapi",
+			"oxlint-plugin-jsdoc",
+			"react",
+			"zustand",
+		]);
+	});
+});
 
 const expected = { name: "@cdd-team/react", directory: "packages/react" };
 const clean = {

@@ -21,6 +21,12 @@ describe("orderForPublish", () => {
 		]);
 	});
 
+	test("плагин jsdoc независим и публикуется после React и Zustand", () => {
+		expect(
+			orderForPublish(["packages/oxlint-plugin-jsdoc", "packages/zustand", "packages/react"]),
+		).toEqual(["packages/react", "packages/zustand", "packages/oxlint-plugin-jsdoc"]);
+	});
+
 	test("порядок остальных пакетов сохраняется", () => {
 		expect(orderForPublish(["packages/b", "packages/a"])).toEqual(["packages/b", "packages/a"]);
 	});
