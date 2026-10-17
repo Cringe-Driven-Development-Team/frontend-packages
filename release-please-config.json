@@ -27,6 +27,11 @@
 			"release-type": "node",
 			"component": "openapi",
 			"changelog-path": "CHANGELOG.md"
+		},
+		"packages/oxlint-plugin-jsdoc": {
+			"release-type": "node",
+			"component": "oxlint-plugin-jsdoc",
+			"changelog-path": "CHANGELOG.md"
 		}
 	}
 }
