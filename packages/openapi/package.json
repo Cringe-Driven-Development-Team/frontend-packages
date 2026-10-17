@@ -42,9 +42,10 @@
 		"access": "public"
 	},
 	"scripts": {
-		"lint": "oxlint -c ../../oxlint.config.ts src scripts",
-		"fmt:check": "oxfmt -c ../../oxfmt.config.ts --check src scripts",
+		"lint": "oxlint -c ../../oxlint.config.ts src scripts test",
+		"fmt:check": "oxfmt -c ../../oxfmt.config.ts --check src scripts test",
 		"typecheck": "tsc --noEmit",
+		"test": "bun test test",
 		"build": "tsdown",
 		"apidog": "bun scripts/apidog.ts",
 		"generate": "bun src/bin.ts spec/openapi.json -o src/api/schema.ts",

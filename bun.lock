@@ -5,6 +5,9 @@
     "": {
       "name": "frontend-packages",
       "devDependencies": {
+        "@cdd-team/react": "workspace:*",
+        "@cdd-team/zustand": "workspace:*",
+        "@happy-dom/global-registrator": "^20.14.5",
         "@types/bun": "1.4.2",
         "oxfmt": "^0.64.0",
         "oxlint": "^1.79.0",

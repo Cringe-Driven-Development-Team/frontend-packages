@@ -10,5 +10,5 @@
 			"@cdd-team/react/jsx-dev-runtime": ["./src/jsx-dev-runtime.ts"]
 		}
 	},
-	"include": ["src"]
+	"include": ["src", "test"]
 }
