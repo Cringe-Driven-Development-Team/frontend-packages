@@ -9,18 +9,18 @@ const config = readJson("release-please-config.json");
 const manifest = readJson(".release-please-manifest.json");
 
 const expected = {
-	"packages/react": { component: "react", version: "1.2.0" },
-	"packages/zustand": { component: "zustand", version: "1.0.0" },
-	"packages/openapi": { component: "openapi", version: "0.2.0" },
+	"packages/react": { component: "react" },
+	"packages/zustand": { component: "zustand" },
+	"packages/openapi": { component: "openapi" },
 };
 
 describe("release-please manifest", () => {
-	test("стартовые версии совпадают с задачей", () => {
-		expect(manifest).toEqual({
-			"packages/react": "1.2.0",
-			"packages/zustand": "1.0.0",
-			"packages/openapi": "0.2.0",
-		});
+	// Версии не фиксируем: release PR сам поднимает manifest, и CI на нём должен оставаться зелёным.
+	test("manifest покрывает те же пакеты и хранит semver-версии", () => {
+		expect(Object.keys(manifest).sort()).toEqual(Object.keys(expected).sort());
+		for (const version of Object.values(manifest)) {
+			expect(version).toMatch(/^\d+\.\d+\.\d+$/);
+		}
 	});
 
 	test("версия в package.json каждого пакета равна версии в manifest", () => {

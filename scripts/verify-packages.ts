@@ -139,6 +139,7 @@ async function scenario(
 	archives: string[],
 	workDir: string,
 	checks: string[][],
+	expectedVersions: Record<string, string>,
 ): Promise<void> {
 	const dir = join(workDir, `scenario-${name}`);
 	await cp(join(import.meta.dir, "fixtures", fixture), dir, { recursive: true });
@@ -149,7 +150,21 @@ async function scenario(
 	}
 	// Все локальные архивы ставятся одной командой: registry не должен подтянуть React сам.
 	await run(["bun", "add", ...archives], dir);
+	for (const [pkg, expectedVersion] of Object.entries(expectedVersions)) {
+		const installed = JSON.parse(
+			await readFile(join(dir, "node_modules", "@cdd-team", pkg, "package.json"), "utf8"),
+		);
+		if (installed.version !== expectedVersion) {
+			throw new Error(
+				`${name}: установлен @cdd-team/${pkg}@${installed.version}, ожидался локальный архив ${expectedVersion}`,
+			);
+		}
+	}
 	for (const check of checks) await run(check, dir);
+}
+
+async function localVersion(root: string, name: PackageName): Promise<string> {
+	return JSON.parse(await readFile(join(root, "packages", name, "package.json"), "utf8")).version;
 }
 
 export async function verify(): Promise<void> {
@@ -166,15 +181,34 @@ export async function verify(): Promise<void> {
 		if (violations.length > 0)
 			throw new Error(`Нарушения в архивах:\n- ${violations.join("\n- ")}`);
 
-		await scenario("consumer", "consumer", [archives.react, archives.zustand], workDir, [
-			["bun", "x", "tsc", "--noEmit"],
-			["bun", "test", "--preload", "./setup-dom.ts"],
-		]);
+		const versions = {
+			react: await localVersion(root, "react"),
+			zustand: await localVersion(root, "zustand"),
+		};
+		await scenario(
+			"consumer",
+			"consumer",
+			[archives.react, archives.zustand],
+			workDir,
+			[
+				["bun", "x", "tsc", "--noEmit"],
+				["bun", "build", "main.tsx", "--outdir", "out", "--target", "browser"],
+				["bun", "test", "--preload", "./setup-dom.ts"],
+			],
+			versions,
+		);
 
-		await scenario("vanilla", "vanilla", [archives.zustand], workDir, [
-			["bun", "x", "tsc", "--noEmit"],
-			["bun", "test"],
-		]);
+		await scenario(
+			"vanilla",
+			"vanilla",
+			[archives.zustand],
+			workDir,
+			[
+				["bun", "x", "tsc", "--noEmit"],
+				["bun", "test"],
+			],
+			{ zustand: versions.zustand },
+		);
 		const vanillaModules = join(workDir, "scenario-vanilla", "node_modules", "@cdd-team");
 		if (await exists(join(vanillaModules, "react"))) {
 			throw new Error("vanilla-сценарий: @cdd-team/react установился, хотя это optional peer");

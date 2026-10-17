@@ -61,4 +61,13 @@ describe("publishReleased", () => {
 
 		expect(calls.map((call) => call.cwd)).toEqual(["packages/react"]);
 	});
+
+	test("уже опубликованная версия пропускается, остальные публикуются (повторный запуск после сбоя)", async () => {
+		const { calls, run } = recorder();
+		const isPublished = async (path: string) => path === "packages/react";
+
+		await publishReleased(["packages/react", "packages/zustand"], run, isPublished);
+
+		expect(calls.map((call) => call.cwd)).toEqual(["packages/zustand"]);
+	});
 });
