@@ -1,37 +1,14 @@
 {
-  "compilerOptions": {
-    // Environment setup & latest features
-    "lib": ["ESNext", "dom"],
-    "target": "ESNext",
-    "module": "Preserve",
-    "moduleDetection": "force",
-    "jsx": "react-jsx",
-    "jsxImportSource": "@maninthecoat/react",
-    "allowJs": true,
-    "types": ["bun"],
-
-    // Bundler mode
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
-    "paths": {
-      "@maninthecoat/react": ["./src/index.ts"],
-      "@maninthecoat/react/jsx-runtime": ["./src/jsx-runtime.ts"],
-      "@maninthecoat/react/jsx-dev-runtime": ["./src/jsx-dev-runtime.ts"]
-    },
-
-    // Best practices
-    "strict": true,
-    "skipLibCheck": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-
-    // Some stricter flags (disabled by default)
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
-  },
-  "include": ["src"]
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"jsxImportSource": "@cdd-team/react",
+		"allowJs": true,
+		"paths": {
+			"@cdd-team/react": ["./src/index.ts"],
+			"@cdd-team/react/jsx-runtime": ["./src/jsx-runtime.ts"],
+			"@cdd-team/react/jsx-dev-runtime": ["./src/jsx-dev-runtime.ts"]
+		}
+	},
+	"include": ["src"]
 }

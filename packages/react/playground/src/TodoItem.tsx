@@ -1,4 +1,4 @@
-import { useContext, type ReactElement } from "@maninthecoat/react";
+import { useContext, type ReactElement } from "@cdd-team/react";
 import { ThemeContext } from "./theme.ts";
 import type { TodoItemProps } from "./types.ts";
 

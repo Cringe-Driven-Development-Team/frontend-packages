@@ -1,4 +1,4 @@
-import { createRoot } from "@maninthecoat/react";
+import { createRoot } from "@cdd-team/react";
 import { App } from "./App.tsx";
 import "./styles.css";
 

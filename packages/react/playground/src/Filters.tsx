@@ -1,4 +1,4 @@
-import type { ReactElement } from "@maninthecoat/react";
+import type { ReactElement } from "@cdd-team/react";
 import type { FilterButtonProps, FiltersProps } from "./types.ts";
 
 export function Filters({ value, onChange }: FiltersProps): ReactElement {

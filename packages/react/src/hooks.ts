@@ -147,6 +147,8 @@ export function useCallback<Callback extends MemoCallback>(
 	callback: Callback,
 	deps?: EffectDeps,
 ): Callback {
+	// useCallback — это useMemo с тем же списком зависимостей, deps пробрасываются как есть
+	// oxlint-disable-next-line react/exhaustive-deps
 	return useMemo(() => callback, deps);
 }
 

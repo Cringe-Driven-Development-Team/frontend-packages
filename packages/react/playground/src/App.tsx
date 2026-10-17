@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useState } from "@maninthecoat/react";
-import type { ReactElement } from "@maninthecoat/react";
+import { useEffect, useLayoutEffect, useState } from "@cdd-team/react";
+import type { ReactElement } from "@cdd-team/react";
 import { Filters } from "./Filters.tsx";
 import { Header } from "./Header.tsx";
 import { Memoized } from "./Memoized.tsx";

@@ -1,4 +1,4 @@
-import type { ReactElement } from "@maninthecoat/react";
+import type { ReactElement } from "@cdd-team/react";
 import { TodoItem } from "./TodoItem.tsx";
 import type { TodoListProps } from "./types.ts";
 

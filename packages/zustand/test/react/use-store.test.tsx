@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { useLayoutEffect } from "@maninthecoat/react";
+import { useLayoutEffect } from "@cdd-team/react";
 import { create, createStore, useShallow, useStore } from "../../src/react/index.ts";
 import { flush, mount } from "./utils.ts";
 

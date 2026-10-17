@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "@maninthecoat/react";
+import { useLayoutEffect, useState } from "@cdd-team/react";
 import type { StoreApi } from "../vanilla/index.ts";
 
 const identity = <T>(value: T): T => value;

@@ -12,7 +12,7 @@ Apidog ──bun run apidog──▶ spec/openapi.json ──bun run generate─
 ## Установка
 
 ```sh
-bun add @iredtea/openapi   # или npm install @iredtea/openapi
+bun add @cdd-team/openapi   # или npm install @cdd-team/openapi
 ```
 
 ```sh
@@ -20,7 +20,7 @@ bunx openapi-cdd ./openapi.json -o ./src/api/schema.ts
 ```
 
 ```ts
-import createClient from "@iredtea/openapi";
+import createClient from "@cdd-team/openapi";
 import type { paths } from "./api/schema";
 
 const api = createClient<paths>({ baseUrl: "/api/v1", credentials: "include" });
@@ -32,8 +32,8 @@ else render(data.name);
 
 | Что | Откуда |
 | --- | --- |
-| `createClient` (он же экспорт по умолчанию), типы `Client`, `Middleware`, … | `@iredtea/openapi` |
-| `generate(spec): string`, `GenerateError` | `@iredtea/openapi/generator` |
+| `createClient` (он же экспорт по умолчанию), типы `Client`, `Middleware`, … | `@cdd-team/openapi` |
+| `generate(spec): string`, `GenerateError` | `@cdd-team/openapi/generator` |
 | CLI `openapi-cdd <спека.json> -o <выход.ts>` | `bin` пакета |
 
 Пакет — ESM, работает в браузере, bun и node ≥ 20. В node и bun `baseUrl` должен быть абсолютным.
@@ -82,7 +82,7 @@ else render(data.name);
 и повторяет запрос:
 
 ```ts
-import type { Middleware } from "@iredtea/openapi";
+import type { Middleware } from "@cdd-team/openapi";
 
 function authMiddleware(): Middleware {
   const retries = new WeakMap<Request, Request>();

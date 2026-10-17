@@ -1,4 +1,4 @@
-import type { ReactElement } from "@maninthecoat/react";
+import type { ReactElement } from "@cdd-team/react";
 import type { StatsPanelProps } from "./types.ts";
 
 export function StatsPanel({ completed, total }: StatsPanelProps): ReactElement {

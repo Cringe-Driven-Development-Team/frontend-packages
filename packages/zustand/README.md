@@ -1,21 +1,21 @@
-# @maninthecoat/zustand
+# @cdd-team/zustand
 
-[![npm](https://img.shields.io/npm/v/@maninthecoat/zustand)](https://www.npmjs.com/package/@maninthecoat/zustand)
+[![npm](https://img.shields.io/npm/v/@cdd-team/zustand)](https://www.npmjs.com/package/@cdd-team/zustand)
 
-Учебный аналог [Zustand](https://github.com/pmndrs/zustand) для [`@maninthecoat/react`](https://www.npmjs.com/package/@maninthecoat/react). Названия и сигнатуры совпадают с Zustand 5, поэтому код переносится заменой импорта.
+Учебный аналог [Zustand](https://github.com/pmndrs/zustand) для [`@cdd-team/react`](https://www.npmjs.com/package/@cdd-team/react). Названия и сигнатуры совпадают с Zustand 5, поэтому код переносится заменой импорта.
 
-npm: https://www.npmjs.com/package/@maninthecoat/zustand
+npm: https://www.npmjs.com/package/@cdd-team/zustand
 
 ## Установка
 
 ```sh
-bun add @maninthecoat/zustand @maninthecoat/react
+bun add @cdd-team/zustand @cdd-team/react
 ```
 
 ## React
 
 ```tsx
-import { create, useShallow } from "@maninthecoat/zustand";
+import { create, useShallow } from "@cdd-team/zustand";
 
 type CounterState = {
 	count: number;
@@ -50,7 +50,7 @@ function Summary() {
 Точка входа `/vanilla` не импортирует React.
 
 ```ts
-import { createStore } from "@maninthecoat/zustand/vanilla";
+import { createStore } from "@cdd-team/zustand/vanilla";
 
 const store = createStore<{ count: number }>()(() => ({ count: 0 }));
 

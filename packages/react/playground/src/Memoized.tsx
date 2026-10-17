@@ -1,5 +1,5 @@
-import { memo, useLayoutEffect, useState } from "@maninthecoat/react";
-import type { ReactElement } from "@maninthecoat/react";
+import { memo, useLayoutEffect, useState } from "@cdd-team/react";
+import type { ReactElement } from "@cdd-team/react";
 import type { MemoCardProps } from "./types.ts";
 
 let memoizedCardRenders = 0;

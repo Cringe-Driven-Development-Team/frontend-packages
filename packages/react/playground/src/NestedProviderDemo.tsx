@@ -1,4 +1,4 @@
-import { useContext, type ReactElement } from "@maninthecoat/react";
+import { useContext, type ReactElement } from "@cdd-team/react";
 import { ThemeContext } from "./theme.ts";
 
 let outerReaderRenders = 0;

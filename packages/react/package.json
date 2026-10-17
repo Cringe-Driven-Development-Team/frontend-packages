@@ -1,9 +1,13 @@
 {
-	"name": "@maninthecoat/react",
+	"name": "@cdd-team/react",
 	"version": "1.2.0",
 	"description": "Учебная реализация React",
 	"license": "MIT",
-	"repository": "https://github.com/Cringe-Driven-Development-Team/react",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Cringe-Driven-Development-Team/frontend-packages.git",
+		"directory": "packages/react"
+	},
 	"engines": {
 		"bun": ">=1.4.0"
 	},
@@ -28,21 +32,12 @@
 		"dist"
 	],
 	"scripts": {
-		"lint": "oxlint src",
-		"format": "oxfmt \"src/**/*.ts\"",
-		"format:check": "oxfmt \"src/**/*.ts\" --check",
+		"lint": "oxlint -c ../../oxlint.config.ts src",
+		"fmt:check": "oxfmt -c ../../oxfmt.config.ts --check src",
 		"typecheck": "tsc --noEmit",
-		"build": "tsdown",
-		"prepublishOnly": "bun run typecheck && bun run lint && bun run format:check && bun run build",
-		"release:patch": "bun pm version patch --no-git-tag-version && bun publish",
-		"release:minor": "bun pm version minor --no-git-tag-version && bun publish",
-		"release:major": "bun pm version major --no-git-tag-version && bun publish"
+		"build": "tsdown"
 	},
-	"devDependencies": {
-		"@types/bun": "latest",
-		"oxfmt": "^0.64.0",
-		"oxlint": "^1.79.0",
-		"typescript": "^7.0.2",
-		"tsdown": "^0.23.0"
+	"publishConfig": {
+		"access": "public"
 	}
 }

@@ -1,4 +1,4 @@
-import type { ReactElement } from "@maninthecoat/react";
+import type { ReactElement } from "@cdd-team/react";
 import type { ToolbarProps } from "./types.ts";
 
 export function Toolbar({

@@ -1,4 +1,4 @@
-import { createContext } from "@maninthecoat/react";
+import { createContext } from "@cdd-team/react";
 
 export type Theme = "light" | "dark";
 

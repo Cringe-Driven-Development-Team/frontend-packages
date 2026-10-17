@@ -1,4 +1,4 @@
-import type { ReactElement } from "@maninthecoat/react";
+import type { ReactElement } from "@cdd-team/react";
 import { HeaderTitle } from "./HeaderTitle.tsx";
 import { StatsPanel } from "./StatsPanel.tsx";
 import type { HeaderProps } from "./types.ts";

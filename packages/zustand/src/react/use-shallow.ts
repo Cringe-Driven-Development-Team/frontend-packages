@@ -1,4 +1,4 @@
-import { useMemo } from "@maninthecoat/react";
+import { useMemo } from "@cdd-team/react";
 import { shallow } from "../vanilla/index.ts";
 
 function createShallowMemo<U>() {

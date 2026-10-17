@@ -1,4 +1,4 @@
-import { createRoot, type ReactElement } from "@maninthecoat/react";
+import { createRoot, type ReactElement } from "@cdd-team/react";
 
 export async function flush(): Promise<void> {
 	for (let i = 0; i < 5; i += 1) {

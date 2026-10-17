@@ -8,5 +8,5 @@ export default defineConfig({
 	format: ["esm"],
 	dts: true,
 	clean: true,
-	deps: { neverBundle: ["@maninthecoat/react"] },
+	deps: { neverBundle: ["@cdd-team/react"] },
 });
