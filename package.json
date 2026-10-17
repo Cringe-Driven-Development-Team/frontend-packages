@@ -22,7 +22,7 @@
 		"@happy-dom/global-registrator": "^20.14.5",
 		"@types/bun": "1.4.2",
 		"oxfmt": "^0.64.0",
-		"oxlint": "^1.79.0",
+		"oxlint": "^1.86.0",
 		"tsdown": "0.23.0",
 		"typescript": "7.0.2"
 	}

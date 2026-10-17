@@ -25,7 +25,7 @@
 
 ## 2. Trusted Publishing
 
-Для каждого из трёх пакетов, после его первой публикации: npmjs.com → пакет → Settings → Trusted Publisher → GitHub Actions:
+Для каждого из трёх пакетов (четвёртый, `@cdd-team/oxlint-plugin-jsdoc` — в разделе 6), после его первой публикации: npmjs.com → пакет → Settings → Trusted Publisher → GitHub Actions:
 
 | Поле | Значение |
 | --- | --- |
@@ -92,3 +92,19 @@ Optional peer и экспорт `./vanilla` в Zustand должны сохран
    Для локального запуска нужен вход в npm с правом публикации (`npm login`).
 6. Если нужно изменить содержимое уже опубликованного пакета, выпустить новую версию через `fix:`, а не перезаписывать старую.
 7. После восстановления повторить проверку registry (`npm view …@<версия>`) и чистую установку из раздела 4.
+
+## 6. Bootstrap нового пакета (пример: `@cdd-team/oxlint-plugin-jsdoc`)
+
+Пакет, добавленный в монорепозиторий позже (первые три — раздел 1), проходит тот же путь, но без остальных пакетов. Для плагина jsdoc стартовая версия — `0.1.1`.
+
+1. Перед мержем PR, который добавляет пакет: release-please может открыть release PR раньше, чем появится тег baseline. **Не вливайте** этот release PR.
+2. После мержа PR на проверенном коммите `main` (CI зелёный): `bun install --frozen-lockfile && bun run build && bun run verify:packages`, затем
+   ```sh
+   cd packages/oxlint-plugin-jsdoc && npm publish --access public
+   ```
+   (2FA и подтверждение в браузере, как в разделе 1). Сразу после публикации `npm view` может показывать заглушку `0.0.0-stage` (так было у первых трёх пакетов): реальная версия появляется в реестре через несколько минут, заглушка остаётся в списке версий, но `latest` переключается на реальную. Повторно `npm publish` не запускайте, подождите и проверьте реестр.
+3. Проверить: `npm view @cdd-team/oxlint-plugin-jsdoc version` → `0.1.1`.
+4. На том же коммите создать GitHub Release с тегом `oxlint-plugin-jsdoc-v0.1.1` (baseline release-please); версия в `.release-please-manifest.json` должна совпадать.
+5. Закрыть без мержа устаревший release PR, если он успел появиться: актуальный release-please создаст при следующем пуше в `main`.
+6. Trusted Publisher для пакета на npmjs.com (Settings → Trusted Publisher → GitHub Actions): Organization `Cringe-Driven-Development-Team`, Repository `frontend-packages`, Workflow filename `release.yml`, Environment пустой, **Allow npm publish**. Статус будет Pending validation до первого успешного выпуска из workflow (в пределах 48 часов).
+7. Для подтверждения Trusted Publisher нужен небольшой `fix:` в `packages/oxlint-plugin-jsdoc` после bootstrap: release PR выпустит `0.1.2` по OIDC. Затем переводится потребитель (`frontend`) на `@cdd-team/oxlint-plugin-jsdoc`.

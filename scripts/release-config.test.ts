@@ -12,6 +12,7 @@ const expected = {
 	"packages/react": { component: "react" },
 	"packages/zustand": { component: "zustand" },
 	"packages/openapi": { component: "openapi" },
+	"packages/oxlint-plugin-jsdoc": { component: "oxlint-plugin-jsdoc" },
 };
 
 describe("release-please manifest", () => {

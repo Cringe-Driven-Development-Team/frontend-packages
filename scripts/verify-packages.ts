@@ -11,8 +11,8 @@ const dependencyBlocks = [
 ] as const;
 const oldScopes = ["@maninthecoat", "@iredtea"];
 
-export type PackageName = "react" | "zustand" | "openapi";
-export const packageNames: PackageName[] = ["react", "zustand", "openapi"];
+export type PackageName = "react" | "zustand" | "openapi" | "oxlint-plugin-jsdoc";
+export const packageNames: PackageName[] = ["react", "zustand", "openapi", "oxlint-plugin-jsdoc"];
 
 type Manifest = Record<string, unknown>;
 
@@ -214,7 +214,9 @@ export async function verify(): Promise<void> {
 			throw new Error("vanilla-сценарий: @cdd-team/react установился, хотя это optional peer");
 		}
 
-		console.log("OK: архивы react, zustand, openapi и сценарии consumer/vanilla прошли проверку");
+		console.log(
+			"OK: архивы react, zustand, openapi, oxlint-plugin-jsdoc и сценарии consumer/vanilla прошли проверку",
+		);
 	} finally {
 		await rm(workDir, { recursive: true, force: true });
 	}
