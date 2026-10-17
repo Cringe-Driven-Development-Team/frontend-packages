@@ -1,0 +1,14 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"jsxImportSource": "@cdd-team/react",
+		"allowJs": true,
+		"paths": {
+			"@cdd-team/react": ["./src/index.ts"],
+			"@cdd-team/react/jsx-runtime": ["./src/jsx-runtime.ts"],
+			"@cdd-team/react/jsx-dev-runtime": ["./src/jsx-dev-runtime.ts"]
+		}
+	},
+	"include": ["src", "test"]
+}

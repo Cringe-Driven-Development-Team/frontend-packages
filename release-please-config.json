@@ -1,0 +1,32 @@
+{
+	"$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+	"include-component-in-tag": true,
+	"separate-pull-requests": false,
+	"bump-minor-pre-major": true,
+	"plugins": [{ "type": "node-workspace", "updatePeerDependencies": true }],
+	"changelog-sections": [
+		{ "type": "feat", "section": "Features" },
+		{ "type": "fix", "section": "Bug Fixes" },
+		{ "type": "test", "section": "Tests", "hidden": true },
+		{ "type": "docs", "section": "Documentation", "hidden": true },
+		{ "type": "chore", "section": "Miscellaneous", "hidden": true },
+		{ "type": "refactor", "section": "Code Refactoring", "hidden": true }
+	],
+	"packages": {
+		"packages/react": {
+			"release-type": "node",
+			"component": "react",
+			"changelog-path": "CHANGELOG.md"
+		},
+		"packages/zustand": {
+			"release-type": "node",
+			"component": "zustand",
+			"changelog-path": "CHANGELOG.md"
+		},
+		"packages/openapi": {
+			"release-type": "node",
+			"component": "openapi",
+			"changelog-path": "CHANGELOG.md"
+		}
+	}
+}

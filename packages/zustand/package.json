@@ -1,0 +1,53 @@
+{
+	"name": "@cdd-team/zustand",
+	"version": "1.0.0",
+	"description": "Учебный стейт-менеджер",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Cringe-Driven-Development-Team/frontend-packages.git",
+		"directory": "packages/zustand"
+	},
+	"type": "module",
+	"sideEffects": false,
+	"engines": {
+		"bun": ">=1.4.0"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs"
+		},
+		"./vanilla": {
+			"types": "./dist/vanilla.d.mts",
+			"import": "./dist/vanilla.mjs"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"lint": "oxlint -c ../../oxlint.config.ts src test",
+		"fmt:check": "oxfmt -c ../../oxfmt.config.ts --check src test",
+		"typecheck": "tsc --noEmit",
+		"test": "bun run test:vanilla && bun run test:react",
+		"test:vanilla": "bun test test/vanilla",
+		"test:react": "bun test --preload ./test/setup-dom.ts test/react",
+		"build": "tsdown"
+	},
+	"peerDependencies": {
+		"@cdd-team/react": "^1.2.0"
+	},
+	"peerDependenciesMeta": {
+		"@cdd-team/react": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@cdd-team/react": "^1.2.0",
+		"@happy-dom/global-registrator": "^20.14.5"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

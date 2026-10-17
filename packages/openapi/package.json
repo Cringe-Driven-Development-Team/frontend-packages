@@ -1,0 +1,55 @@
+{
+	"name": "@cdd-team/openapi",
+	"version": "0.2.0",
+	"description": "Генератор типов из OpenAPI 3.1 и типизированный fetch-клиент без рантайм-зависимостей",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Cringe-Driven-Development-Team/frontend-packages.git",
+		"directory": "packages/openapi"
+	},
+	"keywords": [
+		"openapi",
+		"fetch",
+		"typescript",
+		"codegen"
+	],
+	"type": "module",
+	"sideEffects": false,
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./generator": {
+			"types": "./dist/generator.d.ts",
+			"import": "./dist/generator.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"bin": {
+		"openapi-cdd": "./dist/bin.js"
+	},
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=20"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"lint": "oxlint -c ../../oxlint.config.ts src scripts test",
+		"fmt:check": "oxfmt -c ../../oxfmt.config.ts --check src scripts test",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test test",
+		"build": "tsdown",
+		"apidog": "bun scripts/apidog.ts",
+		"generate": "bun src/bin.ts spec/openapi.json -o src/api/schema.ts",
+		"sync": "bun run apidog && bun run generate",
+		"demo": "bun src/demo.ts"
+	}
+}
