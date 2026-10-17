@@ -1,4 +1,4 @@
-# openapi-cdd
+# @cdd-team/openapi
 
 Свой генератор типов из OpenAPI-контракта и типизированный `fetch`-клиент по этим типам
 ([frontend#12](https://github.com/Cringe-Driven-Development-Team/frontend/issues/12)).
