@@ -1,34 +1,40 @@
 # frontend-packages monorepo Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task (пользователь запретил subagent-driven-development). Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Собрать `react`, `zustand-cdd`, `openapi-cdd` в Bun-монорепо `frontend-packages` с общим тулингом, CI и релизами через release-please под скоупом `@cdd-team`.
 
-**Architecture:** Bun workspaces `packages/*`; общие конфиги в корне (`tsconfig.base.json`, `oxlint.config.ts`, `oxfmt.config.ts`), пакеты расширяют их. История старых репозиториев переносится `git subtree add`. CI один: проверки → интеграция → сборка архивов и установка в чистый проект. Релиз: release-please (manifest, `node-workspace`), затем последовательная публикация `npm publish` через OIDC только для `paths_released`.
+**Architecture:** Bun workspaces `packages/*`; общие конфиги в корне (`tsconfig.base.json`, `oxlint.config.ts`, `oxfmt.config.ts`), пакеты расширяют их. История старых репозиториев переносится `git subtree add`. Один CI: проверки → интеграция → сборка архивов и установка в чистый проект. Релиз: release-please (manifest, `node-workspace`), затем последовательная публикация `npm publish` через OIDC только для `paths_released`. Playground — ручной стенд вне workspaces.
 
-**Tech Stack:** Bun 1.4.2, TypeScript 7.0.2, tsdown 0.23.0, oxlint, oxfmt, bun test + happy-dom, GitHub Actions, release-please, npm CLI ≥ 11.5.1, Node ≥ 22.14.0.
+**Tech Stack:** Bun 1.4.2, TypeScript 7.0.2, tsdown 0.23.0, oxlint, oxfmt, bun test + happy-dom, GitHub Actions (ubuntu-latest), release-please, npm CLI ≥ 11.5.1, Node ≥ 22.14.0.
 
-**Spec:** задача https://github.com/Cringe-Driven-Development-Team/frontend/issues/18 (локально: `gh issue view 18 -R Cringe-Driven-Development-Team/frontend`).
+**Spec:** `docs/superpowers/specs/2026-10-17-frontend-packages-monorepo-design.md` (утверждена пользователем); требования и приёмка — задача https://github.com/Cringe-Driven-Development-Team/frontend/issues/18 (`gh issue view 18 -R Cringe-Driven-Development-Team/frontend`). При расхождении прав спека.
 
 ## Global Constraints
 
 - Имена: `@cdd-team/react`, `@cdd-team/zustand`, `@cdd-team/openapi`; каталоги `packages/react`, `packages/zustand`, `packages/openapi`.
 - `repository.url` = `git+https://github.com/Cringe-Driven-Development-Team/frontend-packages.git`, `repository.directory` = `packages/<name>`.
 - Стартовые версии: react `1.2.0`, zustand `1.0.0`, openapi `0.2.0`. Теги: `react-v1.2.0`, `zustand-v1.0.0`, `openapi-v0.2.0`; `include-component-in-tag: true`; компоненты `react`, `zustand`, `openapi`.
-- Zustand: `@cdd-team/react` — optional peer (`peerDependenciesMeta.optional: true`), экспорт `./vanilla` сохраняется; в devDependencies — semver-диапазон (не `workspace:*`), резолвится в workspace.
+- Zustand: `@cdd-team/react` — optional peer (`peerDependenciesMeta.optional: true`), экспорт `./vanilla` сохраняется; в devDependencies — тот же semver-диапазон `^1.2.0` (не `workspace:*`), резолвится в workspace.
 - В опубликованных архивах нет `workspace:*` и упоминаний `@maninthecoat`/`@iredtea`.
 - Единый набор скриптов в каждом пакете: `lint`, `fmt:check`, `typecheck`, `test`, `build`. Скриптов `release:*` и `prepublishOnly` с ручным `bun publish` нет.
-- Постоянных npm-секретов (`NPM_TOKEN`, `NODE_AUTH_TOKEN`, токен в `.npmrc`) нет. Publish job: GitHub-hosted runner, `id-token: write`, Node `22.14.0`+, npm `11.5.1`+ (версия проверяется явно). Release-please job: `pull-requests: write`, `contents: write`.
+- Постоянных npm-секретов (`NPM_TOKEN`, `NODE_AUTH_TOKEN`, токен в `.npmrc`) нет. Publish job: GitHub-hosted `ubuntu-latest`, `id-token: write`, без GitHub environment, Node `22.14.0`+, npm `11.5.1`+ (версия проверяется явно). Release-please job: `pull-requests: write`, `contents: write`, токен `RELEASE_PLEASE_TOKEN`.
 - Порядок публикации: react перед zustand; публикуются только пути из `paths_released`; ошибка останавливает дальнейшие публикации.
 - Типы коммитов: `feat`/`fix` дают релиз; `test`/`docs`/`chore`/`refactor` без breaking — нет; breaking — `feat!`. PR вливаются merge-коммитом.
-- Коммиты на русском в стиле репозиториев (`feat: …`, `chore: …`).
+- Коммиты на русском в стиле репозиториев (`feat: …`, `chore: …`); трейлер ко-авторства — по правилам сессии.
+- Работа в ветке `web-18`. Не выполнять без отдельного разрешения пользователя: `git push`, `npm publish`, GitHub Releases, настройку Trusted Publisher и секретов — это ручные шаги owner (Task 10 только перечисляет их).
+- Playground (`packages/react/playground`) вне `workspaces`, CI, релизов и корневых скриптов; его зависимости ставятся в его каталоге. Не добавлять его в `workspaces` (рекурсивные `node_modules`).
+- Раннер тестов — только `bun test` (без Vitest).
+- Сгенерированный `packages/openapi/src/api/schema.ts` исключён из oxfmt (`ignorePatterns`) и хранится в исходном виде.
+- История переносится `git subtree add` без `--squash`; история по каталогам не нужна.
 
 ## Review Focus
 
 - Zustand собран с `neverBundle: ["@cdd-team/react"]` — в `dist/` не должно остаться инлайна React (проверяет Task 5).
 - `@cdd-team/zustand/vanilla` импортируется там, где `@cdd-team/react` не установлен (Task 4, Task 5).
-- Чистая установка обоих локальных архивов вместе: registry не должен подтянуть `@maninthecoat/react` или старый `@cdd-team/react` (Task 5).
-- Коммит `test:`/`docs:` не создаёт release PR — скрытые типы в `changelog-sections` (Task 7).
+- Чистая установка обоих локальных архивов вместе: registry не должен подтянуть старый React (Task 5).
+- Коммит `test:`/`docs:` не создаёт release PR (Task 7).
+- `fix:` в React поднимает peer и devDependency Zustand до `^1.2.1` (Task 7).
 - Публикация при `paths_released = []` или только `packages/openapi` не трогает react/zustand (Task 8).
 
 ---
@@ -39,53 +45,53 @@
 - Create: `package.json`, `bunfig.toml`, `.gitignore`, `.bvmrc`, `tsconfig.base.json`, `oxlint.config.ts`, `oxfmt.config.ts`
 
 **Interfaces:**
-- Produces: корневые скрипты `lint`, `fmt:check`, `typecheck`, `test`, `build` = `bun run --filter './packages/*' <script>`; `tsconfig.base.json` с общими `compilerOptions` из `react/tsconfig.json` (`strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `verbatimModuleSyntax`, `moduleResolution: bundler`, `module: Preserve`, `target: ESNext`, `lib: [ESNext, DOM]`, `noEmit`, `skipLibCheck`, `types: [bun]`); `oxfmt.config.ts` (`useTabs: true`, ignore `**/*.md`, `**/*.json`, `**/*.lock`, `dist`); `oxlint.config.ts` (plugins `typescript`, `react`; `correctness: error`; правила `react/rules-of-hooks`, `react/exhaustive-deps`; override `files: ["**/test/react/**"]` → `react/globals: off`; игнор `dist/`, `node_modules/`).
+- Produces: корневые скрипты `lint`, `fmt:check`, `typecheck`, `test`, `build` = `bun run --filter './packages/*' <script>`; `tsconfig.base.json` с общими `compilerOptions` из `../react/tsconfig.json` (`strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `verbatimModuleSyntax`, `moduleResolution: bundler`, `module: Preserve`, `target: ESNext`, `lib: [ESNext, DOM]`, `noEmit`, `skipLibCheck`, `types: [bun]`); `oxfmt.config.ts` (`useTabs: true`, ignore `**/*.md`, `**/*.json`, `**/*.lock`, `dist`, `**/api/schema.ts`); `oxlint.config.ts` (plugins `typescript`, `react`; `correctness: error`; правила `react/rules-of-hooks`, `react/exhaustive-deps`; override `files: ["**/test/react/**"]` → `react/globals: off`; игнор `dist/`, `node_modules/`, `packages/react/playground/`). Корневой `package.json` с `"type": "module"` (иначе Node предупреждает при загрузке `oxlint.config.ts`).
 
-- [ ] **Step 1:** `package.json`: `"private": true`, `"workspaces": ["packages/*"]`, `"packageManager": "bun@1.4.2"`, devDependencies с едиными версиями `typescript@7.0.2`, `tsdown@0.23.0`, `oxlint@^1.79.0`, `oxfmt@^0.64.0`, `@types/bun@1.4.2`.
-- [ ] **Step 2:** остальные файлы из Interfaces; `.gitignore` скопировать из `../react/.gitignore`, `.bvmrc` = `1.4.2`.
+- [ ] **Step 1:** `package.json`: `"private": true`, `"workspaces": ["packages/react", "packages/zustand", "packages/openapi"]` (явный список, playground не входит), `"packageManager": "bun@1.4.2"`, devDependencies с едиными версиями `typescript@7.0.2`, `tsdown@0.23.0`, `oxlint@^1.79.0`, `oxfmt@^0.64.0`, `@types/bun@1.4.2`.
+- [ ] **Step 2:** остальные файлы из Interfaces; `.gitignore` — из `../react/.gitignore`, `.bvmrc` = `1.4.2`.
 - [ ] **Step 3:** `bun install` — Expected: lockfile создан без ошибок.
 - [ ] **Step 4: Commit** `chore: каркас bun workspaces и общие конфиги`
 
 ### Task 2: Перенос истории трёх репозиториев
 
-**Files:** `packages/react/**`, `packages/zustand/**`, `packages/openapi/**` (создаются через subtree).
+**Files:** `packages/react/**`, `packages/zustand/**`, `packages/openapi/**` (создаются через subtree), `.github/workflows/automation.yml`.
 
 **Interfaces:** Produces: содержимое старых репозиториев (включая `react/playground`) под `packages/<name>/`, история сохранена.
 
-- [ ] **Step 1:** Для каждой пары (`react`→`packages/react`, `zustand-cdd`→`packages/zustand`, `openapi-cdd`→`packages/openapi`): `git subtree add --prefix=packages/<name> https://github.com/Cringe-Driven-Development-Team/<repo>.git main` (без `--squash`). Expected: исходные коммиты в `git log`.
-- [ ] **Step 2:** Проверка авторства: `git shortlog -sne` содержит `ManInTheCoat` и `Yaroslav Mihalev`; число коммитов ≥ 1 + 23 + 9 + 13.
-- [ ] **Step 3:** Удалить дублирующее корень: `packages/*/bun.lock`, `packages/*/.npmrc` (сначала прочитать — токенов быть не должно), `packages/*/.gitignore` (кроме `packages/react/playground/.gitignore`), `packages/*/.idea`, `packages/react/.bvmrc`, `packages/react/oxfmt.config.ts`, `packages/zustand/{oxfmt,oxlint}.config.ts`, `packages/openapi/.github` и `packages/react/.github` (workflow `automation.yml` из react сначала скопировать в корневой `.github/workflows/automation.yml` без изменений; CI пишется в Task 6).
+- [ ] **Step 1:** Ветка `main` каждого репозитория на момент импорта. Для каждой пары (`react`→`packages/react`, `zustand-cdd`→`packages/zustand`, `openapi-cdd`→`packages/openapi`): `git subtree add --prefix=packages/<name> https://github.com/Cringe-Driven-Development-Team/<repo>.git main` (без `--squash`; перед каждым вызовом дерево чистое). Expected: исходные коммиты в `git log`.
+- [ ] **Step 2:** Авторы: `git shortlog -sn HEAD` содержит `ManInTheCoat`, `Yaroslav Mihalev`, `iRedTea`; число коммитов не меньше суммы коммитов трёх репозиториев.
+- [ ] **Step 3:** Удалить дублирующее корень: `packages/*/bun.lock`, `packages/*/.npmrc` (сначала прочитать — токенов быть не должно; в отчёт значения не выводить), `packages/*/.gitignore`, `packages/*/.idea`, `packages/react/.bvmrc`, `packages/react/oxfmt.config.ts`, `packages/zustand/{oxfmt,oxlint}.config.ts`, `packages/react/playground/{.npmrc,bun.lock}`; сохранить `packages/react/playground/.gitignore`. Workflow `packages/react/.github/workflows/automation.yml` скопировать без изменений в корневой `.github/workflows/automation.yml`, затем удалить `packages/react/.github` и `packages/openapi/.github`.
 - [ ] **Step 4: Commit** `chore: удалены дублирующие конфиги перенесённых пакетов`
 
 ### Task 3: Переименование и унификация пакетов
 
-**Files:** `packages/*/package.json`, `packages/*/tsconfig.json`, `packages/*/tsdown.config.ts`, `packages/*/README.md`, `packages/react/playground/{package.json,tsconfig.json,src/**}`, все `src/**` и `test/**` с импортами `@maninthecoat/react`.
+**Files:** `packages/*/package.json`, `packages/*/tsconfig.json`, `packages/*/tsdown.config.ts`, `packages/*/README.md`, `packages/openapi/docs/**`, `packages/react/playground/{package.json,tsconfig.json,src/**}`, все `src/**` и `test/**` с импортами `@maninthecoat/react`.
 
 **Interfaces:**
-- Consumes: Task 1 (`tsconfig.base.json`, корневые конфиги).
+- Consumes: Task 1.
 - Produces: манифесты с `name`, `version` (react `1.2.0`, zustand `1.0.0`, openapi `0.2.0`), `repository: {type:"git", url, directory}`, `publishConfig: {access:"public"}`; скрипты `lint: "oxlint -c ../../oxlint.config.ts src [test]"`, `fmt:check: "oxfmt -c ../../oxfmt.config.ts --check src [test]"`, `typecheck: "tsc --noEmit"`, `test`, `build: "tsdown"`; у zustand `peerDependencies: {"@cdd-team/react": "^1.2.0"}` + optional meta, `devDependencies: {"@cdd-team/react": "^1.2.0"}`.
 
-- [ ] **Step 1:** Заменить во всех файлах пакетов `@maninthecoat/react`→`@cdd-team/react`, `@maninthecoat/zustand`→`@cdd-team/zustand`, `@iredtea/openapi`→`@cdd-team/openapi` (включая `jsxImportSource` и `paths` в react, `neverBundle` в zustand, README, docs). Проверка: `git grep -nE "@maninthecoat|@iredtea" -- . ':!docs/superpowers'` — пусто. Файлы читать и писать как UTF-8 (описания в `package.json` на кириллице).
-- [ ] **Step 2:** Манифесты по Interfaces; удалить `release:*`, `prepublishOnly`, `format*`, `fmt`; скрипты `apidog`, `generate`, `sync`, `demo` в openapi оставить.
-- [ ] **Step 3:** `tsconfig.json` каждого пакета: `extends: "../../tsconfig.base.json"` + специфика (jsx/jsxImportSource/paths у react и zustand), `include` как раньше.
-- [ ] **Step 4:** Playground добавить в корневой `workspaces` строкой `packages/react/playground`; зависимость `@cdd-team/react: ^1.2.0` резолвится локально; общий набор скриптов его не касается (корневые скрипты фильтруют `./packages/*`).
-- [ ] **Step 5:** `bun install && bun run lint && bun run fmt:check && bun run typecheck && bun run build` — Expected: зелёные. `fmt:check` падает → `bun x oxfmt -c oxfmt.config.ts <dirs>` и повторить.
+- [ ] **Step 1:** Заменить во всех файлах пакетов `@maninthecoat/react`→`@cdd-team/react`, `@maninthecoat/zustand`→`@cdd-team/zustand`, `@iredtea/openapi`→`@cdd-team/openapi` (включая `jsxImportSource` и `paths` в react, `neverBundle` в zustand, README и `packages/openapi/docs`; в `docs/publishing.md` переписать описание публикации под процесс release-please/OIDC). Проверка: `git grep -nE "@maninthecoat|@iredtea|iredtea" -- . ':!docs/superpowers'` — пусто. Файлы читать и писать как UTF-8 без BOM (описания пакетов на кириллице; консоль Windows показывает кракозябры у корректных файлов — проверять чтением через bun).
+- [ ] **Step 2:** Манифесты по Interfaces; удалить `release:*`, `prepublishOnly`, `format*`, `fmt`; версии `typescript`/`tsdown`/`oxlint`/`oxfmt`/`@types/bun` убрать из пакетов (они в корне); скрипты `apidog`, `generate`, `sync`, `demo` в openapi оставить.
+- [ ] **Step 3:** `tsconfig.json` каждого пакета: `extends: "../../tsconfig.base.json"` + специфика (jsx/jsxImportSource/paths у react, jsx у zustand), `include` как раньше.
+- [ ] **Step 4:** Playground вне `workspaces`: его `package.json` ссылается на `@cdd-team/react` диапазоном `^1.2.0`, `jsxImportSource` переименован. Проверить, что `bun run --filter './packages/*' build` не захватывает вложенный `packages/react/playground`; если захватывает — фильтр `./packages/{react,zustand,openapi}`. В README пакета react описать запуск стенда (рабочий способ получить локальный React: `bun link` или `file:`-зависимость на собранный `dist`; выбрать работающий вариант и записать).
+- [ ] **Step 5:** `bun install && bun run lint && bun run fmt:check && bun run typecheck && bun run build` — Expected: зелёные. Тесты zustand проходят (`bun run --filter @cdd-team/zustand test`; React собран заранее). Если `fmt:check` падает на перенесённом коде — отдельный коммит `chore: форматирование перенесённого кода` (`schema.ts` не форматировать). Правки кода ради линтера минимальны, список — в отчёте.
 - [ ] **Step 6: Commit** `feat: пакеты переименованы в @cdd-team и приведены к общему набору скриптов`
 
 ### Task 4: Тесты пакетов и runtime-интеграция
 
 **Files:**
-- Create: `packages/react/test/smoke.test.tsx`, `packages/react/test/setup-dom.ts` (копия `packages/zustand/test/setup-dom.ts`), `packages/openapi/test/smoke.test.ts`, `tests/integration/react-zustand.test.tsx`, `tests/integration/vanilla.test.ts`, `tests/integration/setup-dom.ts`
-- Modify: `packages/react/package.json`, `packages/openapi/package.json` (скрипт `test`), корневой `package.json` (`test:integration`)
+- Create: `packages/react/test/smoke.test.tsx`, `packages/react/test/setup-dom.ts` (копия `packages/zustand/test/setup-dom.ts`), `packages/openapi/test/smoke.test.ts`, `tests/integration/react-zustand.test.tsx`, `tests/integration/vanilla.test.ts`, `tests/integration/setup-dom.ts`, корневой `tsconfig.json` (extends base, `include: ["tests", "scripts"]`, `jsx: react-jsx`, `jsxImportSource: @cdd-team/react`)
+- Modify: `packages/react/package.json`, `packages/openapi/package.json` (скрипт `test`), корневой `package.json` (`test:integration`; `lint`, `fmt:check`, `typecheck` дополнительно проверяют `tests` и `scripts`)
 
 **Interfaces:**
-- Produces: `bun run test` в каждом пакете; корневой `test:integration` = `bun test --preload ./tests/integration/setup-dom.ts tests/integration/react-zustand.test.tsx && bun test tests/integration/vanilla.test.ts`.
+- Produces: `bun run test` в каждом пакете; корневой `test:integration` = `bun test --preload ./tests/integration/setup-dom.ts tests/integration/react-zustand.test.tsx && bun test tests/integration/vanilla.test.ts`. Для тестов, импортирующих workspace-пакеты по имени, `@cdd-team/react` собирается заранее (его `exports` ведут в `dist`).
 
-- [ ] **Step 1:** `smoke.test.tsx` (react): компонент со счётчиком на `useState` рендерится публичным API из `../src` в happy-dom, клик увеличивает значение. `"test": "bun test --preload ./test/setup-dom.ts test"`.
-- [ ] **Step 2:** `smoke.test.ts` (openapi): минимальная spec через публичный `generator` даёт вывод с именем пути (публичные экспорты — по `src/index.ts`/`src/generator.ts`). `"test": "bun test test"`.
-- [ ] **Step 3:** `react-zustand.test.tsx`: `render`/хуки из `@cdd-team/react`, `createStore`/`useStore` из `@cdd-team/zustand` (workspace-резолв); тест «компонент читает store через хук, `setState` обновляет DOM» — ожидание по образцу `packages/zustand/test/react/utils.ts`.
+- [ ] **Step 1:** `smoke.test.tsx` (react): компонент со счётчиком на `useState` рендерится публичным API из `../src` в happy-dom, клик увеличивает значение (образец — `packages/zustand/test/react/*`). `"test": "bun test --preload ./test/setup-dom.ts test"`.
+- [ ] **Step 2:** `smoke.test.ts` (openapi): минимальная spec через публичный `generator` даёт вывод с именем пути и типом ответа (экспорты — по `src/index.ts`/`src/generator.ts`). `"test": "bun test test"`.
+- [ ] **Step 3:** `react-zustand.test.tsx`: `render`/хуки из `@cdd-team/react` и `createStore`/`useStore` из `@cdd-team/zustand`; тест «компонент читает store через хук, `setState` обновляет DOM» (ожидание по образцу `packages/zustand/test/react/utils.ts`).
 - [ ] **Step 4:** `vanilla.test.ts`: импорт только `@cdd-team/zustand/vanilla`, подписка срабатывает; запускается без preload и без импорта react.
-- [ ] **Step 5:** `bun run test && bun run test:integration` — Expected: PASS. Затем временно сломать `useStore`, убедиться, что интеграционный тест падает, откатить.
+- [ ] **Step 5:** TDD-доказательство: каждый тест сначала запущен до реализации/в сломанном виде и падает, затем зелёный. Затем временно сломать `useStore`, убедиться, что интеграционный тест падает, откатить. `bun run test && bun run test:integration` — PASS.
 - [ ] **Step 6: Commit** `test: smoke-тесты пакетов и интеграция react + zustand`
 
 ### Task 5: Проверка архивов в чистом проекте
@@ -110,9 +116,9 @@
 
 **Interfaces:** Produces: workflow `CI` на `pull_request` (все ветки, включая `release-please--*`) и `push` в `main`.
 
-- [ ] **Step 1:** Job `check`: `actions/checkout@v7`, `oven-sh/setup-bun@v2` (`bun-version: 1.4.2`), `bun install --frozen-lockfile`, затем `fmt:check`, `lint`, `typecheck`, `test`, `test:integration`, `test:release`, `build`. Job `packages` (needs `check`): `actions/setup-node` с Node 22.14.0, `bun run verify:packages`. Права `contents: read`.
-- [ ] **Step 2:** PR от `GITHUB_TOKEN` workflow не запускает — release-please (Task 8) работает с `RELEASE_PLEASE_TOKEN`; отметить в README и runbook.
-- [ ] **Step 3:** Проверить синтаксис (`actionlint`, если нет — `bunx --bun yaml-lint`/ручной разбор через `bun -e "Bun.YAML.parse(...)"`).
+- [ ] **Step 1:** Job `check` (`ubuntu-latest`): `actions/checkout@v7`, `oven-sh/setup-bun@v2` (`bun-version: 1.4.2`), `bun install --frozen-lockfile`, затем `fmt:check`, `lint`, `typecheck`, `build`, `test`, `test:integration`, `test:release`. Job `packages` (needs `check`): `actions/setup-node` с Node 22.14.0, `bun run verify:packages`. Права `contents: read`.
+- [ ] **Step 2:** PR от `GITHUB_TOKEN` workflow не запускает — release-please (Task 8) работает с `RELEASE_PLEASE_TOKEN` (fine-grained PAT: Contents и Pull requests read/write, только `frontend-packages`; срок жизни продлевать); описать в README и runbook. Проверка архивов идёт и на release PR.
+- [ ] **Step 3:** Проверить синтаксис (`actionlint`, если нет — разбор YAML через `bun -e "Bun.YAML.parse(...)"`).
 - [ ] **Step 4: Commit** `ci: проверки пакетов и установка архивов в чистый проект`
 
 ### Task 7: release-please
@@ -123,7 +129,8 @@
 
 - [ ] **Step 1 (failing test):** `release-config.test.ts` проверяет всё из Interfaces плюс совпадение версии каждого `packages/*/package.json` с manifest. `bun run test:release` — FAIL.
 - [ ] **Step 2:** Создать файлы; PASS.
-- [ ] **Step 3: Commit** `ci: release-please в manifest-режиме с node-workspace`
+- [ ] **Step 3:** Правило обновления peer: проверить по документации/исходникам release-please, что `node-workspace` с `updatePeerDependencies: true` поднимает caret-диапазон `peerDependencies` и `devDependencies` Zustand при выпуске React. Если `devDependencies` или caret-диапазон не обновляются — добавить в конфиг `extra-files` (jsonpath) для `packages/zustand/package.json` (`$.peerDependencies['@cdd-team/react']`, `$.devDependencies['@cdd-team/react']`). Тест подтверждает, что либо плагин, либо `extra-files` покрывают оба поля; выбранный вариант записать в runbook.
+- [ ] **Step 4: Commit** `ci: release-please в manifest-режиме с node-workspace`
 
 ### Task 8: Workflow выпуска и публикация
 
@@ -134,7 +141,7 @@
 
 - [ ] **Step 1 (failing tests):** порядок `["packages/zustand","packages/openapi","packages/react"]` → react, zustand, openapi; `[]` не вызывает `run`; падение первой публикации — `run` вызван один раз; `["packages/openapi"]` не публикует react/zustand. FAIL.
 - [ ] **Step 2:** Реализовать; PASS.
-- [ ] **Step 3:** `release.yml` (триггер `push` в `main`): job `release-please` (`contents: write`, `pull-requests: write`; `googleapis/release-please-action@v4`, `config-file`, `manifest-file`, `token: ${{ secrets.RELEASE_PLEASE_TOKEN }}`; outputs `releases_created`, `paths_released`); job `publish` (`needs`, `if: needs.release-please.outputs.releases_created == 'true'`, GitHub-hosted runner, `contents: read`, `id-token: write`; checkout, setup-bun, `actions/setup-node` с `node-version: 22.14.0` и `registry-url` без `NODE_AUTH_TOKEN`; явная проверка `node --version` ≥ 22.14.0 и `npm --version` ≥ 11.5.1 с `npm install -g npm@^11.5.1` при необходимости; `bun install --frozen-lockfile`, `bun run build`, `bun run verify:packages`, `bun scripts/publish-released.ts '${{ needs.release-please.outputs.paths_released }}'`). Environment не использовать.
+- [ ] **Step 3:** `release.yml` (триггер `push` в `main`): job `release-please` (`contents: write`, `pull-requests: write`; `googleapis/release-please-action@v4`, `config-file`, `manifest-file`, `token: ${{ secrets.RELEASE_PLEASE_TOKEN }}`; outputs `releases_created`, `paths_released`). Job `publish` (`needs`, `if: needs.release-please.outputs.releases_created == 'true'`, `ubuntu-latest`, `contents: read`, `id-token: write`, без `environment`; checkout релизного коммита, setup-bun, `actions/setup-node` с `node-version: 22.14.0` и `registry-url` без `NODE_AUTH_TOKEN`; явная проверка `node --version` ≥ 22.14.0 и `npm --version` ≥ 11.5.1 с `npm install -g npm@^11.5.1` при необходимости; `bun install --frozen-lockfile`, `bun run build`, `bun run verify:packages`, `bun scripts/publish-released.ts '${{ needs.release-please.outputs.paths_released }}'`). Публикация не стартует при падении проверок.
 - [ ] **Step 4:** Проверить синтаксис как в Task 6; `git grep -nE "NPM_TOKEN|NODE_AUTH_TOKEN|_authToken" -- . ':!docs'` — пусто.
 - [ ] **Step 5: Commit** `ci: автоматическая публикация изменённых пакетов через OIDC`
 
@@ -142,13 +149,13 @@
 
 **Files:** Modify: `README.md`; Create: `docs/release-runbook.md`
 
-- [ ] **Step 1:** `README.md`: структура, как добавить пакет (каталог, строки в `release-please-config.json` и manifest, Trusted Publisher), роли инструментов (Bun — установка/тулинг/тесты/сборка; npm CLI — OIDC-публикация; release-please — версии/CHANGELOG/release PR), типы коммитов (`feat`/`fix` → релиз; `test`/`docs`/`chore`/`refactor` без breaking — нет; breaking — `feat!`; накопленные изменения учитываются; merge-коммит), ссылка на https://docs.cellestial.ru/modules/2/tracks/front-libs.
-- [ ] **Step 2:** `docs/release-runbook.md`: (а) bootstrap — `npm publish --access public` react → zustand → openapi участником с правами на `cdd-team` (интерактивный login + 2FA), проверка `npm view`, GitHub Releases `react-v1.2.0`/`zustand-v1.0.0`/`openapi-v0.2.0` на проверенном коммите, соответствие manifest; (б) Trusted Publishing — owner `Cringe-Driven-Development-Team`, repo `frontend-packages`, workflow `release.yml`, **Allow npm publish**, подтверждение выпуском в течение двух дней; (в) секрет `RELEASE_PLEASE_TOKEN`; (г) восстановление частичного выпуска — логи, теги, `npm view <pkg>@<ver>`, задержка registry, не перезаписывать существующее, публиковать только отсутствующие пути из того же коммита (`bun scripts/publish-released.ts '["packages/zustand"]'`), изменение содержимого — новая версия, затем повторные `npm view` и чистая установка; (д) сценарий проверки `fix:` в react → react `1.2.1`, zustand `1.0.1`, peer `^1.2.1`, OpenAPI `0.2.0` без выпуска.
-- [ ] **Step 3:** `git grep -nE "@maninthecoat|@iredtea" -- README.md docs/release-runbook.md` — пусто.
+- [ ] **Step 1:** `README.md`: структура, как добавить пакет (каталог, строки в `release-please-config.json` и manifest, Trusted Publisher), роли инструментов (Bun — установка/тулинг/тесты/сборка; npm CLI — OIDC-публикация; release-please — версии/CHANGELOG/release PR), типы коммитов (`feat`/`fix` → релиз; `test`/`docs`/`chore`/`refactor` без breaking — нет; breaking — `feat!`; накопленные изменения учитываются; merge-коммит), playground как ручной стенд, замечание про рекурсивные `node_modules` на Windows, ссылка на https://docs.cellestial.ru/modules/2/tracks/front-libs.
+- [ ] **Step 2:** `docs/release-runbook.md`: (а) bootstrap — `npm publish --access public` react → zustand → openapi owner'ом организации `cdd-team` (интерактивный login + 2FA), проверка `npm view`, GitHub Releases `react-v1.2.0`/`zustand-v1.0.0`/`openapi-v0.2.0` на проверенном коммите, соответствие manifest; (б) Trusted Publishing — owner `Cringe-Driven-Development-Team`, repo `frontend-packages`, workflow `release.yml`, без environment, **Allow npm publish**, подтверждение выпуском в течение двух дней; (в) секрет `RELEASE_PLEASE_TOKEN` (права, срок жизни, кто продлевает); (г) восстановление частичного выпуска — логи, теги, `npm view <pkg>@<ver>`, задержка registry, не перезаписывать существующее, публиковать только отсутствующие пути из того же коммита (`bun scripts/publish-released.ts '["packages/zustand"]'`), изменение содержимого — новая версия, затем повторные `npm view` и чистая установка; (д) сценарий проверки `fix:` в react → react `1.2.1`, zustand `1.0.1`, peer `^1.2.1`, OpenAPI `0.2.0` без выпуска; выбранный в Task 7 механизм обновления peer.
+- [ ] **Step 3:** `git grep -nE "@maninthecoat|@iredtea" -- README.md docs/release-runbook.md packages/*/README.md packages/openapi/docs` — пусто.
 - [ ] **Step 4: Commit** `docs: README монорепо и runbook выпуска`
 
 ### Task 10: Итоговая локальная проверка
 
-- [ ] **Step 1:** `bun install --frozen-lockfile && bun run fmt:check && bun run lint && bun run typecheck && bun run test && bun run test:integration && bun run test:release && bun run build && bun run verify:packages` — Expected: всё зелёное.
-- [ ] **Step 2:** `git shortlog -sne` — исходные авторы на месте.
-- [ ] **Step 3:** Список ручных действий для человека (не выполнять): push `web-18` и PR со строкой `Closes Cringe-Driven-Development-Team/frontend#18`; организация `cdd-team` и bootstrap-публикация; GitHub Releases; Trusted Publisher для трёх пакетов; секрет `RELEASE_PLEASE_TOKEN`.
+- [ ] **Step 1:** `bun install --frozen-lockfile && bun run fmt:check && bun run lint && bun run typecheck && bun run build && bun run test && bun run test:integration && bun run test:release && bun run verify:packages` — Expected: всё зелёное.
+- [ ] **Step 2:** `git shortlog -sn HEAD` — исходные авторы на месте; `git grep` по `@maninthecoat|@iredtea` вне `docs/superpowers` пуст.
+- [ ] **Step 3:** Список ручных действий для человека (не выполнять): push `web-18` и PR со строкой `Closes Cringe-Driven-Development-Team/frontend#18`; bootstrap-публикация в npm; GitHub Releases с тегами; Trusted Publisher для трёх пакетов; продление `RELEASE_PLEASE_TOKEN`.
