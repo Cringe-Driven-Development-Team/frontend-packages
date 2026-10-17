@@ -1,16 +1,57 @@
-import { describe, it } from "node:test";
-import { RuleTester } from "oxlint/plugins-dev";
+import { describe, expect, test } from "bun:test";
+import { lintCases, type LintCase, type RuleName } from "./helpers/lint-cases.ts";
 
-import plugin from "../src/index.ts";
+// Кейсы перенесены из RuleTester без изменений: данные те же, а прогоняет их CLI oxlint.
+// RuleTester из oxlint не работает под Bun, поэтому тесты идут через собранный плагин.
+type ExpectedError = { message: string; line?: number };
+type Case = string | (LintCase & { errors?: ExpectedError[] });
 
-RuleTester.describe = describe;
-RuleTester.it = it;
+const normalize = (testCase: Case): LintCase & { errors?: ExpectedError[] } =>
+	typeof testCase === "string" ? { code: testCase } : testCase;
 
-// свои типы плагина уже, чем у oxlint (src/types.ts), поэтому правило приводится к его типу
-type TestedRule = Parameters<RuleTester["run"]>[1];
-const rule = (name: string) => plugin.rules[name] as unknown as TestedRule;
+const rule = (name: RuleName): RuleName => name;
 
-const tester = new RuleTester({ languageOptions: { sourceType: "module" } });
+// Сколько кейсов было в исходных тестах на RuleTester (valid + invalid): 50 в сумме.
+const EXPECTED_COUNTS: Record<RuleName, number> = { "require-jsdoc": 37, "check-param-names": 13 };
+
+const tester = {
+	run(name: RuleName, _rule: RuleName, cases: { valid: Case[]; invalid: Case[] }) {
+		describe(name, () => {
+			const all = [
+				...cases.valid.map((testCase) => ({
+					kind: "valid" as const,
+					testCase: normalize(testCase),
+				})),
+				...cases.invalid.map((testCase) => ({
+					kind: "invalid" as const,
+					testCase: normalize(testCase),
+				})),
+			];
+			const results = lintCases(
+				name,
+				all.map(({ testCase }) => ({ code: testCase.code, filename: testCase.filename })),
+			);
+
+			test("число кейсов не меньше исходного", () => {
+				expect(all.length).toBe(EXPECTED_COUNTS[name]);
+			});
+
+			all.forEach(({ kind, testCase }, index) => {
+				const title = `${kind}: ${testCase.code.replaceAll("\n", "⏎").slice(0, 70)}`;
+				test(title, async () => {
+					const diagnostics = (await results)[index]!;
+					const expected = testCase.errors ?? [];
+
+					expect(diagnostics.map((d) => d.message)).toEqual(expected.map((e) => e.message));
+					expected.forEach((error, errorIndex) => {
+						if (error.line !== undefined) expect(diagnostics[errorIndex]!.line).toBe(error.line);
+					});
+				});
+			});
+		});
+	},
+};
+
 const ts = { filename: "file.ts" };
 const HINT = "добавьте комментарий /** … */ перед объявлением";
 const noJsdoc = (name: string) => `У экспорта «${name}» нет JSDoc: ${HINT}`;
