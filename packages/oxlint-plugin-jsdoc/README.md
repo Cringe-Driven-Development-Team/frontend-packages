@@ -95,11 +95,14 @@ export function greet(title: string): string {
 
 ## Разработка
 
+Пакет живёт в монорепозитории [frontend-packages](https://github.com/Cringe-Driven-Development-Team/frontend-packages),
+команды запускаются из его корня:
+
 ```sh
 bun install
-bun run typecheck
-bun run test    # bun test: собирает dist и гоняет кейсы через CLI oxlint (oxlint исполняет JS-плагины в Node ≥ 20.19 или ≥ 22.12, если он установлен)
-bun run build   # tsdown → dist/
+bun run --filter @cdd-team/oxlint-plugin-jsdoc typecheck
+bun run --filter @cdd-team/oxlint-plugin-jsdoc test    # bun test: собирает dist и гоняет кейсы через CLI oxlint (oxlint исполняет JS-плагины в Node ≥ 20.19 или ≥ 22.12, если он установлен)
+bun run --filter @cdd-team/oxlint-plugin-jsdoc build   # tsdown → dist/
 ```
 
 Правила лежат в `src/rules/`, общий разбор JSDoc — в `src/jsdoc.ts`. Типы API плагинов в
