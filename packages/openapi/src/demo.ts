@@ -7,10 +7,17 @@ const baseUrl = process.env.API_BASE_URL || MOCK_BASE_URL;
 
 const api = createClient<paths>({ baseUrl, credentials: "include" });
 
-function show(step: number, method: string, path: string, response: Response, data: unknown, error: unknown) {
-  console.log(`\n${step}. ${method} ${path} -> ${response.status}`);
-  if (error !== undefined) console.log("error:", JSON.stringify(error, null, 2));
-  else console.log("data:", JSON.stringify(data, null, 2));
+function show(
+	step: number,
+	method: string,
+	path: string,
+	response: Response,
+	data: unknown,
+	error: unknown,
+) {
+	console.log(`\n${step}. ${method} ${path} -> ${response.status}`);
+	if (error !== undefined) console.log("error:", JSON.stringify(error, null, 2));
+	else console.log("data:", JSON.stringify(data, null, 2));
 }
 
 console.log(`Base URL: ${baseUrl}`);
@@ -28,12 +35,12 @@ const created = await api.POST("/notebooks", { body: { name: "Черновик" 
 show(4, "POST", "/notebooks", created.response, created.data, created.error);
 
 if (created.data) {
-  const one = await api.GET("/notebooks/{id}", { params: { path: { id: created.data.id } } });
-  show(5, "GET", "/notebooks/{id}", one.response, one.data, one.error);
+	const one = await api.GET("/notebooks/{id}", { params: { path: { id: created.data.id } } });
+	show(5, "GET", "/notebooks/{id}", one.response, one.data, one.error);
 } else {
-  console.log("\n5. GET /notebooks/{id} пропущен: нотбук не создан");
+	console.log("\n5. GET /notebooks/{id} пропущен: нотбук не создан");
 }
 
 console.log("\nОсобенности мока:");
-console.log("- format из спеки не соблюдается (id вида \"17\", даты вида \"2027-03-26\").");
+console.log('- format из спеки не соблюдается (id вида "17", даты вида "2027-03-26").');
 console.log("- тело запроса не проверяется (мок примет и невалидное тело).");
