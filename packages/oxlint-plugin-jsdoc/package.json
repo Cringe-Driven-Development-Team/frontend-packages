@@ -1,0 +1,46 @@
+{
+  "name": "@iredtea/oxlint-plugin-jsdoc",
+  "version": "0.1.1",
+  "description": "Правила oxlint про JSDoc, которых нет в его плагине jsdoc: require-jsdoc для экспортов и check-param-names",
+  "license": "MIT",
+  "repository": "https://github.com/Cringe-Driven-Development-Team/oxlint-plugin-jsdoc",
+  "keywords": ["oxlint", "oxlint-plugin", "jsdoc", "tsdoc", "lint"],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"test/*.test.ts\"",
+    "build": "tsdown",
+    "prepublishOnly": "bun run typecheck && bun run test && bun run build",
+    "release:patch": "bun pm version patch --no-git-tag-version && bun publish",
+    "release:minor": "bun pm version minor --no-git-tag-version && bun publish",
+    "release:major": "bun pm version major --no-git-tag-version && bun publish"
+  },
+  "peerDependencies": {
+    "oxlint": ">=1.86.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "oxlint": "1.86.0",
+    "tsdown": "0.23.0",
+    "typescript": "7.0.2"
+  }
+}
