@@ -15,7 +15,7 @@
   `workspaces`: зависимость на собственный пакет порождает рекурсивные `node_modules` на Windows.
 - Тесты `packages/oxlint-plugin-jsdoc` идут на `bun test` через CLI oxlint: `test` сначала собирает `dist`, помощник
   `test/helpers/lint-cases.ts` пишет кейсы во временные файлы и один раз запускает `oxlint --format json` с плагином.
-  `RuleTester` из oxlint не используй: он не работает под Bun. Node нужен самому oxlint для JS-плагинов.
+  `RuleTester` из oxlint не используй: он не работает под Bun. Если в системе есть Node, oxlint исполняет в нём JS-плагины (нужен ≥ 20.19 или ≥ 22.12); в CI он предустановлен.
 - Конфиги в корне: `oxlint.config.ts`, `oxfmt.config.ts`, `release-please-config.json`,
   `.release-please-manifest.json`. `packages/openapi/src/api/schema.ts` сгенерирован и исключён из oxfmt.
 

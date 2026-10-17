@@ -25,7 +25,7 @@
 
 ## 2. Trusted Publishing
 
-Для каждого из трёх пакетов, после его первой публикации: npmjs.com → пакет → Settings → Trusted Publisher → GitHub Actions:
+Для каждого из трёх пакетов (четвёртый, `@cdd-team/oxlint-plugin-jsdoc` — в разделе 6), после его первой публикации: npmjs.com → пакет → Settings → Trusted Publisher → GitHub Actions:
 
 | Поле | Значение |
 | --- | --- |
@@ -102,7 +102,7 @@ Optional peer и экспорт `./vanilla` в Zustand должны сохран
    ```sh
    cd packages/oxlint-plugin-jsdoc && npm publish --access public
    ```
-   (2FA и подтверждение в браузере, как в разделе 1; реальная версия появляется в реестре через несколько минут, заглушка `0.0.0-stage` остаётся в списке версий).
+   (2FA и подтверждение в браузере, как в разделе 1). Сразу после публикации `npm view` может показывать заглушку `0.0.0-stage` (так было у первых трёх пакетов): реальная версия появляется в реестре через несколько минут, заглушка остаётся в списке версий, но `latest` переключается на реальную. Повторно `npm publish` не запускайте, подождите и проверьте реестр.
 3. Проверить: `npm view @cdd-team/oxlint-plugin-jsdoc version` → `0.1.1`.
 4. На том же коммите создать GitHub Release с тегом `oxlint-plugin-jsdoc-v0.1.1` (baseline release-please); версия в `.release-please-manifest.json` должна совпадать.
 5. Закрыть без мержа устаревший release PR, если он успел появиться: актуальный release-please создаст при следующем пуше в `main`.

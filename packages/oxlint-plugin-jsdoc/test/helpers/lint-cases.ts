@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { basename, join, resolve } from "node:path";
 
 /** Правило плагина, которое включается в конфиге oxlint. */
 export type RuleName = "require-jsdoc" | "check-param-names";
@@ -70,9 +70,19 @@ export async function lintCases(rule: RuleName, cases: LintCase[]): Promise<Plug
 			throw new Error(`oxlint вернул не JSON.\nstdout: ${stdout}\nstderr: ${stderr}`);
 		}
 
+		// Любая диагностика не от правила (ошибка разбора, падение плагина) — это сбой теста,
+		// иначе `valid`-кейсы проходили бы с пустым списком диагностик.
+		const unexpected = output.diagnostics.filter((d) => d.code !== `cdd(${rule})`);
+		if (unexpected.length > 0) {
+			const details = unexpected
+				.map((d) => `${d.filename ? basename(d.filename) : "?"}: ${d.message}`)
+				.join("\n");
+			throw new Error(`oxlint сообщил не о правиле cdd/${rule}:\n${details}`);
+		}
+
 		return files.map((file) =>
 			output.diagnostics
-				.filter((d) => d.code === `cdd(${rule})` && resolve(d.filename) === resolve(file))
+				.filter((d) => resolve(d.filename) === resolve(file))
 				.map((d) => ({
 					message: d.message,
 					line: d.labels[0]!.span.line,

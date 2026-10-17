@@ -98,7 +98,7 @@ export function greet(title: string): string {
 ```sh
 bun install
 bun run typecheck
-bun run test    # bun test: собирает dist и гоняет кейсы через CLI oxlint (Node нужен самому oxlint)
+bun run test    # bun test: собирает dist и гоняет кейсы через CLI oxlint (oxlint исполняет JS-плагины в Node ≥ 20.19 или ≥ 22.12, если он установлен)
 bun run build   # tsdown → dist/
 ```
 

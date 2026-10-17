@@ -34,7 +34,7 @@ bun run fmt:check     # формат
 bun run lint          # линт
 bun run build         # сборка всех пакетов (нужна до typecheck и интеграции: Zustand берёт dist React)
 bun run typecheck     # типы
-bun run test          # тесты пакетов (тесты плагина jsdoc собирают dist и запускают CLI oxlint: Node ≥ 20.19 или ≥ 22.12 нужен самому oxlint)
+bun run test          # тесты пакетов (тесты плагина jsdoc собирают dist и запускают CLI oxlint; если Node установлен, oxlint исполняет JS-плагины в нём, и он должен быть ≥ 20.19 или ≥ 22.12)
 bun run test:integration  # React + Zustand в happy-dom и vanilla без React
 bun run test:scripts      # тесты скриптов и конфигурации release-please
 bun run verify:packages   # собрать npm-архивы и поставить их в чистый проект вне workspace
