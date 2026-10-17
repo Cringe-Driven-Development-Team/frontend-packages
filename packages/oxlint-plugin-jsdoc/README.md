@@ -1,4 +1,4 @@
-# oxlint-plugin-jsdoc
+# @cdd-team/oxlint-plugin-jsdoc
 
 Правила [oxlint](https://oxc.rs/docs/guide/usage/linter) про JSDoc, которых нет в его встроенном
 плагине `jsdoc`: обязательный комментарий у экспортов и сверка имён в `@param`
@@ -13,7 +13,7 @@
 ## Установка
 
 ```sh
-bun add -d @iredtea/oxlint-plugin-jsdoc   # или npm install -D @iredtea/oxlint-plugin-jsdoc
+bun add -d @cdd-team/oxlint-plugin-jsdoc   # или npm install -D @cdd-team/oxlint-plugin-jsdoc
 ```
 
 Нужен `oxlint` ≥ 1.86 — в нём есть `jsPlugins`. Плагины на JS oxlint выполняет под node
@@ -24,7 +24,7 @@ bun add -d @iredtea/oxlint-plugin-jsdoc   # или npm install -D @iredtea/oxlin
 import { defineConfig } from 'oxlint';
 
 export default defineConfig({
-    jsPlugins: ['@iredtea/oxlint-plugin-jsdoc'],
+    jsPlugins: ['@cdd-team/oxlint-plugin-jsdoc'],
     rules: {
         'cdd/require-jsdoc': 'error',
         'cdd/check-param-names': 'error',
@@ -106,5 +106,5 @@ bun run build   # tsdown → dist/
 `src/types.ts` свои: `oxlint` их не экспортирует. Тесты — `test/rules.test.ts` на `RuleTester`
 из `oxlint/plugins-dev`.
 
-Публикация — `bun run release:patch` (`minor`, `major`): поднимает версию и публикует в npm под
-`@iredtea`; перед публикацией `prepublishOnly` гоняет typecheck, тесты и сборку.
+Публикация автоматическая: версии, changelog и теги ведёт release-please, в npm пакет уходит из GitHub
+Actions по OIDC. Подробности — в README и `docs/release-runbook.md` монорепозитория `frontend-packages`.
