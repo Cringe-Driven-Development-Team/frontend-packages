@@ -98,13 +98,15 @@ export function greet(title: string): string {
 ```sh
 bun install
 bun run typecheck
-bun run test    # node --test: RuleTester из oxlint под bun не работает, нужен node ≥ 22.18
+bun run test    # bun test: собирает dist и гоняет кейсы через CLI oxlint (Node нужен самому oxlint)
 bun run build   # tsdown → dist/
 ```
 
 Правила лежат в `src/rules/`, общий разбор JSDoc — в `src/jsdoc.ts`. Типы API плагинов в
-`src/types.ts` свои: `oxlint` их не экспортирует. Тесты — `test/rules.test.ts` на `RuleTester`
-из `oxlint/plugins-dev`.
+`src/types.ts` свои: `oxlint` их не экспортирует. Тесты — `test/rules.test.ts`: кейсы
+пишутся во временные файлы, один раз запускается `oxlint --format json` с собранным плагином
+(`test/helpers/lint-cases.ts`), диагностики сверяются с ожидаемыми. `RuleTester` из `oxlint/plugins-dev`
+не используется: он не работает под Bun.
 
 Публикация автоматическая: версии, changelog и теги ведёт release-please, в npm пакет уходит из GitHub
 Actions по OIDC. Подробности — в README и `docs/release-runbook.md` монорепозитория `frontend-packages`.

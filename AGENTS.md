@@ -1,18 +1,21 @@
 # AGENTS.md
 
 Монорепозиторий учебных библиотек фронта Cringe-Driven-Development-Team: `@cdd-team/react`, `@cdd-team/zustand`,
-`@cdd-team/openapi`. Обзор, структура и команды — `README.md`; выпуск, bootstrap и восстановление после сбоя —
+`@cdd-team/openapi`, `@cdd-team/oxlint-plugin-jsdoc`. Обзор, структура и команды — `README.md`; выпуск, bootstrap и восстановление после сбоя —
 `docs/release-runbook.md`. Не копируй их сюда и не пересказывай: правь там.
 
 ## Что где лежит
 
-- `packages/react`, `packages/zustand`, `packages/openapi` — пакеты. У каждого свой `package.json`, `tsconfig.json`
+- `packages/react`, `packages/zustand`, `packages/openapi`, `packages/oxlint-plugin-jsdoc` — пакеты. У каждого свой `package.json`, `tsconfig.json`
   (расширяет `tsconfig.base.json`) и одинаковый набор скриптов: `lint`, `fmt:check`, `typecheck`, `test`, `build`.
 - `scripts/` — проверка архивов (`verify-packages.ts`), публикация (`publish-released.ts`) и их тесты;
   `scripts/fixtures/` — чистые проекты для установки архивов (`*.check.ts(x)`, не `*.test.*`).
 - `tests/integration/` — React + Zustand в happy-dom и vanilla Zustand без React.
 - `packages/react/playground` — ручной dev-стенд. Он вне `workspaces`, CI и релизов; не добавляй его в
   `workspaces`: зависимость на собственный пакет порождает рекурсивные `node_modules` на Windows.
+- Тесты `packages/oxlint-plugin-jsdoc` идут на `bun test` через CLI oxlint: `test` сначала собирает `dist`, помощник
+  `test/helpers/lint-cases.ts` пишет кейсы во временные файлы и один раз запускает `oxlint --format json` с плагином.
+  `RuleTester` из oxlint не используй: он не работает под Bun. Node нужен самому oxlint для JS-плагинов.
 - Конфиги в корне: `oxlint.config.ts`, `oxfmt.config.ts`, `release-please-config.json`,
   `.release-please-manifest.json`. `packages/openapi/src/api/schema.ts` сгенерирован и исключён из oxfmt.
 
