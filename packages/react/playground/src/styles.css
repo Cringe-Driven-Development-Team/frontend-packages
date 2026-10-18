@@ -103,6 +103,19 @@ h1 {
 	color: #344054;
 }
 
+.quick-add {
+	width: 138px;
+	padding: 10px 12px;
+	border: 1px solid #cbd5e1;
+	border-radius: 6px;
+	color: #344054;
+}
+
+.quick-add:focus {
+	border-color: #2563eb;
+	outline: 3px solid #bfdbfe;
+}
+
 .header-actions {
 	display: flex;
 	flex: 0 0 auto;
