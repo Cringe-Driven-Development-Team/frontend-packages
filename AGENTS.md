@@ -4,6 +4,9 @@
 `@cdd-team/openapi`, `@cdd-team/oxlint-plugin-jsdoc`. Обзор, структура и команды — `README.md`; выпуск, bootstrap и восстановление после сбоя —
 `docs/release-runbook.md`. Не копируй их сюда и не пересказывай: правь там.
 
+Общепроектный контекст, текущая архитектура и планы — в
+[docs/site/project-context.md](https://github.com/Cringe-Driven-Development-Team/docs/blob/main/site/project-context.md).
+
 ## Что где лежит
 
 - `packages/react`, `packages/zustand`, `packages/openapi`, `packages/oxlint-plugin-jsdoc` — пакеты. У каждого свой `package.json`, `tsconfig.json`
