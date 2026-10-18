@@ -8,6 +8,7 @@ import {
 	type Hook,
 	type MemoCallback,
 	type MemoHook,
+	type Ref,
 	type RefHook,
 	type RefObject,
 	type StateAction,
@@ -154,6 +155,29 @@ export function useCallback<Callback extends MemoCallback>(
 	return useMemo(() => callback, deps);
 }
 
+export function useImperativeHandle<Handle>(
+	ref: Ref<Handle> | undefined,
+	createHandle: () => Handle,
+	deps?: EffectDeps,
+): void {
+	const effectDeps = deps ? [...deps, ref] : undefined;
+
+	useLayoutEffect(() => {
+		if (ref == null) {
+			return;
+		}
+
+		const handle = createHandle();
+		setImperativeRef(ref, handle);
+
+		return () => {
+			setImperativeRef(ref, null);
+		};
+		// deps вызывающего плюс сам ref: handle пересоздаётся и при смене ref
+		// oxlint-disable-next-line react/exhaustive-deps
+	}, effectDeps);
+}
+
 export function useRef<Value>(initial: Value): RefObject<Value>;
 export function useRef<Value>(initial: Value | null): RefObject<Value | null>;
 export function useRef<Value>(initial: Value | undefined): RefObject<Value | undefined>;
@@ -295,6 +319,19 @@ function didDepsChange(
 	}
 
 	return nextDeps.some((dep, index) => !Object.is(dep, prevDeps[index]));
+}
+
+function setImperativeRef<Handle>(ref: Ref<Handle>, value: Handle | null): void {
+	if (ref == null) {
+		return;
+	}
+
+	if (typeof ref === "function") {
+		ref(value);
+		return;
+	}
+
+	ref.current = value;
 }
 
 function isStateHook(hook: Hook): hook is StateHook<unknown> {

@@ -11,6 +11,7 @@ export {
 	useCallback,
 	useContext,
 	useEffect,
+	useImperativeHandle,
 	useLayoutEffect,
 	useMemo,
 	useRef,

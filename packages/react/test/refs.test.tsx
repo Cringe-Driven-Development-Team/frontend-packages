@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { createRoot, memo, useLayoutEffect, useRef, useState } from "../src/index.ts";
+import {
+	createRoot,
+	memo,
+	useImperativeHandle,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "../src/index.ts";
 import type { Dispatch, ReactElement, Ref, RefObject } from "../src/index.ts";
 
 async function flush(): Promise<void> {
@@ -371,5 +378,66 @@ describe("ref prop", () => {
 		const element = <input ref={divRef} />;
 
 		expect(element).toBeDefined();
+	});
+});
+
+type Handle = { focus: () => void; value: string };
+
+function HandleOwner({ ref, value }: { ref?: Ref<Handle>; value: string }) {
+	useImperativeHandle(ref, () => ({ focus: () => {}, value }), [value]);
+	return <span>{value}</span>;
+}
+
+describe("useImperativeHandle", () => {
+	test("sets handle and clears on unmount", async () => {
+		const ref = createRef<Handle>();
+		const { root } = await mount(<HandleOwner ref={ref} value="a" />);
+
+		expect(typeof ref.current?.focus).toBe("function");
+		expect(ref.current?.value).toBe("a");
+
+		root.unmount();
+		await flush();
+
+		expect(ref.current).toBeNull();
+	});
+
+	test("recreates handle when deps change", async () => {
+		const ref = createRef<Handle>();
+		const handles: Array<Handle | null> = [];
+		const state = createSwitch({ value: "a", tick: 0 });
+
+		function App() {
+			const { value, tick } = state.useSwitch();
+			return (
+				<div data-tick={tick}>
+					<HandleOwner ref={ref} value={value} />
+				</div>
+			);
+		}
+
+		const { root } = await mount(<App />);
+		handles.push(ref.current);
+		await state.toggle({ value: "a", tick: 1 });
+		handles.push(ref.current);
+		await state.toggle({ value: "b", tick: 1 });
+		handles.push(ref.current);
+
+		expect(handles[1]).toBe(handles[0] as Handle);
+		expect(handles[2]).not.toBe(handles[1] as Handle);
+		expect(handles[2]?.value).toBe("b");
+		root.unmount();
+	});
+
+	test("callback ref receives handle then null", async () => {
+		const calls: Array<Handle | null> = [];
+		const { root } = await mount(<HandleOwner ref={(handle) => calls.push(handle)} value="a" />);
+
+		root.unmount();
+		await flush();
+
+		expect(calls).toHaveLength(2);
+		expect(calls[0]?.value).toBe("a");
+		expect(calls[1]).toBeNull();
 	});
 });
