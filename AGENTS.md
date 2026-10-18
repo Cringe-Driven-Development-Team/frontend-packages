@@ -4,6 +4,9 @@
 `@cdd-team/openapi`, `@cdd-team/oxlint-plugin-jsdoc`. Обзор, структура и команды — `README.md`; выпуск, bootstrap и восстановление после сбоя —
 `docs/release-runbook.md`. Не копируй их сюда и не пересказывай: правь там.
 
+Общепроектный контекст, текущая архитектура и планы — в
+[Контекст проекта](https://docs.cellestial.ru/project-context).
+
 ## Что где лежит
 
 - `packages/react`, `packages/zustand`, `packages/openapi`, `packages/oxlint-plugin-jsdoc` — пакеты. У каждого свой `package.json`, `tsconfig.json`
