@@ -12,12 +12,17 @@ export const FiberFlags = {
 	MOVE: 1 << 3,
 	LAYOUT: 1 << 4,
 	PASSIVE: 1 << 5,
+	REF: 1 << 6,
 } as const;
 
 export type FiberFlags = number;
 
 export const MutationMask =
-	FiberFlags.PLACEMENT | FiberFlags.UPDATE | FiberFlags.CHILD_DELETION | FiberFlags.MOVE;
+	FiberFlags.PLACEMENT |
+	FiberFlags.UPDATE |
+	FiberFlags.CHILD_DELETION |
+	FiberFlags.MOVE |
+	FiberFlags.REF;
 
 export const LayoutMask = FiberFlags.LAYOUT;
 export const PassiveMask = FiberFlags.PASSIVE;
