@@ -5,7 +5,7 @@
 `docs/release-runbook.md`. Не копируй их сюда и не пересказывай: правь там.
 
 Общепроектный контекст, текущая архитектура и планы — в
-[docs/site/project-context.md](https://github.com/Cringe-Driven-Development-Team/docs/blob/main/site/project-context.md).
+[Контекст проекта](https://docs.cellestial.ru/project-context).
 
 ## Что где лежит
 
