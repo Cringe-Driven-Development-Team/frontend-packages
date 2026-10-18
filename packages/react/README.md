@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/Cringe-Driven-Development-Team/frontend-packages/4d8117cec3461160619e8920b4828409ffdea9b9/packages/react/assets/readme/saber.gif" width="360" alt="Анимированная Сэйбер в шапке проекта">
-
 # @cdd-team/react
 
 **Учебная реализация React на TypeScript**
