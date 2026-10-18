@@ -91,7 +91,7 @@
 
 ## Порядок работ
 
-Ветка `react-15` в worktree `.claude/worktrees/react-15`. Коммиты по-русски, `feat:` для кода, `test:`/`docs:` по смыслу. Перед PR — полный набор проверок из `AGENTS.md` (`fmt:check`, `lint`, `build`, `typecheck`, `test`, `test:integration`, `test:scripts`, `verify:packages`). PR — draft, описание `Closes #14`, если нет причины писать иначе.
+Ветка `react-14` в worktree `.claude/worktrees/react-15`. Коммиты по-русски, `feat:` для кода, `test:`/`docs:` по смыслу. Перед PR — полный набор проверок из `AGENTS.md` (`fmt:check`, `lint`, `build`, `typecheck`, `test`, `test:integration`, `test:scripts`, `verify:packages`). PR — draft, описание `Closes #14`, если нет причины писать иначе.
 
 ## Что оставлено исполнителю
 
