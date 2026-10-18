@@ -8,6 +8,8 @@ import {
 	type Hook,
 	type MemoCallback,
 	type MemoHook,
+	type RefHook,
+	type RefObject,
 	type StateAction,
 	type StateHook,
 } from "./types/hooks.ts";
@@ -76,7 +78,7 @@ export function useState<State>(initial: State): [State, Dispatch<State>] {
 
 	const hooks = currentlyRenderingFiber.hooks;
 	if (!hooks) {
-		throw new Error("Hooks are not initialized.");
+		throw new Error("Render hooks were not initialized.");
 	}
 
 	const oldHook = currentlyRenderingFiber.alternate?.hooks?.[hookIndex];
@@ -150,6 +152,33 @@ export function useCallback<Callback extends MemoCallback>(
 	// useCallback — это useMemo с тем же списком зависимостей, deps пробрасываются как есть
 	// oxlint-disable-next-line react/exhaustive-deps
 	return useMemo(() => callback, deps);
+}
+
+export function useRef<Value>(initial: Value): RefObject<Value>;
+export function useRef<Value>(initial: Value | null): RefObject<Value | null>;
+export function useRef<Value>(initial: Value | undefined): RefObject<Value | undefined>;
+export function useRef<Value>(initial: Value): RefObject<Value> {
+	if (!currentlyRenderingFiber) {
+		throw new Error("Render.useRef must be called inside a function component.");
+	}
+
+	const hooks = currentlyRenderingFiber.hooks;
+	if (!hooks) {
+		throw new Error("Render hooks were not initialized.");
+	}
+
+	const oldHook = currentlyRenderingFiber.alternate?.hooks?.[hookIndex];
+	const oldRefHook = oldHook && isRefHook(oldHook) ? oldHook : undefined;
+	const ref = (oldRefHook?.ref as RefObject<Value> | undefined) ?? { current: initial };
+	const hook: RefHook<Value> = {
+		kind: HookKind.REF,
+		ref,
+	};
+
+	hooks.push(hook as RefHook<unknown>);
+	hookIndex += 1;
+
+	return hook.ref;
 }
 
 function createDispatch<State>(fiber: Fiber, queue: StateAction<State>[]): Dispatch<State> {
@@ -278,4 +307,8 @@ function isMemoHook(hook: Hook): hook is MemoHook {
 
 export function isEffectHook(hook: Hook): hook is EffectHook {
 	return hook.kind === HookKind.EFFECT;
+}
+
+function isRefHook(hook: Hook): hook is RefHook<unknown> {
+	return hook.kind === HookKind.REF;
 }

@@ -16,7 +16,7 @@ export type {
 	Tag,
 } from "./element.ts";
 
-export type { Dispatch, StateAction } from "./hooks.ts";
+export type { Dispatch, StateAction, Ref, RefCallback, RefObject } from "./hooks.ts";
 export type {
 	AnchorHTMLAttributes,
 	AriaAttributes,

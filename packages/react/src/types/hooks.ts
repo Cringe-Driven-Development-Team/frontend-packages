@@ -2,6 +2,7 @@ export const HookKind = {
 	STATE: "state",
 	EFFECT: "effect",
 	MEMO: "memo",
+	REF: "ref",
 } as const;
 
 export interface StateHook<State> {
@@ -41,4 +42,17 @@ export interface MemoHook<Value = unknown> {
 	deps: EffectDeps | undefined;
 }
 
-export type Hook = StateHook<unknown> | EffectHook | MemoHook;
+export type RefObject<Value> = {
+	current: Value;
+};
+export type RefCallback<Value> = {
+	bivarianceHack(value: Value | null): void;
+}["bivarianceHack"];
+export type Ref<Value> = RefObject<Value | null> | RefCallback<Value> | null | undefined;
+
+export interface RefHook<Value> {
+	kind: typeof HookKind.REF;
+	ref: RefObject<Value>;
+}
+
+export type Hook = StateHook<unknown> | EffectHook | MemoHook | RefHook<unknown>;
