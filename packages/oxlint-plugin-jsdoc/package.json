@@ -1,6 +1,6 @@
 {
 	"name": "@cdd-team/oxlint-plugin-jsdoc",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Правила oxlint про JSDoc, которых нет в его плагине jsdoc: require-jsdoc для экспортов и check-param-names",
 	"license": "MIT",
 	"repository": {
@@ -8,7 +8,13 @@
 		"url": "git+https://github.com/Cringe-Driven-Development-Team/frontend-packages.git",
 		"directory": "packages/oxlint-plugin-jsdoc"
 	},
-	"keywords": ["oxlint", "oxlint-plugin", "jsdoc", "tsdoc", "lint"],
+	"keywords": [
+		"oxlint",
+		"oxlint-plugin",
+		"jsdoc",
+		"tsdoc",
+		"lint"
+	],
 	"type": "module",
 	"sideEffects": false,
 	"main": "./dist/index.mjs",
@@ -20,7 +26,9 @@
 		},
 		"./package.json": "./package.json"
 	},
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"engines": {
 		"node": "^20.19.0 || >=22.12.0"
 	},

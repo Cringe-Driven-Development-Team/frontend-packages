@@ -2,5 +2,5 @@
 	"packages/react": "1.2.1",
 	"packages/zustand": "1.0.1",
 	"packages/openapi": "0.2.1",
-	"packages/oxlint-plugin-jsdoc": "0.1.1"
+	"packages/oxlint-plugin-jsdoc": "0.1.2"
 }
