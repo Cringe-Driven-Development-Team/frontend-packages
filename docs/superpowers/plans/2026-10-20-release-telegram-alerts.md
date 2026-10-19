@@ -1,5 +1,7 @@
 # Telegram-алерты о выпуске: план реализации
 
+> **Статус:** задача требует проверки сценариев с подменёнными npm/Telegram, но не тестов в репозитории. По решению автора новые тесты пишутся и прогоняются при разработке, а в Task 8 удаляются из PR. Существующие тесты `scripts/publish-released.test.ts` остаются, адаптированные под новую сигнатуру.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** после каждого выпуска из `paths_released` отправлять в тред Frontend / Releases одну достоверную итоговую карточку (успех, частичный выпуск, ошибка, неизвестный результат).
@@ -225,4 +227,5 @@
   ```
   Ожидается: все команды с кодом 0.
 - [ ] **Step 2:** сохранить примеры карточек для PR: тексты из тестов `пример успешной карточки` и `пример частичного сбоя` (Task 3) вместе с раскладкой кнопок — в описание PR, без секретов.
-- [ ] **Step 3:** доложить пользователю результат; push и draft PR (`Closes #6`) — только по его просьбе.
+- [ ] **Step 3:** удалить новые тестовые файлы (`scripts/release-changelog.test.ts`, `scripts/release-card.test.ts`, `scripts/telegram.test.ts`, `scripts/release-notify.test.ts`) и новые кейсы в `scripts/publish-released.test.ts`, оставив существующие (адаптированные). Повторить `bun run lint && bun run typecheck && bun run test:scripts` — PASS. Коммит `test: убрать тесты алертов из PR`.
+- [ ] **Step 4:** доложить пользователю результат; push и draft PR (`Closes #6`) — только по его просьбе.
