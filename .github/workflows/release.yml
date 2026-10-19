@@ -29,29 +29,87 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    # Результаты шагов нужны job notify, чтобы назвать этап сбоя.
+    outputs:
+      install: ${{ steps.install.outcome }}
+      build: ${{ steps.build.outcome }}
+      verify: ${{ steps.verify.outcome }}
+      integration: ${{ steps.integration.outcome }}
+      node: ${{ steps.node.outcome != 'success' && steps.node.outcome || steps.npm.outcome }}
+      publish: ${{ steps.publish.outcome }}
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.2
-      - run: bun install --frozen-lockfile
-      - run: bun run build
-      - run: bun run verify:packages
+      - id: install
+        run: bun install --frozen-lockfile
+      - id: build
+        run: bun run build
+      - id: verify
+        run: bun run verify:packages
+      # Блок «Совместимость» в карточке опирается на эту проверку релизного коммита.
+      - id: integration
+        run: bun run test:integration
       # Node нужен только для npm publish с OIDC; весь тулинг выше работает в рантайме Bun.
-      - uses: actions/setup-node@v4
+      - id: node
+        uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
       # Trusted Publishing требует npm CLI 11.5.1+, а в Node 22.14 лежит npm 10.
-      - run: npm install -g npm@^11.5.1
-      - name: Проверить версии Node и npm
+      - id: npm
+        name: Установить npm и проверить версии Node и npm
         run: |
+          npm install -g npm@^11.5.1
           at_least() { [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]; }
           node_version="$(node --version | sed 's/^v//')"
           npm_version="$(npm --version)"
           echo "node $node_version, npm $npm_version"
           at_least "$node_version" 22.14.0 || { echo "Нужен Node 22.14.0 или новее"; exit 1; }
           at_least "$npm_version" 11.5.1 || { echo "Нужен npm 11.5.1 или новее"; exit 1; }
-      - name: Опубликовать изменённые пакеты
+      - id: publish
+        name: Опубликовать изменённые пакеты
         env:
           PATHS_RELEASED: ${{ needs.release-please.outputs.paths_released }}
-        run: bun scripts/publish-released.ts "$PATHS_RELEASED"
+        run: bun scripts/publish-released.ts "$PATHS_RELEASED" --report release-report.json
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-report
+          path: release-report.json
+          if-no-files-found: ignore
+
+  # Отдельный job: Telegram-секреты не попадают в job с id-token: write.
+  notify:
+    needs: [release-please, publish]
+    if: always() && needs.release-please.outputs.releases_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: release-report
+      - name: Отправить итоговую карточку в Telegram
+        env:
+          PATHS_RELEASED: ${{ needs.release-please.outputs.paths_released }}
+          OUTCOME_INSTALL: ${{ needs.publish.outputs.install }}
+          OUTCOME_BUILD: ${{ needs.publish.outputs.build }}
+          OUTCOME_VERIFY: ${{ needs.publish.outputs.verify }}
+          OUTCOME_INTEGRATION: ${{ needs.publish.outputs.integration }}
+          OUTCOME_NODE: ${{ needs.publish.outputs.node }}
+          OUTCOME_PUBLISH: ${{ needs.publish.outputs.publish }}
+          GH_TOKEN: ${{ github.token }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_RELEASES_TOPIC_ID: ${{ secrets.TELEGRAM_RELEASES_TOPIC_ID }}
+        run: bun scripts/release-notify.ts
