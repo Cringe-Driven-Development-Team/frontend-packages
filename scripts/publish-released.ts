@@ -1,4 +1,4 @@
-import { basename, resolve } from "node:path";
+import { resolve } from "node:path";
 import type { ErrorKind, PackageResult } from "./release-report.ts";
 
 // Пакеты, которые должны публиковаться раньше остальных: Zustand зависит от React.
@@ -38,10 +38,10 @@ export function classifyPublishError(
 	return { errorKind: "unknown", reason: `npm publish завершилась кодом ${code}` };
 }
 
-const defaultManifest: Manifest = async (path) => ({
-	name: `@cdd-team/${basename(path)}`,
-	version: "1.0.0",
-});
+const root = resolve(import.meta.dir, "..");
+
+const readManifest: Manifest = async (path) =>
+	JSON.parse(await Bun.file(resolve(root, path, "package.json")).text());
 
 async function isConfirmed(path: string, isVisible: IsPublished, confirm: Confirm) {
 	for (let attempt = 1; attempt <= confirm.attempts; attempt++) {
@@ -64,7 +64,7 @@ export async function publishReleased(
 ): Promise<PackageResult[]> {
 	const isPublished = options.isPublished ?? (async () => false);
 	const isVisible = options.isVisible ?? options.isPublished ?? (async () => true);
-	const manifest = options.manifest ?? defaultManifest;
+	const manifest = options.manifest ?? readManifest;
 	const confirm = options.confirm ?? { attempts: 1, delayMs: 0, sleep: async () => {} };
 	const results: PackageResult[] = [];
 	let stopped = false;
@@ -102,7 +102,6 @@ export async function publishReleased(
 
 // Запускать напрямую (`bun scripts/publish-released.ts`), не через `bun run`: при `[run] bun = true`
 // `bun run` подменяет node на bun, а npm publish с OIDC должен выполняться настоящим Node.
-const root = resolve(import.meta.dir, "..");
 
 // stderr идёт и в лог job, и в буфер: по нему определяется причина сбоя.
 const runInRepo: Run = async (cmd, cwd) => {
@@ -119,9 +118,6 @@ const runInRepo: Run = async (cmd, cwd) => {
 	}
 	return { code: await proc.exited, stderr };
 };
-
-const readManifest: Manifest = async (path) =>
-	JSON.parse(await Bun.file(resolve(root, path, "package.json")).text());
 
 const isPublishedInNpm: IsPublished = async (path) => {
 	const { name, version } = await readManifest(path);
