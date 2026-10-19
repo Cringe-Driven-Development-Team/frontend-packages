@@ -1,5 +1,7 @@
 # Refs в `@cdd-team/react`: дизайн
 
+> **Статус:** тесты `packages/react/test/refs.test.tsx`, описанные ниже, из PR убраны по решению автора. Раздел «Тесты» и пункты цели про тесты остаются как описание того, что проверялось при разработке.
+
 Источник требований: задача [frontend-packages#14](https://github.com/Cringe-Driven-Development-Team/frontend-packages/issues/14) (`gh issue view 14 -R Cringe-Driven-Development-Team/frontend-packages`; перенесена из react#15). Эталонная реализация — глава `21-refs` курса в `C:\Users\erofe\Documents\TechColab\react-from-scratch-course` (дальше «глава 21»; предыдущая глава — `20-context-api`, «глава 20»). Документ фиксирует решения, принятые при обсуждении, и факты, проверенные в коде. Если документ и задача расходятся, прав документ.
 
 ## Зачем

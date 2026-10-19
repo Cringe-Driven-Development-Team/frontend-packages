@@ -1,5 +1,7 @@
 # Refs в `@cdd-team/react`: план реализации
 
+> **Статус:** шаги с тестами (`test/refs.test.tsx`) выполнялись при разработке, но файл с тестами из PR убран по решению автора. Проверки Task 5 в части тестов — только существующие тесты репозитория.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** перенести в пакет refs из главы `21-refs`: `useRef`, проп `ref` у DOM-элементов, `useImperativeHandle`. Коммит `ref` — в два шага, как в React 19.
