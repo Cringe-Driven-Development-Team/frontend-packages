@@ -1,6 +1,6 @@
 {
 	"name": "@cdd-team/zustand",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Учебный стейт-менеджер",
 	"license": "MIT",
 	"repository": {
@@ -36,7 +36,7 @@
 		"build": "tsdown"
 	},
 	"peerDependencies": {
-		"@cdd-team/react": "^1.2.1"
+		"@cdd-team/react": "^1.3.0"
 	},
 	"peerDependenciesMeta": {
 		"@cdd-team/react": {
@@ -44,7 +44,7 @@
 		}
 	},
 	"devDependencies": {
-		"@cdd-team/react": "^1.2.1",
+		"@cdd-team/react": "^1.3.0",
 		"@happy-dom/global-registrator": "^20.14.5"
 	},
 	"publishConfig": {
