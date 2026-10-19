@@ -207,7 +207,44 @@ describe("notify", () => {
 			io,
 		);
 
-		expect(sent[0]?.text).toContain("опубликовано 1 из 2");
+		expect(sent[0]?.text).toContain("в npm 1 из 2");
+		const urls = sent[0]?.keyboard.flat().map((button) => button.url) ?? [];
+		for (const url of urls) expect(url).toMatch(/^[\x21-\x7e]+$/);
+	});
+
+	test("перезапуск: отчёт прошлой попытки не используется, если publish не запускался", async () => {
+		const { io, sent, npmChecks } = fakeIo({
+			report: [
+				result("packages/react", "published"),
+				result("packages/zustand", "failed", {
+					errorKind: "auth",
+					reason: "npm отклонил авторизацию",
+				}),
+			],
+			npm: { "@cdd-team/react": true },
+		});
+
+		await notify(
+			env(["packages/react", "packages/zustand"], {
+				...success,
+				integration: "failure",
+				node: "skipped",
+				publish: "skipped",
+			}),
+			io,
+		);
+
+		expect(npmChecks).toEqual(["@cdd-team/react", "@cdd-team/zustand"]);
+		expect(sent[0]?.text).toContain("Этап: <b>интеграционные проверки</b>");
+		expect(sent[0]?.text).not.toContain("авторизацию");
+	});
+
+	test("неизвестное число доступных не выдаётся за ноль", async () => {
+		const { io, sent } = fakeIo({ npm: { "@cdd-team/react": null } });
+
+		await notify(env(["packages/react"], {}), io);
+
+		expect(sent[0]?.text).not.toContain("0 из 1");
 	});
 
 	test("неподтверждённый результат", async () => {
@@ -280,6 +317,17 @@ describe("stageFromOutcomes", () => {
 
 	test("все успешны", () => {
 		expect(stageFromOutcomes(success)).toEqual({ failedStage: null, stageKnown: true });
+	});
+
+	test("skipped первым не-success — упал шаг без id, этап неизвестен", () => {
+		expect(stageFromOutcomes({ ...success, install: "skipped", build: "skipped" })).toEqual({
+			failedStage: null,
+			stageKnown: false,
+		});
+	});
+
+	test("cancelled — этап неизвестен", () => {
+		expect(stageFromOutcomes({ ...success, build: "cancelled" }).stageKnown).toBe(false);
 	});
 
 	test("пустые outcomes", () => {

@@ -234,10 +234,16 @@ function nextAction(packages: CardPackage[], ctx: CardContext, status: CardStatu
 
 function header(packages: CardPackage[], ctx: CardContext, status: CardStatus): string[] {
 	const total = packages.length;
+	const repo = escapeHtml(ctx.repo);
+	const count = `${total} ${plural(total, "пакет", "пакета", "пакетов")}`;
+	// Число доступных показываем, только когда состояние каждого пакета известно.
+	const known = packages.every((pkg) => pkg.outcome !== "unchecked" && pkg.outcome !== "unknown");
 	const subtitle =
 		status === "success"
-			? `${escapeHtml(ctx.repo)} · ${total} ${plural(total, "пакет", "пакета", "пакетов")}`
-			: `${escapeHtml(ctx.repo)} · опубликовано ${packages.filter(isAvailable).length} из ${total}`;
+			? `${repo} · ${count}`
+			: known
+				? `${repo} · в npm ${packages.filter(isAvailable).length} из ${total}`
+				: `${repo} · ${count} в выпуске`;
 	const lines = [headlines[status], subtitle];
 	if (!ctx.hasReport && ctx.failedStage && status === "failed") {
 		lines.push(

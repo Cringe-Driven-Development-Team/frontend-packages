@@ -20,10 +20,11 @@ export function orderForPublish(paths: string[]): string[] {
 	return [...first, ...paths.filter((path) => !first.includes(path))];
 }
 
+// Порядок важен: публикацию поверх версии npm отклоняет с E403, а сбой обмена OIDC-токена бывает сетевым.
 const errorPatterns: [ErrorKind, RegExp, string][] = [
-	["auth", /E401|E403|ENEEDAUTH|OIDC/i, "npm отклонил авторизацию"],
 	["conflict", /EPUBLISHCONFLICT|E409|cannot publish over/i, "версия уже занята в npm"],
 	["network", /ETIMEDOUT|ECONNRESET|ENOTFOUND|EAI_AGAIN/, "сетевая ошибка при обращении к npm"],
+	["auth", /E401|E403|ENEEDAUTH|OIDC/i, "npm отклонил авторизацию"],
 ];
 
 // Причина для карточки: только распознанный вид ошибки, без текста stderr.

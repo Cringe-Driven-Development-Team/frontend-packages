@@ -11,7 +11,8 @@ export function cleanItem(line: string): string {
 	return line
 		.replace(/^\s*\*\s+/, "")
 		.replace(/^\*\*[^*]+:\*\*\s*/, "")
-		.replace(/\s*\(\[[0-9a-f]{7,}\]\([^)]*\)\)\s*$/, "")
+		.replace(/\s*\(\[[^\]]+\]\([^)]*\)\)/g, "")
+		.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
 		.trim();
 }
 

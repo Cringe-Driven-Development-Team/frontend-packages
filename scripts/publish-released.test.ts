@@ -150,6 +150,18 @@ describe("classifyPublishError", () => {
 		).toBe("conflict");
 	});
 
+	test("E403 на публикацию поверх версии — конфликт, а не авторизация", () => {
+		const stderr =
+			"npm error code E403\nnpm error 403 403 Forbidden - PUT https://registry.npmjs.org/@cdd-team%2freact - You cannot publish over the previously published versions: 1.2.1.";
+		expect(classifyPublishError(stderr, 1).errorKind).toBe("conflict");
+	});
+
+	test("таймаут при обмене OIDC-токена — сеть", () => {
+		expect(classifyPublishError("OIDC token exchange failed: ETIMEDOUT", 1).errorKind).toBe(
+			"network",
+		);
+	});
+
 	test("сеть", () => {
 		for (const code of ["ETIMEDOUT", "ECONNRESET", "ENOTFOUND", "EAI_AGAIN"]) {
 			expect(classifyPublishError(`npm error code ${code}`, 1)).toEqual({

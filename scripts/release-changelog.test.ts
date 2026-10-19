@@ -110,6 +110,14 @@ describe("parseChangelogSection", () => {
 });
 
 describe("cleanItem", () => {
+	test("убирает ссылки на PR и closes", () => {
+		expect(
+			cleanItem(
+				"* фикс ([#12](https://x/pull/12)) ([abc1234](https://x/commit/abc)), closes [#5](https://x/issues/5)",
+			),
+		).toBe("фикс, closes #5");
+	});
+
 	test("убирает scope и ссылку на коммит", () => {
 		expect(cleanItem("* **react:** фикс ([abc1234](https://x/commit/abc))")).toBe("фикс");
 	});

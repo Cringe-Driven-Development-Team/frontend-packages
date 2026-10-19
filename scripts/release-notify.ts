@@ -40,14 +40,16 @@ export type NotifyEnv = {
 const stages: Stage[] = ["install", "build", "verify", "integration", "node", "publish"];
 
 // Пустой outcome значит, что GitHub не передал результат шага (job отменён, runner умер).
+// skipped первым не-success значит, что упал шаг без id (checkout, setup-bun); cancelled — не ошибка шага.
 export function stageFromOutcomes(outcomes: Partial<Record<Stage, string>>): {
 	failedStage: Stage | null;
 	stageKnown: boolean;
 } {
 	for (const stage of stages) {
 		const outcome = outcomes[stage];
-		if (!outcome) return { failedStage: null, stageKnown: false };
-		if (outcome !== "success") return { failedStage: stage, stageKnown: true };
+		if (outcome === "success") continue;
+		if (outcome === "failure") return { failedStage: stage, stageKnown: true };
+		return { failedStage: null, stageKnown: false };
 	}
 	return { failedStage: null, stageKnown: true };
 }
@@ -78,7 +80,9 @@ export async function notify(env: NotifyEnv, io: NotifyIo): Promise<number> {
 		io,
 		"release-please-config.json",
 	);
-	const report = await readReport(io, env.reportFile);
+	// download-artifact видит артефакты прошлых попыток: отчёт верен, только если publish шёл в этой.
+	const publishRan = Boolean(env.outcomes.publish) && env.outcomes.publish !== "skipped";
+	const report = publishRan ? await readReport(io, env.reportFile) : null;
 	const tags = await io.tags();
 	const base = `${env.server}/${env.repo}`;
 	const packages: CardPackage[] = [];
@@ -117,7 +121,8 @@ export async function notify(env: NotifyEnv, io: NotifyIo): Promise<number> {
 		hasReport: report !== null,
 		runUrl: `${base}/actions/runs/${env.runId}/attempts/${env.attempt}`,
 		changesUrl: (await io.releasePrUrl(env.sha)) ?? packages[0]?.releaseUrl ?? base,
-		recoveryUrl: `${base}/blob/${env.sha}/docs/release-runbook.md#5-частичный-выпуск`,
+		// Telegram принимает в кнопках только корректно закодированные URL.
+		recoveryUrl: encodeURI(`${base}/blob/${env.sha}/docs/release-runbook.md#5-частичный-выпуск`),
 		compatibility: { ...(react ? { react } : {}), ...(zustand ? { zustand } : {}) },
 	};
 

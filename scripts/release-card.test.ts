@@ -98,7 +98,7 @@ describe("renderCard", () => {
 		expect(card.text).toBe(
 			[
 				"⚠️ <b>Выпуск завершён частично</b>",
-				"frontend-packages · опубликовано 1 из 2",
+				"frontend-packages · в npm 1 из 2",
 				"",
 				`✅ <b><a href="${releases}/react-v1.2.1"><code>@cdd-team/react · 1.2.1</code></a></b>`,
 				"Доступен в npm.",
