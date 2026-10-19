@@ -53,7 +53,9 @@ CI делает то же самое на каждом PR, включая releas
   от React — semver (`^1.2.0`), он же в `peerDependencies` (optional) и `devDependencies`; `./vanilla` должен
   работать без React.
 - Возвращать постоянные npm-секреты (`NPM_TOKEN`, `NODE_AUTH_TOKEN`, токен в `.npmrc`).
-  Секрет в репозитории один — `RELEASE_PLEASE_TOKEN` (для release-please, не для npm).
+  Секреты репозитория: `RELEASE_PLEASE_TOKEN` (для release-please, не для npm) и `TELEGRAM_RELEASES_TOPIC_ID`;
+  `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` — секреты организации. Telegram-секреты передаются только в job
+  `notify`, не в `publish` с `id-token: write`.
 
 ## Коммиты и релизы
 
