@@ -139,7 +139,7 @@ function outcomeLine(pkg: CardPackage): string {
 		case "not-attempted":
 			return "Не публиковался: публикация остановлена после ошибки.";
 		case "not-visible":
-			return "В registry не видна, в этом запуске не публиковался.";
+			return "В registry не видна.";
 		case "unchecked":
 			return "Состояние в npm не проверено.";
 		case "unknown":
