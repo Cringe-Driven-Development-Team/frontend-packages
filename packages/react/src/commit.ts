@@ -23,8 +23,6 @@ export function commitRoot({ root, onCommitted }: CommitRootOptions): void {
 		clearContainer(root.dom);
 	}
 
-	// Как в React 19: сначала все мутации и отвязка старых ref, потом привязка новых.
-	// Иначе ref, который в этом коммите перешёл на другой узел, может обнулиться позже.
 	const refsToAttach: Fiber[] = [];
 
 	if (hasFlags(root.flags, FiberFlags.CHILD_DELETION)) {

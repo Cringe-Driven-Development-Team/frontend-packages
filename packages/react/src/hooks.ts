@@ -173,7 +173,6 @@ export function useImperativeHandle<Handle>(
 		return () => {
 			setImperativeRef(ref, null);
 		};
-		// deps вызывающего плюс сам ref: handle пересоздаётся и при смене ref
 		// oxlint-disable-next-line react/exhaustive-deps
 	}, effectDeps);
 }
