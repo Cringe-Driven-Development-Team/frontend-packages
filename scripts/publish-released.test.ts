@@ -7,7 +7,7 @@ function recorder(failOn?: string) {
 	const calls: Call[] = [];
 	const run = async (cmd: string[], cwd: string) => {
 		calls.push({ cmd, cwd });
-		return cwd.endsWith(failOn ?? "\0") ? 1 : 0;
+		return { code: cwd.endsWith(failOn ?? "\0") ? 1 : 0, stderr: "" };
 	};
 	return { calls, run };
 }
@@ -61,10 +61,9 @@ describe("publishReleased", () => {
 	test("ошибка публикации останавливает последующие", async () => {
 		const { calls, run } = recorder("packages/react");
 
-		await expect(publishReleased(["packages/react", "packages/zustand"], run)).rejects.toThrow(
-			"packages/react",
-		);
+		const results = await publishReleased(["packages/react", "packages/zustand"], run);
 
+		expect(results.map((result) => result.status)).toEqual(["failed", "not-attempted"]);
 		expect(calls.map((call) => call.cwd)).toEqual(["packages/react"]);
 	});
 
@@ -72,7 +71,7 @@ describe("publishReleased", () => {
 		const { calls, run } = recorder();
 		const isPublished = async (path: string) => path === "packages/react";
 
-		await publishReleased(["packages/react", "packages/zustand"], run, isPublished);
+		await publishReleased(["packages/react", "packages/zustand"], run, { isPublished });
 
 		expect(calls.map((call) => call.cwd)).toEqual(["packages/zustand"]);
 	});

@@ -67,9 +67,10 @@ PR вливаются merge-коммитом. Тип коммита опреде
 
 1. В `main` вливается PR с `feat:`/`fix:`. Workflow [Release](.github/workflows/release.yml) создаёт или обновляет общий release PR (одним PR — независимые изменения нескольких пакетов).
 2. CI проходит на release PR: формат, линт, типы, тесты, сборка и установка собранных архивов в чистый проект.
-3. После merge release PR release-please создаёт теги и GitHub Releases. Затем workflow собирает пакеты, повторно проверяет архивы и публикует **только пути из `paths_released`** по порядку зависимостей: React перед Zustand. Ошибка останавливает следующие публикации. GitHub Release ещё не значит, что пакет в npm: проверяйте `npm view`.
+3. После merge release PR release-please создаёт теги и GitHub Releases. Затем workflow собирает пакеты, повторно проверяет архивы, прогоняет интеграционные тесты и публикует **только пути из `paths_released`** по порядку зависимостей: React перед Zustand. Ошибка останавливает следующие публикации. GitHub Release ещё не значит, что пакет в npm: проверяйте `npm view`.
+4. Job `notify` отправляет одну итоговую карточку выпуска в Telegram (тред Frontend / Releases): версии, изменения, миграция, совместимость, результат публикации.
 
-Токен npm для этого не нужен (Trusted Publishing через OIDC). Единственный секрет — `RELEASE_PLEASE_TOKEN` для release-please. Первичная настройка, bootstrap и восстановление частичного выпуска описаны в [docs/release-runbook.md](docs/release-runbook.md).
+Токен npm для этого не нужен (Trusted Publishing через OIDC). Секреты: `RELEASE_PLEASE_TOKEN` для release-please и Telegram-настройки для уведомлений. Первичная настройка, bootstrap, восстановление частичного выпуска и уведомления описаны в [docs/release-runbook.md](docs/release-runbook.md).
 
 ## Как добавить пакет
 
