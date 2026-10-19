@@ -9,6 +9,8 @@ import {
 	schedulePassiveEffects,
 } from "./effects.ts";
 import { hasFiberWork, hasFlags } from "./flags.ts";
+import type { ElementProps } from "./types/props.ts";
+import type { Ref, RefObject } from "./types";
 import { countProfilerEvent } from "./profiler.ts";
 
 type CommitRootOptions = {
@@ -21,12 +23,15 @@ export function commitRoot({ root, onCommitted }: CommitRootOptions): void {
 		clearContainer(root.dom);
 	}
 
+	const refsToAttach: Fiber[] = [];
+
 	if (hasFlags(root.flags, FiberFlags.CHILD_DELETION)) {
 		commitChildDeletions(root);
 	}
 	if (root.child) {
-		commitWork(root.child);
+		commitWork(root.child, refsToAttach);
 	}
+	attachRefs(refsToAttach);
 
 	const layoutEffects = collectLayoutEffects(root.child);
 	schedulePassiveEffects(root.child);
@@ -63,7 +68,7 @@ function clearContainer(container: Node | null): void {
 	}
 }
 
-function commitWork(fiber: Fiber | null): void {
+function commitWork(fiber: Fiber | null, refsToAttach: Fiber[]): void {
 	const stack: Fiber[] = [];
 	if (fiber) {
 		stack.push(fiber);
@@ -101,6 +106,10 @@ function commitWork(fiber: Fiber | null): void {
 			current.alternate
 		) {
 			updateDom(current.dom, current.alternate.props, current.props);
+		}
+
+		if (hasFlags(current.flags, FiberFlags.REF)) {
+			commitRefDetach(current, refsToAttach);
 		}
 
 		if (current.sibling) {
@@ -262,6 +271,7 @@ function commitDeletionChildren(fiber: Fiber | null, domParent: Node): void {
 
 function cleanupDomTree(fiber: Fiber): void {
 	if (fiber.dom) {
+		detachRef(fiber);
 		cleanupDom(fiber.dom, fiber.props);
 	}
 
@@ -275,4 +285,64 @@ function cleanupDomTreeChildren(fiber: Fiber | null): void {
 		cleanupDomTree(current);
 		current = current.sibling;
 	}
+}
+
+function commitRefDetach(fiber: Fiber, refsToAttach: Fiber[]): void {
+	if (!fiber.dom) {
+		return;
+	}
+
+	const nextRef = getRef(fiber.props);
+
+	if (fiber.alternate) {
+		const prevRef = getRef(fiber.alternate.props);
+		if (prevRef === nextRef) {
+			return;
+		}
+
+		setRef(prevRef, null);
+	}
+
+	if (nextRef != null) {
+		refsToAttach.push(fiber);
+	}
+}
+
+function attachRefs(fibers: Fiber[]): void {
+	fibers.forEach((fiber) => setRef(getRef(fiber.props), fiber.dom));
+}
+
+function detachRef(fiber: Fiber): void {
+	setRef(getRef(fiber.props), null);
+}
+
+function getRef(props: ElementProps | undefined): Ref<Node> {
+	const ref = props?.ref as unknown;
+
+	if (ref == null) {
+		return null;
+	}
+
+	if (typeof ref === "function") {
+		return ref as Ref<Node>;
+	}
+
+	if (typeof ref === "object" && "current" in ref) {
+		return ref as RefObject<Node | null>;
+	}
+
+	return null;
+}
+
+function setRef(ref: Ref<Node>, value: Node | null): void {
+	if (ref == null) {
+		return;
+	}
+
+	if (typeof ref === "function") {
+		ref(value);
+		return;
+	}
+
+	ref.current = value;
 }

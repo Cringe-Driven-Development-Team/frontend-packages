@@ -12,8 +12,10 @@ export function createFiberFromElement(
 	index: number,
 	flags: FiberFlags,
 ): Fiber {
+	const tag = getFiberTag(element);
+
 	return {
-		tag: getFiberTag(element),
+		tag,
 		type: element.type,
 		key: element.key,
 		props: element.props,
@@ -24,7 +26,7 @@ export function createFiberFromElement(
 		sibling: null,
 		alternate: null,
 		deletions: null,
-		flags,
+		flags: flags | getRefFlagForNewFiber(tag, element),
 		subtreeFlags: FiberFlags.NO_FLAGS,
 		dirty: true,
 		hasDirtySubtree: false,
@@ -52,7 +54,7 @@ export function createWorkInProgressFiber(
 	workInProgress.sibling = null;
 	workInProgress.alternate = current;
 	workInProgress.deletions = null;
-	workInProgress.flags = flags;
+	workInProgress.flags = flags | getRefFlagForWorkInProgress(current, element);
 	workInProgress.subtreeFlags = 0;
 	workInProgress.hooks = current.hooks;
 	workInProgress.contextDependencies = canReadContext(workInProgress.tag)
@@ -93,6 +95,26 @@ function getFiberTag(element: ReactElement): Fiber["tag"] {
 	return FiberTag.HOST;
 }
 
+function getRefFlagForNewFiber(tag: FiberTagType, element: FiberElementInput): FiberFlags {
+	return canHaveRef(tag) && getRawRef(element) != null ? FiberFlags.REF : FiberFlags.NO_FLAGS;
+}
+
+function getRefFlagForWorkInProgress(current: Fiber, element: FiberElementInput): FiberFlags {
+	if (!canHaveRef(current.tag)) {
+		return FiberFlags.NO_FLAGS;
+	}
+
+	return getRawRef(current) !== getRawRef(element) ? FiberFlags.REF : FiberFlags.NO_FLAGS;
+}
+
+function canHaveRef(tag: FiberTagType): boolean {
+	return tag === FiberTag.HOST;
+}
+
 function canReadContext(tag: FiberTagType): boolean {
 	return tag === FiberTag.FUNCTION_COMPONENT || tag === FiberTag.MEMO_COMPONENT;
+}
+
+function getRawRef(element: FiberElementInput): unknown {
+	return element.props.ref;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from "@cdd-team/react";
+import { useEffect, useLayoutEffect, useRef, useState } from "@cdd-team/react";
 import type { ReactElement } from "@cdd-team/react";
 import { Filters } from "./Filters.tsx";
 import { Header } from "./Header.tsx";
@@ -8,7 +8,7 @@ import { SelectiveDemo } from "./SelectiveDemo.tsx";
 import { TodoList } from "./TodoList.tsx";
 import { Toolbar } from "./Toolbar.tsx";
 import { ThemeContext, type Theme } from "./theme.ts";
-import type { Filter, Todo } from "./types.ts";
+import type { Filter, HeaderActions, Todo } from "./types.ts";
 
 const initialTodos: Todo[] = [
 	{ id: 1, text: "Run effects after commit", done: true },
@@ -31,6 +31,8 @@ export function App(): ReactElement {
 	const [filter, setFilter] = useState<Filter>("all");
 	const [showStats, setShowStats] = useState(true);
 	const [theme, setTheme] = useState<Theme>("light");
+	const addButtonRef = useRef<HTMLButtonElement>(null);
+	const headerActionsRef = useRef<HeaderActions>(null);
 	const visibleTodos = getVisibleTodos(todos, filter);
 	const completedCount = todos.filter((todo) => todo.done).length;
 	const titleStatus = `${completedCount}/${todos.length} completed`;
@@ -54,17 +56,26 @@ export function App(): ReactElement {
 		};
 	}, [filter]);
 
-	function addTodo(): void {
+	function addTodo(text: string): void {
 		const id = createTodoId();
+		const todoText = text || `State task ${id}`;
 
 		setTodos((previousTodos) => [
 			{
 				id,
-				text: `State task ${id}`,
+				text: todoText,
 				done: false,
 			},
 			...previousTodos,
 		]);
+	}
+
+	function addViaRef(): void {
+		addButtonRef.current?.click();
+	}
+
+	function focusInputViaHandle(): void {
+		headerActionsRef.current?.focusAddInput();
 	}
 
 	function toggleTodo(id: number): void {
@@ -110,10 +121,14 @@ export function App(): ReactElement {
 						titleStatus={titleStatus}
 						showStats={showStats}
 						renderCount={renderCount}
+						ref={addButtonRef}
+						actionsRef={headerActionsRef}
 						onAdd={addTodo}
 						onToggleStats={toggleStats}
 					/>
 					<Toolbar
+						onAddViaRef={addViaRef}
+						onFocusInputViaHandle={focusInputViaHandle}
 						onReverse={reverseTodos}
 						onRotate={rotateTodos}
 						onSort={sortTodos}

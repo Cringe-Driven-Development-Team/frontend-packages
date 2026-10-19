@@ -1,4 +1,5 @@
 import type { Key, ReactElement, ReactNode } from "./element.ts";
+import type { Ref } from "./hooks.ts";
 
 export type MouseEvent<T extends globalThis.Element = globalThis.Element> =
 	globalThis.MouseEvent & {
@@ -297,10 +298,15 @@ export interface BaseHTMLAttributes<ElementType extends globalThis.Element = glo
 	title?: string;
 	lang?: string;
 	tabIndex?: number;
+	ref?: Ref<ElementType>;
 
 	// Data attributes
 	[key: `data-${string}`]: any;
 }
+
+type IntrinsicHTMLAttributes<Tag extends keyof HTMLElementTagNameMap> = BaseHTMLAttributes<
+	HTMLElementTagNameMap[Tag]
+>;
 
 export type AnchorHTMLAttributes<ElementType extends HTMLAnchorElement = HTMLAnchorElement> =
 	BaseHTMLAttributes<ElementType> & {
@@ -319,30 +325,30 @@ export namespace JSX {
 
 	export interface IntrinsicElements {
 		// Core Elements
-		div: BaseHTMLAttributes;
-		span: BaseHTMLAttributes;
-		p: BaseHTMLAttributes;
-		i: BaseHTMLAttributes;
-		b: BaseHTMLAttributes;
-		strong: BaseHTMLAttributes;
-		em: BaseHTMLAttributes;
-		small: BaseHTMLAttributes;
-		sub: BaseHTMLAttributes;
-		sup: BaseHTMLAttributes;
-		br: BaseHTMLAttributes;
-		hr: BaseHTMLAttributes;
+		div: IntrinsicHTMLAttributes<"div">;
+		span: IntrinsicHTMLAttributes<"span">;
+		p: IntrinsicHTMLAttributes<"p">;
+		i: IntrinsicHTMLAttributes<"i">;
+		b: IntrinsicHTMLAttributes<"b">;
+		strong: IntrinsicHTMLAttributes<"strong">;
+		em: IntrinsicHTMLAttributes<"em">;
+		small: IntrinsicHTMLAttributes<"small">;
+		sub: IntrinsicHTMLAttributes<"sub">;
+		sup: IntrinsicHTMLAttributes<"sup">;
+		br: IntrinsicHTMLAttributes<"br">;
+		hr: IntrinsicHTMLAttributes<"hr">;
 
 		// Headings
-		h1: BaseHTMLAttributes;
-		h2: BaseHTMLAttributes;
-		h3: BaseHTMLAttributes;
-		h4: BaseHTMLAttributes;
-		h5: BaseHTMLAttributes;
-		h6: BaseHTMLAttributes;
+		h1: IntrinsicHTMLAttributes<"h1">;
+		h2: IntrinsicHTMLAttributes<"h2">;
+		h3: IntrinsicHTMLAttributes<"h3">;
+		h4: IntrinsicHTMLAttributes<"h4">;
+		h5: IntrinsicHTMLAttributes<"h5">;
+		h6: IntrinsicHTMLAttributes<"h6">;
 
 		// Links and Media
 		a: AnchorHTMLAttributes;
-		img: BaseHTMLAttributes & {
+		img: IntrinsicHTMLAttributes<"img"> & {
 			src?: string;
 			alt?: string;
 			width?: string | number;
@@ -350,7 +356,7 @@ export namespace JSX {
 			loading?: "eager" | "lazy";
 		};
 
-		video: BaseHTMLAttributes & {
+		video: IntrinsicHTMLAttributes<"video"> & {
 			src?: string;
 			width?: string | number;
 			height?: string | number;
@@ -363,21 +369,21 @@ export namespace JSX {
 		};
 
 		// Lists
-		ul: BaseHTMLAttributes;
-		ol: BaseHTMLAttributes & {
+		ul: IntrinsicHTMLAttributes<"ul">;
+		ol: IntrinsicHTMLAttributes<"ol"> & {
 			start?: number;
 			type?: "1" | "a" | "A" | "i" | "I";
 			reversed?: boolean;
 		};
-		li: BaseHTMLAttributes & {
+		li: IntrinsicHTMLAttributes<"li"> & {
 			value?: number;
 		};
-		dl: BaseHTMLAttributes;
-		dt: BaseHTMLAttributes;
-		dd: BaseHTMLAttributes;
+		dl: IntrinsicHTMLAttributes<"dl">;
+		dt: IntrinsicHTMLAttributes<"dt">;
+		dd: IntrinsicHTMLAttributes<"dd">;
 
 		// Forms
-		form: BaseHTMLAttributes & {
+		form: IntrinsicHTMLAttributes<"form"> & {
 			action?: string;
 			method?: "GET" | "POST";
 			encType?: string;
@@ -385,7 +391,7 @@ export namespace JSX {
 			noValidate?: boolean;
 		};
 
-		input: BaseHTMLAttributes & {
+		input: IntrinsicHTMLAttributes<"input"> & {
 			type?: string;
 			value?: ValueType;
 			checked?: boolean;
@@ -401,16 +407,16 @@ export namespace JSX {
 			pattern?: string;
 			accept?: string;
 		};
-		button: BaseHTMLAttributes & {
+		button: IntrinsicHTMLAttributes<"button"> & {
 			type?: "button" | "submit" | "reset";
 			disabled?: boolean;
 			name?: string;
 			value?: string;
 		};
-		label: BaseHTMLAttributes & {
+		label: IntrinsicHTMLAttributes<"label"> & {
 			htmlFor?: string;
 		};
-		textarea: BaseHTMLAttributes & {
+		textarea: IntrinsicHTMLAttributes<"textarea"> & {
 			value?: string | number | readonly string[];
 			placeholder?: string;
 			disabled?: boolean;
@@ -421,7 +427,7 @@ export namespace JSX {
 			cols?: number;
 			wrap?: "hard" | "soft" | "off";
 		};
-		select: BaseHTMLAttributes & {
+		select: IntrinsicHTMLAttributes<"select"> & {
 			value?: string | number | readonly string[];
 			disabled?: boolean;
 			name?: string;
@@ -429,70 +435,70 @@ export namespace JSX {
 			multiple?: boolean;
 			size?: number;
 		};
-		option: BaseHTMLAttributes & {
+		option: IntrinsicHTMLAttributes<"option"> & {
 			value?: string | number;
 			disabled?: boolean;
 			selected?: boolean;
 			label?: string;
 		};
-		optgroup: BaseHTMLAttributes & {
+		optgroup: IntrinsicHTMLAttributes<"optgroup"> & {
 			label?: string;
 			disabled?: boolean;
 		};
-		fieldset: BaseHTMLAttributes & {
+		fieldset: IntrinsicHTMLAttributes<"fieldset"> & {
 			disabled?: boolean;
 			name?: string;
 		};
-		legend: BaseHTMLAttributes;
+		legend: IntrinsicHTMLAttributes<"legend">;
 
 		// Tables
-		table: BaseHTMLAttributes;
-		caption: BaseHTMLAttributes;
-		thead: BaseHTMLAttributes;
-		tbody: BaseHTMLAttributes;
-		tfoot: BaseHTMLAttributes;
-		tr: BaseHTMLAttributes;
-		th: BaseHTMLAttributes & {
+		table: IntrinsicHTMLAttributes<"table">;
+		caption: IntrinsicHTMLAttributes<"caption">;
+		thead: IntrinsicHTMLAttributes<"thead">;
+		tbody: IntrinsicHTMLAttributes<"tbody">;
+		tfoot: IntrinsicHTMLAttributes<"tfoot">;
+		tr: IntrinsicHTMLAttributes<"tr">;
+		th: IntrinsicHTMLAttributes<"th"> & {
 			scope?: "col" | "row" | "colgroup" | "rowgroup";
 			colSpan?: number;
 			rowSpan?: number;
 		};
-		td: BaseHTMLAttributes & {
+		td: IntrinsicHTMLAttributes<"td"> & {
 			colSpan?: number;
 			rowSpan?: number;
 		};
-		colgroup: BaseHTMLAttributes;
-		col: BaseHTMLAttributes & {
+		colgroup: IntrinsicHTMLAttributes<"colgroup">;
+		col: IntrinsicHTMLAttributes<"col"> & {
 			span?: number;
 		};
 
 		// Semantic/Layout Elements
-		header: BaseHTMLAttributes;
-		footer: BaseHTMLAttributes;
-		main: BaseHTMLAttributes;
-		nav: BaseHTMLAttributes;
-		section: BaseHTMLAttributes;
-		article: BaseHTMLAttributes;
-		aside: BaseHTMLAttributes;
-		address: BaseHTMLAttributes;
-		figure: BaseHTMLAttributes;
-		figcaption: BaseHTMLAttributes;
+		header: IntrinsicHTMLAttributes<"header">;
+		footer: IntrinsicHTMLAttributes<"footer">;
+		main: IntrinsicHTMLAttributes<"main">;
+		nav: IntrinsicHTMLAttributes<"nav">;
+		section: IntrinsicHTMLAttributes<"section">;
+		article: IntrinsicHTMLAttributes<"article">;
+		aside: IntrinsicHTMLAttributes<"aside">;
+		address: IntrinsicHTMLAttributes<"address">;
+		figure: IntrinsicHTMLAttributes<"figure">;
+		figcaption: IntrinsicHTMLAttributes<"figcaption">;
 
 		// Details & Dialog
-		details: BaseHTMLAttributes & {
+		details: IntrinsicHTMLAttributes<"details"> & {
 			open?: boolean;
 		};
-		summary: BaseHTMLAttributes;
-		dialog: BaseHTMLAttributes & {
+		summary: IntrinsicHTMLAttributes<"summary">;
+		dialog: IntrinsicHTMLAttributes<"dialog"> & {
 			open?: boolean;
 		};
 
 		// Other
-		blockquote: BaseHTMLAttributes & {
+		blockquote: IntrinsicHTMLAttributes<"blockquote"> & {
 			cite?: string;
 		};
-		pre: BaseHTMLAttributes;
-		code: BaseHTMLAttributes;
+		pre: IntrinsicHTMLAttributes<"pre">;
+		code: IntrinsicHTMLAttributes<"code">;
 	}
 
 	export interface ElementAttributesProperty {

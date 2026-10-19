@@ -52,7 +52,8 @@ export function cleanupDom(dom: Node, props: ElementProps): void {
 }
 
 const isEvent = (key: string): boolean => key.startsWith("on");
-const isProperty = (key: string): boolean => key !== "children" && key !== "key" && !isEvent(key);
+const isProperty = (key: string): boolean =>
+	key !== "children" && key !== "key" && key !== "ref" && !isEvent(key);
 const isNew =
 	(prev: RuntimeProps, next: RuntimeProps) =>
 	(key: string): boolean =>

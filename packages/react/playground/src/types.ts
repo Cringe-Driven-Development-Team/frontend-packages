@@ -1,3 +1,5 @@
+import type { Ref, RefObject } from "@cdd-team/react";
+
 export type Todo = {
 	id: number;
 	text: string;
@@ -12,8 +14,14 @@ export type HeaderProps = {
 	titleStatus: string;
 	showStats: boolean;
 	renderCount: number;
-	onAdd: () => void;
+	ref?: Ref<HTMLButtonElement>;
+	actionsRef?: RefObject<HeaderActions | null>;
+	onAdd: (text: string) => void;
 	onToggleStats: () => void;
+};
+
+export type HeaderActions = {
+	focusAddInput: () => void;
 };
 
 export type HeaderTitleProps = {
@@ -28,6 +36,8 @@ export type StatsPanelProps = {
 };
 
 export type ToolbarProps = {
+	onAddViaRef: () => void;
+	onFocusInputViaHandle: () => void;
 	onReverse: () => void;
 	onRotate: () => void;
 	onSort: () => void;

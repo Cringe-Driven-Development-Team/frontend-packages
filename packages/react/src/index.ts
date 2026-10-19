@@ -7,7 +7,16 @@ export { memo } from "./memo.ts";
 export { createRoot } from "./render.ts";
 export type { Root } from "./render.ts";
 
-export { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from "./hooks.ts";
+export {
+	useCallback,
+	useContext,
+	useEffect,
+	useImperativeHandle,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "./hooks.ts";
 
 export { createContext } from "./context.ts";
 
