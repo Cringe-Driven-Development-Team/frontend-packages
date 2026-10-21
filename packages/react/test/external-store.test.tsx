@@ -1,7 +1,12 @@
 /* oxlint-disable react/globals, react/immutability -- счётчики рендеров и сеттеры вынесены наружу */
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import { schedulerErrors } from "./capture-scheduler-errors.ts";
 import { createRoot, memo, useLayoutEffect, useState, useSyncExternalStore } from "../src/index.ts";
 import type { ReactElement, Root } from "../src/index.ts";
+
+afterEach(() => {
+	expect(schedulerErrors.splice(0)).toEqual([]);
+});
 
 async function flush(): Promise<void> {
 	for (let i = 0; i < 10; i += 1) {
@@ -434,6 +439,91 @@ describe("stale commit", () => {
 		expect(store.listenerCount()).toBe(2);
 		expect(store.subscribeCalls - store.unsubscribeCalls).toBe(2);
 		expect(committed.slice(-2)).toEqual([4, 4]);
+		root.unmount();
+	});
+});
+
+describe("restart limit", () => {
+	function takeSchedulerErrors(): string[] {
+		return schedulerErrors
+			.splice(0)
+			.map((error) => (error instanceof Error ? error.message : String(error)));
+	}
+
+	test("uncached getSnapshot throws after restart limit", async () => {
+		const store = createTestStore(0);
+		let snapshotCalls = 0;
+		function Reader() {
+			const state = useSyncExternalStore(store.subscribe, () => {
+				snapshotCalls += 1;
+				return { count: store.getState() };
+			});
+			return <p>{state.count}</p>;
+		}
+
+		const { root } = await mount(<Reader />);
+		root.unmount();
+
+		expect(takeSchedulerErrors()).toEqual([
+			expect.stringContaining("getSnapshot returned a new value on every call"),
+		]);
+		expect(snapshotCalls).toBeLessThanOrEqual(2 * (25 + 2));
+	});
+
+	test("root recovers after fixing getSnapshot", async () => {
+		const store = createTestStore(7);
+		function UncachedReader() {
+			const state = useSyncExternalStore(store.subscribe, () => ({ count: store.getState() }));
+			return <p>{state.count}</p>;
+		}
+		function CachedReader() {
+			const count = useSyncExternalStore(store.subscribe, store.getState);
+			return <p>{count}</p>;
+		}
+
+		const { container, root } = await mount(<UncachedReader />);
+		expect(takeSchedulerErrors()).toHaveLength(1);
+
+		root.render(<CachedReader />);
+		await flush();
+
+		expect(container.textContent).toBe("7");
+		root.unmount();
+	});
+
+	test("legit restarts do not hit the limit", async () => {
+		const store = createTestStore(0);
+		const mutatedOn = new Set<number>();
+		let setTick: (value: number) => void = () => {};
+		function Reader() {
+			const value = useSyncExternalStore(store.subscribe, store.getState);
+			return <p>{value}</p>;
+		}
+		function Mutator({ tick }: { tick: number }) {
+			if (!mutatedOn.has(tick)) {
+				mutatedOn.add(tick);
+				store.setState((value) => value + 1);
+			}
+			return <span />;
+		}
+		function Parent() {
+			const [tick, nextSetTick] = useState(0);
+			setTick = nextSetTick;
+			return (
+				<div>
+					<Reader />
+					<Mutator tick={tick} />
+				</div>
+			);
+		}
+
+		const { container, root } = await mount(<Parent />);
+		for (let tick = 1; tick <= 30; tick += 1) {
+			setTick(tick);
+			await flush();
+		}
+
+		expect(container.querySelector("p")?.textContent).toBe("31");
 		root.unmount();
 	});
 });

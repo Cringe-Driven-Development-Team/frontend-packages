@@ -16,6 +16,10 @@ import { flushPassiveEffects } from "./effects.ts";
 import { findStaleExternalStoreConsumers } from "./external-store.ts";
 import { markFiberDirty } from "./renderer-state.ts";
 
+const STALE_SNAPSHOT_RESTART_LIMIT = 25;
+
+const staleSnapshotRestarts = new WeakMap<FiberRoot, number>();
+
 export interface Root {
 	render(element: ReactElement): void;
 	unmount(): void;
@@ -54,6 +58,7 @@ export function createRoot(container: Element): Root {
 			}
 
 			flushPassiveEffects();
+			staleSnapshotRestarts.delete(fiberRoot);
 			createRenderRoot(fiberRoot, element);
 			scheduleWork(fiberRoot);
 		},
@@ -69,6 +74,7 @@ function unmountRoot(root: FiberRoot): void {
 	}
 
 	unscheduleWork(root);
+	staleSnapshotRestarts.delete(root);
 
 	if (root.currentRoot) {
 		commitRootUnmount(root.currentRoot);
@@ -84,6 +90,7 @@ function commitPendingRoot(root: FiberRoot): void {
 	}
 	const staleConsumers = findStaleExternalStoreConsumers(pendingCommit.root);
 	if (staleConsumers.length > 0) {
+		countStaleSnapshotRestartOrThrow(root);
 		staleConsumers.forEach(markFiberDirty);
 		const element = pendingCommit.root.props.children[0];
 		if (element) {
@@ -93,8 +100,21 @@ function commitPendingRoot(root: FiberRoot): void {
 		return;
 	}
 
+	staleSnapshotRestarts.delete(root);
 	commitRoot({
 		...pendingCommit,
 		onCommitted: (rootFiber) => commitRendererRoot(root, rootFiber),
 	});
+}
+
+function countStaleSnapshotRestartOrThrow(root: FiberRoot): void {
+	const restarts = (staleSnapshotRestarts.get(root) ?? 0) + 1;
+	if (restarts > STALE_SNAPSHOT_RESTART_LIMIT) {
+		staleSnapshotRestarts.delete(root);
+		throw new Error(
+			"Render.useSyncExternalStore: getSnapshot returned a new value on every call. Cache the snapshot to avoid an infinite loop.",
+		);
+	}
+
+	staleSnapshotRestarts.set(root, restarts);
 }
