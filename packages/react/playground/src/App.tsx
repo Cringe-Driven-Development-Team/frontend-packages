@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "@cdd-team/react";
 import type { ReactElement } from "@cdd-team/react";
 import { Filters } from "./Filters.tsx";
+import { ExternalStoreDemo } from "./ExternalStoreDemo.tsx";
 import { Header } from "./Header.tsx";
-import { Memoized } from "./Memoized.tsx";
 import { nestedProviderDemoFixture } from "./NestedProviderDemo.tsx";
 import { SelectiveDemo } from "./SelectiveDemo.tsx";
 import { TodoList } from "./TodoList.tsx";
@@ -136,7 +136,7 @@ export function App(): ReactElement {
 					/>
 					<Filters value={filter} onChange={setFilter} />
 					<SelectiveDemo />
-					<Memoized />
+					<ExternalStoreDemo />
 					{nestedProviderDemoFixture}
 					<TodoList todos={visibleTodos} onToggle={toggleTodo} onRemove={removeTodo} />
 				</section>
