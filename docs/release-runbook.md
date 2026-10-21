@@ -127,7 +127,7 @@ Optional peer и экспорт `./vanilla` в Zustand должны сохран
 
 ### Откуда берутся данные
 
-- `publish-released.ts --report release-report.json` пишет статус каждого пути из `paths_released`. После `npm publish` версия подтверждается через `npm view <имя>@<версия>` (до 6 попыток с паузой 10 с). Отчёт уходит в артефакт `release-report`.
+- `publish-released.ts --report release-report.json` пишет статус каждого пути из `paths_released`. После `npm publish` версия подтверждается через `npm view <имя>@<версия>` (до 41 попытки с паузой 15 с, около 10 минут). Отчёт уходит в артефакт `release-report`.
 - `scripts/release-notify.ts` читает отчёт и результаты шагов publish и собирает карточку:
 
 | В карточке | Источник |

@@ -88,6 +88,9 @@ export function npmUrl(name: string, version: string): string {
 }
 
 const code = (text: string) => `<code>${escapeHtml(text)}</code>`;
+// Блок кода с кнопкой копирования: команду забирают целиком, без окружающего текста.
+const shell = (text: string) =>
+	`<pre><code class="language-shell">${escapeHtml(text)}</code></pre>`;
 const link = (url: string, text: string) => `<a href="${escapeHtml(url)}">${text}</a>`;
 
 function plural(count: number, one: string, few: string, many: string): string {
@@ -133,7 +136,7 @@ function outcomeLine(pkg: CardPackage): string {
 		case "skipped":
 			return "Уже был в npm, пропущен.";
 		case "unconfirmed":
-			return `Публикация не подтверждена: проверьте ${code(`npm view ${pkg.name}@${pkg.version}`)}.`;
+			return `Публикация не подтверждена, проверьте:\n${shell(`npm view ${pkg.name}@${pkg.version}`)}`;
 		case "failed":
 			return `Не опубликован: ${escapeHtml(pkg.reason ?? "ошибка публикации")}.`;
 		case "not-attempted":
