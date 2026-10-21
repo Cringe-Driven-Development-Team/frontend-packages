@@ -217,7 +217,6 @@ export function useSyncExternalStore<Snapshot>(
 	const [, forceUpdate] = useState(0);
 	const committed = useRef({ getSnapshot, snapshot });
 
-	// Эффект без deps намеренно: после каждого commit запоминает пару и перепроверяет снимок
 	// oxlint-disable-next-line react-hooks/exhaustive-deps
 	useLayoutEffect(() => {
 		// oxlint-disable-next-line react/immutability
@@ -248,7 +247,6 @@ export function useSyncExternalStore<Snapshot>(
 	return snapshot;
 }
 
-// Как в React 19: ошибка getSnapshot в слушателе значит «снимок изменился», её бросит рендер
 function didSnapshotChange<Snapshot>({
 	getSnapshot,
 	snapshot,

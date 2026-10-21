@@ -18,7 +18,6 @@ export function findStaleExternalStoreConsumers(root: Fiber): Fiber[] {
 	return stale;
 }
 
-// Как React определяет «getSnapshot should be cached»: два вызова подряд дают разные значения
 export function hasUncachedSnapshot(fiber: Fiber): boolean {
 	return (
 		fiber.externalStoreDependencies?.some(
