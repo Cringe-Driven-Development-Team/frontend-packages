@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/react-v1.3.0...react-v1.4.0) (2026-10-21)
+
+
+### Features
+
+* ограничить перезапуски из-за некэшированного getSnapshot ([9dd3ba6](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/9dd3ba68094d113b38cfde8c0d9cd88ebcb8df2e))
+* отменять commit с устаревшим снимком внешнего стора ([bb991fd](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/bb991fd477a0a99b52ece7833cfc26dabb01b9a2))
+* пример внешнего стора в playground @cdd-team/react ([f5a1700](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/f5a17009df9851098e1c72f83df5acbdde6820fc))
+* считать в пределе только перезапуски с некэшированным getSnapshot ([9d2875e](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/9d2875e619c6f417940da073de3e2fe109c35b5c))
+* считать ошибку getSnapshot в слушателе изменением снимка ([16c378c](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/16c378c8ae48b03a475ef692f8021932dc96b8bd))
+* считать ошибку getSnapshot перед commit устаревшим снимком ([65c83c9](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/65c83c9da6ff50d27761535ebd07a73c5beae1fe))
+* хук useSyncExternalStore в @cdd-team/react ([3ecc78a](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/3ecc78afb8afa8d927c45321bc258520967b4b47))
+
 ## [1.3.0](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/react-v1.2.1...react-v1.3.0) (2026-10-19)
 
 
