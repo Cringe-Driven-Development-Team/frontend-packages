@@ -328,3 +328,112 @@ describe("useSyncExternalStore", () => {
 		root.unmount();
 	});
 });
+
+describe("stale commit", () => {
+	function createReader(store: TestStore<number>, committed: number[]) {
+		return function Reader() {
+			const value = useSyncExternalStore(store.subscribe, store.getState);
+			useLayoutEffect(() => {
+				committed.push(value);
+			});
+			return <p>{value}</p>;
+		};
+	}
+
+	test("store change during later sibling render on mount", async () => {
+		const store = createTestStore(0);
+		const committed: number[] = [];
+		const Reader = createReader(store, committed);
+		let mutated = false;
+		function Mutator() {
+			if (!mutated) {
+				mutated = true;
+				store.setState(1);
+			}
+			return <span />;
+		}
+
+		const { container, root } = await mount(
+			<div>
+				<Reader />
+				<Mutator />
+			</div>,
+		);
+
+		expect(committed).toEqual([1]);
+		expect(container.querySelector("p")?.textContent).toBe("1");
+		root.unmount();
+	});
+
+	test("store change during later sibling render on update", async () => {
+		const store = createTestStore(0);
+		const committed: number[] = [];
+		const Reader = createReader(store, committed);
+		let mutated = false;
+		let setTick: (value: number) => void = () => {};
+		function Mutator({ tick }: { tick: number }) {
+			if (tick === 1 && !mutated) {
+				mutated = true;
+				store.setState(1);
+			}
+			return <span />;
+		}
+		function Parent() {
+			const [tick, nextSetTick] = useState(0);
+			setTick = nextSetTick;
+			return (
+				<div>
+					<Reader />
+					<Mutator tick={tick} />
+				</div>
+			);
+		}
+
+		const { container, root } = await mount(<Parent />);
+		setTick(1);
+		await flush();
+
+		expect(mutated).toBe(true);
+		expect(committed).toEqual([0, 1]);
+		expect(container.querySelector("p")?.textContent).toBe("1");
+		root.unmount();
+	});
+
+	test("interrupted renders leave no extra listeners", async () => {
+		const store = createTestStore(0);
+		const committed: number[] = [];
+		const Reader = createReader(store, committed);
+		const mutatedOn = new Set<number>();
+		let setTick: (value: number) => void = () => {};
+		function Mutator({ tick }: { tick: number }) {
+			if (!mutatedOn.has(tick)) {
+				mutatedOn.add(tick);
+				store.setState((value) => value + 1);
+			}
+			return <span />;
+		}
+		function Parent() {
+			const [tick, nextSetTick] = useState(0);
+			setTick = nextSetTick;
+			return (
+				<div>
+					<Reader />
+					<Reader />
+					<Mutator tick={tick} />
+				</div>
+			);
+		}
+
+		const { root } = await mount(<Parent />);
+		for (let tick = 1; tick <= 3; tick += 1) {
+			setTick(tick);
+			await flush();
+		}
+
+		expect(store.getState()).toBe(4);
+		expect(store.listenerCount()).toBe(2);
+		expect(store.subscribeCalls - store.unsubscribeCalls).toBe(2);
+		expect(committed.slice(-2)).toEqual([4, 4]);
+		root.unmount();
+	});
+});

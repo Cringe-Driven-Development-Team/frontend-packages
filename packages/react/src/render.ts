@@ -13,6 +13,8 @@ import { performUnitOfWork } from "./fiber.ts";
 import { commitRoot, commitRootUnmount } from "./commit.ts";
 import { setScheduleRender } from "./hooks.ts";
 import { flushPassiveEffects } from "./effects.ts";
+import { findStaleExternalStoreConsumers } from "./external-store.ts";
+import { markFiberDirty } from "./renderer-state.ts";
 
 export interface Root {
 	render(element: ReactElement): void;
@@ -78,6 +80,16 @@ function unmountRoot(root: FiberRoot): void {
 function commitPendingRoot(root: FiberRoot): void {
 	const pendingCommit = getPendingCommit(root);
 	if (!pendingCommit) {
+		return;
+	}
+	const staleConsumers = findStaleExternalStoreConsumers(pendingCommit.root);
+	if (staleConsumers.length > 0) {
+		staleConsumers.forEach(markFiberDirty);
+		const element = pendingCommit.root.props.children[0];
+		if (element) {
+			createRenderRoot(root, element);
+			scheduleWork(root);
+		}
 		return;
 	}
 
