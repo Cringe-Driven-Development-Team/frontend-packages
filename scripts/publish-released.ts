@@ -12,8 +12,8 @@ export type Manifest = (path: string) => Promise<{ name: string; version: string
 
 export type Confirm = { attempts: number; delayMs: number; sleep: (ms: number) => Promise<void> };
 
-// Метаданные registry появляются с задержкой: проверяем версию около минуты.
-export const CONFIRM_DEFAULT = { attempts: 6, delayMs: 10_000 };
+// Метаданные registry появляются с задержкой в несколько минут: проверяем версию до 10 минут.
+export const CONFIRM_DEFAULT = { attempts: 41, delayMs: 15_000 };
 
 export function orderForPublish(paths: string[]): string[] {
 	const first = publishFirst.filter((path) => paths.includes(path));

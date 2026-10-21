@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { orderForPublish, publishReleased } from "./publish-released.ts";
+import { CONFIRM_DEFAULT, orderForPublish, publishReleased } from "./publish-released.ts";
 
 type Call = { cmd: string[]; cwd: string };
 
@@ -74,5 +74,43 @@ describe("publishReleased", () => {
 		await publishReleased(["packages/react", "packages/zustand"], run, { isPublished });
 
 		expect(calls.map((call) => call.cwd)).toEqual(["packages/zustand"]);
+	});
+
+	test("ждёт, пока опубликованная версия появится в registry", async () => {
+		const { run } = recorder();
+		let checks = 0;
+		const sleeps: number[] = [];
+		const isVisible = async () => ++checks === 3;
+		const sleep = async (ms: number) => {
+			sleeps.push(ms);
+		};
+
+		const results = await publishReleased(["packages/react"], run, {
+			isVisible,
+			confirm: { attempts: 5, delayMs: 100, sleep },
+		});
+
+		expect(results.map((result) => result.status)).toEqual(["published"]);
+		expect(sleeps).toEqual([100, 100]);
+	});
+
+	test("версия, не появившаяся в registry за все попытки, не подтверждена", async () => {
+		const { run } = recorder();
+
+		const results = await publishReleased(["packages/react"], run, {
+			isVisible: async () => false,
+			confirm: { attempts: 3, delayMs: 0, sleep: async () => {} },
+		});
+
+		expect(results.map((result) => result.status)).toEqual(["unconfirmed"]);
+	});
+});
+
+describe("CONFIRM_DEFAULT", () => {
+	// Registry показывал версию через 2–3 минуты после npm publish: ждём с запасом.
+	test("ждёт появления версии в registry не меньше 10 минут", () => {
+		expect((CONFIRM_DEFAULT.attempts - 1) * CONFIRM_DEFAULT.delayMs).toBeGreaterThanOrEqual(
+			600_000,
+		);
 	});
 });
