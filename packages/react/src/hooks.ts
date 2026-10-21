@@ -55,6 +55,7 @@ export function prepareToUseHooks(fiber: Fiber): void {
 	hookIndex = 0;
 	currentlyRenderingFiber.hooks = [];
 	currentlyRenderingFiber.contextDependencies = [];
+	currentlyRenderingFiber.externalStoreDependencies = [];
 }
 
 export function finishHooks(): void {
@@ -202,6 +203,50 @@ export function useRef<Value>(initial: Value): RefObject<Value> {
 	hookIndex += 1;
 
 	return hook.ref;
+}
+
+export function useSyncExternalStore<Snapshot>(
+	subscribe: (onStoreChange: () => void) => () => void,
+	getSnapshot: () => Snapshot,
+): Snapshot {
+	const snapshot = getSnapshot();
+	if (!currentlyRenderingFiber) {
+		throw new Error("Render.useSyncExternalStore must be called inside a function component.");
+	}
+	(currentlyRenderingFiber.externalStoreDependencies ??= []).push({ getSnapshot, snapshot });
+	const [, forceUpdate] = useState(0);
+	const committed = useRef({ getSnapshot, snapshot });
+
+	// Эффект без deps намеренно: после каждого commit запоминает пару и перепроверяет снимок
+	// oxlint-disable-next-line react-hooks/exhaustive-deps
+	useLayoutEffect(() => {
+		// oxlint-disable-next-line react/immutability
+		committed.current = { getSnapshot, snapshot };
+		if (!Object.is(getSnapshot(), snapshot)) {
+			forceUpdate((value) => value + 1);
+		}
+	});
+
+	useLayoutEffect(() => {
+		let active = true;
+		const checkForUpdates = (): void => {
+			if (!active) {
+				return;
+			}
+			const next = committed.current.getSnapshot();
+			if (!Object.is(next, committed.current.snapshot)) {
+				forceUpdate((value) => value + 1);
+			}
+		};
+		const unsubscribe = subscribe(checkForUpdates);
+		checkForUpdates();
+		return () => {
+			active = false;
+			unsubscribe();
+		};
+	}, [subscribe]);
+
+	return snapshot;
 }
 
 function createDispatch<State>(fiber: Fiber, queue: StateAction<State>[]): Dispatch<State> {

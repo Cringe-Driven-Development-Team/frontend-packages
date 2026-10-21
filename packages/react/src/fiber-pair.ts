@@ -60,6 +60,9 @@ export function createWorkInProgressFiber(
 	workInProgress.contextDependencies = canReadContext(workInProgress.tag)
 		? current.contextDependencies
 		: undefined;
+	workInProgress.externalStoreDependencies = canReadContext(workInProgress.tag)
+		? current.externalStoreDependencies
+		: undefined;
 	workInProgress.dirty = current.dirty;
 	workInProgress.hasDirtySubtree = current.hasDirtySubtree;
 	workInProgress.hasContextUpdate = current.hasContextUpdate;

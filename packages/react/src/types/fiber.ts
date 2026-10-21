@@ -47,6 +47,11 @@ export interface FiberRoot {
 	isUnmounted: boolean;
 }
 
+export type ExternalStoreDependency<Snapshot> = {
+	getSnapshot: () => Snapshot;
+	snapshot: Snapshot;
+};
+
 export interface Fiber<Props extends ElementProps = ElementProps> {
 	tag: FiberTag;
 	type: ReactElementType;
@@ -65,6 +70,7 @@ export interface Fiber<Props extends ElementProps = ElementProps> {
 	subtreeFlags: FiberFlags;
 	hooks?: Hook[];
 	contextDependencies?: ContextDependency[];
+	externalStoreDependencies?: ExternalStoreDependency<unknown>[];
 	dirty: boolean;
 	hasDirtySubtree: boolean;
 	hasContextUpdate: boolean;
