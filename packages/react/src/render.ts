@@ -13,7 +13,7 @@ import { performUnitOfWork } from "./fiber.ts";
 import { commitRoot, commitRootUnmount } from "./commit.ts";
 import { setScheduleRender } from "./hooks.ts";
 import { flushPassiveEffects } from "./effects.ts";
-import { findStaleExternalStoreConsumers } from "./external-store.ts";
+import { findStaleExternalStoreConsumers, hasUncachedSnapshot } from "./external-store.ts";
 import { markFiberDirty } from "./renderer-state.ts";
 
 const STALE_SNAPSHOT_RESTART_LIMIT = 25;
@@ -90,7 +90,9 @@ function commitPendingRoot(root: FiberRoot): void {
 	}
 	const staleConsumers = findStaleExternalStoreConsumers(pendingCommit.root);
 	if (staleConsumers.length > 0) {
-		countStaleSnapshotRestartOrThrow(root);
+		if (staleConsumers.some(hasUncachedSnapshot)) {
+			countStaleSnapshotRestartOrThrow(root);
+		}
 		staleConsumers.forEach(markFiberDirty);
 		const element = pendingCommit.root.props.children[0];
 		if (element) {
