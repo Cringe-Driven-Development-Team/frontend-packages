@@ -14,7 +14,7 @@ import {
 	type StateAction,
 	type StateHook,
 } from "./types/hooks.ts";
-import type { Fiber, FiberRoot } from "./types/fiber.ts";
+import type { ExternalStoreDependency, Fiber, FiberRoot } from "./types/fiber.ts";
 import { getFiberRoot, markFiberDirty } from "./renderer-state.ts";
 import { getFlagForEffectKind } from "./flags.ts";
 import { readContextValue } from "./context.ts";
@@ -233,8 +233,7 @@ export function useSyncExternalStore<Snapshot>(
 			if (!active) {
 				return;
 			}
-			const next = committed.current.getSnapshot();
-			if (!Object.is(next, committed.current.snapshot)) {
+			if (didSnapshotChange(committed.current)) {
 				forceUpdate((value) => value + 1);
 			}
 		};
@@ -247,6 +246,18 @@ export function useSyncExternalStore<Snapshot>(
 	}, [subscribe]);
 
 	return snapshot;
+}
+
+// Как в React 19: ошибка getSnapshot в слушателе значит «снимок изменился», её бросит рендер
+function didSnapshotChange<Snapshot>({
+	getSnapshot,
+	snapshot,
+}: ExternalStoreDependency<Snapshot>): boolean {
+	try {
+		return !Object.is(getSnapshot(), snapshot);
+	} catch {
+		return true;
+	}
 }
 
 function createDispatch<State>(fiber: Fiber, queue: StateAction<State>[]): Dispatch<State> {
