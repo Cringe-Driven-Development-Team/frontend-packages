@@ -14,12 +14,13 @@ import {
 	type StateAction,
 	type StateHook,
 } from "./types/hooks.ts";
-import type { ExternalStoreDependency, Fiber, FiberRoot } from "./types/fiber.ts";
+import type { Fiber, FiberRoot } from "./types/fiber.ts";
 import { getFiberRoot, markFiberDirty } from "./renderer-state.ts";
 import { getFlagForEffectKind } from "./flags.ts";
 import { readContextValue } from "./context.ts";
 import type { Context } from "./types/context.ts";
 import { countProfilerEvent } from "./profiler.ts";
+import { didSnapshotChange } from "./external-store.ts";
 
 const RE_RENDER_LIMIT = 25;
 
@@ -245,17 +246,6 @@ export function useSyncExternalStore<Snapshot>(
 	}, [subscribe]);
 
 	return snapshot;
-}
-
-function didSnapshotChange<Snapshot>({
-	getSnapshot,
-	snapshot,
-}: ExternalStoreDependency<Snapshot>): boolean {
-	try {
-		return !Object.is(getSnapshot(), snapshot);
-	} catch {
-		return true;
-	}
 }
 
 function createDispatch<State>(fiber: Fiber, queue: StateAction<State>[]): Dispatch<State> {

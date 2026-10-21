@@ -1,15 +1,11 @@
-import type { Fiber } from "./types/fiber.ts";
+import type { ExternalStoreDependency, Fiber } from "./types/fiber.ts";
 
 export function findStaleExternalStoreConsumers(root: Fiber): Fiber[] {
 	const stale: Fiber[] = [];
 	const stack = [root];
 	while (stack.length > 0) {
 		const fiber = stack.pop() as Fiber;
-		if (
-			fiber.externalStoreDependencies?.some(
-				({ getSnapshot, snapshot }) => !Object.is(getSnapshot(), snapshot),
-			)
-		) {
+		if (fiber.externalStoreDependencies?.some(didSnapshotChange)) {
 			stale.push(fiber);
 		}
 		if (fiber.sibling) stack.push(fiber.sibling);
@@ -18,10 +14,25 @@ export function findStaleExternalStoreConsumers(root: Fiber): Fiber[] {
 	return stale;
 }
 
+export function didSnapshotChange<Snapshot>({
+	getSnapshot,
+	snapshot,
+}: ExternalStoreDependency<Snapshot>): boolean {
+	try {
+		return !Object.is(getSnapshot(), snapshot);
+	} catch {
+		return true;
+	}
+}
+
 export function hasUncachedSnapshot(fiber: Fiber): boolean {
 	return (
-		fiber.externalStoreDependencies?.some(
-			({ getSnapshot }) => !Object.is(getSnapshot(), getSnapshot()),
-		) ?? false
+		fiber.externalStoreDependencies?.some(({ getSnapshot }) => {
+			try {
+				return !Object.is(getSnapshot(), getSnapshot());
+			} catch {
+				return false;
+			}
+		}) ?? false
 	);
 }
