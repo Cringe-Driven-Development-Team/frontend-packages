@@ -75,6 +75,19 @@ async function registryOutcome(io: NotifyIo, name: string, version: string): Pro
 	return found ? "available" : "not-visible";
 }
 
+// Отчёт мог устареть: registry показывает версию позже окна проверки, а перезапуск одного notify
+// берёт отчёт прошлой попытки. Неподтверждённую версию, которая уже видна в npm, считаем опубликованной.
+async function reportOutcome(
+	io: NotifyIo,
+	entry: PackageResult | undefined,
+	name: string,
+	version: string,
+): Promise<Outcome> {
+	if (!entry) return "unknown";
+	if (entry.status !== "unconfirmed") return entry.status;
+	return (await io.npmHasVersion(name, version)) ? "published" : "unconfirmed";
+}
+
 export async function notify(env: NotifyEnv, io: NotifyIo): Promise<number> {
 	const config = await readJson<{ packages: Record<string, { component: string }> }>(
 		io,
@@ -102,7 +115,9 @@ export async function notify(env: NotifyEnv, io: NotifyIo): Promise<number> {
 			bump: previous ? bumpType(previous, version) : null,
 			releaseUrl: `${base}/releases/tag/${component}-v${version}`,
 			changelog: changelog === null ? null : parseChangelogSection(changelog, version),
-			outcome: report ? (entry?.status ?? "unknown") : await registryOutcome(io, name, version),
+			outcome: report
+				? await reportOutcome(io, entry, name, version)
+				: await registryOutcome(io, name, version),
 			...(entry?.reason ? { reason: entry.reason } : {}),
 			...(entry?.errorKind ? { errorKind: entry.errorKind } : {}),
 		});
@@ -224,9 +239,10 @@ if (import.meta.main) {
 			outcomes,
 			server: env.GITHUB_SERVER_URL ?? "https://github.com",
 			repo,
-			runId: env.GITHUB_RUN_ID ?? "",
+			// При ручном повторе карточка ссылается на запуск выпуска, а не на текущий.
+			runId: env.RELEASE_RUN_ID || (env.GITHUB_RUN_ID ?? ""),
 			attempt: env.GITHUB_RUN_ATTEMPT ?? "1",
-			sha: env.GITHUB_SHA ?? "",
+			sha: env.RELEASE_SHA || (env.GITHUB_SHA ?? ""),
 			reportFile: env.RELEASE_REPORT ?? "release-report.json",
 		},
 		realIo(repo),

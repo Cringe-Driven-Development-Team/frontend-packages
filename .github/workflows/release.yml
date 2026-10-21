@@ -3,9 +3,17 @@ name: Release
 on:
   push:
     branches: [main]
+  # Повторная карточка выпуска по отчёту прошлого запуска: только notify, без публикации.
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: ID запуска Release, карточку которого отправить повторно
+        required: true
+        type: string
 
 jobs:
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -82,11 +90,14 @@ jobs:
   # Отдельный job: Telegram-секреты не попадают в job с id-token: write.
   notify:
     needs: [release-please, publish]
-    if: always() && needs.release-please.outputs.releases_created == 'true'
+    if: >-
+      always() && (github.event_name == 'workflow_dispatch' ||
+      needs.release-please.outputs.releases_created == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
+      actions: read
     steps:
       - uses: actions/checkout@v7
         with:
@@ -95,19 +106,38 @@ jobs:
         with:
           bun-version: 1.4.2
       - run: bun install --frozen-lockfile
-      - uses: actions/download-artifact@v4
+      - if: github.event_name == 'push'
+        uses: actions/download-artifact@v4
         continue-on-error: true
         with:
           name: release-report
+      # Отчёт есть, только если шаг публикации запускался: все этапы до него прошли успешно.
+      - if: github.event_name == 'workflow_dispatch'
+        uses: actions/download-artifact@v4
+        with:
+          name: release-report
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+      - id: replay
+        if: github.event_name == 'workflow_dispatch'
+        name: Взять пути и коммит прошлого запуска
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          echo "paths=$(jq -c '[.[].path]' release-report.json)" >> "$GITHUB_OUTPUT"
+          echo "sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq .head_sha)" >> "$GITHUB_OUTPUT"
       - name: Отправить итоговую карточку в Telegram
         env:
-          PATHS_RELEASED: ${{ needs.release-please.outputs.paths_released }}
-          OUTCOME_INSTALL: ${{ needs.publish.outputs.install }}
-          OUTCOME_BUILD: ${{ needs.publish.outputs.build }}
-          OUTCOME_VERIFY: ${{ needs.publish.outputs.verify }}
-          OUTCOME_INTEGRATION: ${{ needs.publish.outputs.integration }}
-          OUTCOME_NODE: ${{ needs.publish.outputs.node }}
-          OUTCOME_PUBLISH: ${{ needs.publish.outputs.publish }}
+          PATHS_RELEASED: ${{ steps.replay.outputs.paths || needs.release-please.outputs.paths_released }}
+          OUTCOME_INSTALL: ${{ inputs.run_id && 'success' || needs.publish.outputs.install }}
+          OUTCOME_BUILD: ${{ inputs.run_id && 'success' || needs.publish.outputs.build }}
+          OUTCOME_VERIFY: ${{ inputs.run_id && 'success' || needs.publish.outputs.verify }}
+          OUTCOME_INTEGRATION: ${{ inputs.run_id && 'success' || needs.publish.outputs.integration }}
+          OUTCOME_NODE: ${{ inputs.run_id && 'success' || needs.publish.outputs.node }}
+          OUTCOME_PUBLISH: ${{ inputs.run_id && 'success' || needs.publish.outputs.publish }}
+          RELEASE_RUN_ID: ${{ inputs.run_id }}
+          RELEASE_SHA: ${{ steps.replay.outputs.sha }}
           GH_TOKEN: ${{ github.token }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
