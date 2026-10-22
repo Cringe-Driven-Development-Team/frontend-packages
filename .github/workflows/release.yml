@@ -120,13 +120,21 @@ jobs:
           github-token: ${{ github.token }}
       - id: replay
         if: github.event_name == 'workflow_dispatch'
-        name: Взять пути и коммит прошлого запуска
+        name: Взять пути, коммит и файлы выпуска прошлого запуска
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ inputs.run_id }}
+        # Скрипты остаются из текущей ветки: в коммитах до ручного повтора его поддержки нет.
+        # Версии и changelog берутся из коммита того запуска, иначе карточка покажет следующий выпуск.
+        # Манифесты React и Zustand — всегда оба: блок совместимости читает версии пары целиком.
         run: |
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq .head_sha)
+          files=$(jq -r '[.[].path | "\(.)/package.json", "\(.)/CHANGELOG.md"]
+            + ["packages/react/package.json", "packages/zustand/package.json"] | unique[]' release-report.json)
+          echo "Файлы выпуска из $sha:" release-please-config.json $files
+          git checkout "$sha" -- release-please-config.json $files
           echo "paths=$(jq -c '[.[].path]' release-report.json)" >> "$GITHUB_OUTPUT"
-          echo "sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq .head_sha)" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
       - name: Отправить итоговую карточку в Telegram
         env:
           PATHS_RELEASED: ${{ steps.replay.outputs.paths || needs.release-please.outputs.paths_released }}
