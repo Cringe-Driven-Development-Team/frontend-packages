@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.5.0](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/react-v1.4.0...react-v1.5.0) (2026-10-22)
+
+
+### Features
+
+* createPortal и типы портала в @cdd-team/react ([9b1d4ca](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/9b1d4cadc2eb5bb18fe15a3099bfd2be13224e7d))
+* монтирование и обновление порталов в @cdd-team/react ([6715e4b](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/6715e4b92a743c26162df73c2ee4e65a232234ab))
+* перестановка порталов с общим контейнером в @cdd-team/react ([d6720c1](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/d6720c186e5c7b1e0cbb1868dd1c6c9e923f7395))
+* пример порталов в playground @cdd-team/react ([28a360a](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/28a360a2400da508ba62db4738c5c6498d50b3b0))
+* удаление порталов и смена их контейнера в @cdd-team/react ([be428f8](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/be428f8916f3c269632d372b781dbf9bfe3d3a05))
+
+
+### Bug Fixes
+
+* новый ребёнок портала встаёт перед следующим порталом в общем контейнере ([d6c72d4](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/d6c72d4d2abd2f55c4ba79bb54c1468c1c6aa493))
+* якорь перестановки портала не берётся из вставляемого поддерева ([df79fd2](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/df79fd2cef4e05822f8ff3fec1d3cca7781c000c))
+
 ## [1.4.0](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/react-v1.3.0...react-v1.4.0) (2026-10-21)
 
 
