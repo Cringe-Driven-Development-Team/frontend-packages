@@ -99,6 +99,8 @@ function commitWork(fiber: Fiber | null, refsToAttach: Fiber[]): void {
 		) {
 			updateDom(current.dom, current.alternate.props, current.props);
 			getHostParentDom(current).insertBefore(current.dom, getHostSibling(current));
+		} else if (hasFlags(current.flags, FiberFlags.MOVE) && current.tag === FiberTag.HOST_PORTAL) {
+			commitMoveChildren(current.child, getPortalContainer(current), getPortalHostSibling(current));
 		} else if (hasFlags(current.flags, FiberFlags.MOVE) && current.dom === null) {
 			commitMove(current, getHostParentDom(current));
 		} else if (
@@ -196,6 +198,59 @@ function getHostSibling(fiber: Fiber): Node | null {
 	}
 
 	return null;
+}
+
+function getPortalHostSibling(fiber: Fiber): Node | null {
+	const portalContainer = getPortalContainer(fiber);
+	const hostParentFiber = getHostParentFiber(fiber.parent);
+	let nextFiber = getNextFiberSibling(fiber, hostParentFiber);
+
+	while (nextFiber) {
+		if (nextFiber.tag === FiberTag.HOST_PORTAL) {
+			if (
+				getPortalContainer(nextFiber) === portalContainer &&
+				!hasFlags(nextFiber.flags, FiberFlags.PLACEMENT | FiberFlags.MOVE)
+			) {
+				const hostChild = getFirstStableHostChild(nextFiber.child);
+
+				if (hostChild) {
+					return hostChild;
+				}
+			}
+
+			nextFiber = getNextFiberSibling(nextFiber, hostParentFiber);
+			continue;
+		}
+
+		if (nextFiber.child) {
+			nextFiber = nextFiber.child;
+			continue;
+		}
+
+		nextFiber = getNextFiberSibling(nextFiber, hostParentFiber);
+	}
+
+	return null;
+}
+
+function getFirstStableHostChild(fiber: Fiber | null): Node | null {
+	if (!fiber) {
+		return null;
+	}
+
+	if (fiber.tag === FiberTag.HOST_PORTAL) {
+		return getFirstStableHostChild(fiber.sibling);
+	}
+
+	if (fiber.dom) {
+		if (!hasFlags(fiber.flags, FiberFlags.PLACEMENT | FiberFlags.MOVE)) {
+			return fiber.dom;
+		}
+
+		return getFirstStableHostChild(fiber.sibling);
+	}
+
+	return getFirstStableHostChild(fiber.child) ?? getFirstStableHostChild(fiber.sibling);
 }
 
 function getHostParentFiber(fiber: Fiber | null): Fiber | null {

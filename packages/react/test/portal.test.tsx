@@ -367,3 +367,53 @@ describe("смена контейнера и удаление портала", (
 		root.unmount();
 	});
 });
+
+describe("перестановка порталов", () => {
+	function setup(orders: string[][]) {
+		const target = createTarget();
+
+		function App() {
+			const [step, setStep] = useState(0);
+			const items = orders[step] ?? [];
+			return (
+				<div>
+					<button onClick={() => setStep(step + 1)}>next</button>
+					{items.map((id) => createPortal(<p>{id}</p>, target, id))}
+				</div>
+			);
+		}
+
+		return { target, app: <App /> };
+	}
+
+	test("[a,b,c] → [b,a,c] меняет порядок DOM в контейнере", async () => {
+		const { target, app } = setup([
+			["a", "b", "c"],
+			["b", "a", "c"],
+		]);
+		const { container, root } = await mount(app);
+
+		click(container);
+		await flush();
+
+		expect(target.textContent).toBe("bac");
+		root.unmount();
+	});
+
+	test("[a,b,c] → [c,b,a] переставляет те же DOM-узлы", async () => {
+		const { target, app } = setup([
+			["a", "b", "c"],
+			["c", "b", "a"],
+		]);
+		const { container, root } = await mount(app);
+		const first = target.children[0];
+
+		click(container);
+		await flush();
+
+		expect(target.textContent).toBe("cba");
+		expect(target.children[2]).toBe(first as Element);
+		expect(container.innerHTML).toBe("<div><button>next</button></div>");
+		root.unmount();
+	});
+});
