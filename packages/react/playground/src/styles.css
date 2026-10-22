@@ -275,6 +275,81 @@ h1 {
 	background: #fffbeb;
 }
 
+.portal-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 20;
+	display: grid;
+	place-items: center;
+	padding: 24px;
+	background: rgba(15, 23, 42, 0.42);
+}
+
+.portal-dialog {
+	display: grid;
+	gap: 12px;
+	width: min(100%, 360px);
+	padding: 20px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	background: #ffffff;
+	box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+}
+
+.portal-dialog strong {
+	font-size: 18px;
+}
+
+.portal-dialog span {
+	color: #667085;
+	font-size: 14px;
+}
+
+.portal-move-target {
+	position: fixed;
+	right: 16px;
+	bottom: 16px;
+	z-index: 10;
+	display: grid;
+	width: min(280px, calc(100vw - 32px));
+	gap: 8px;
+	pointer-events: none;
+}
+
+.portal-move-card {
+	display: grid;
+	gap: 4px;
+	padding: 12px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	background: #ffffff;
+	box-shadow: 0 12px 36px rgba(15, 23, 42, 0.14);
+}
+
+.portal-move-card.alpha {
+	border-color: #93c5fd;
+	background: #eff6ff;
+}
+
+.portal-move-card.beta {
+	border-color: #86efac;
+	background: #f0fdf4;
+}
+
+.portal-move-card.gamma {
+	border-color: #fcd34d;
+	background: #fffbeb;
+}
+
+.portal-move-card strong {
+	font-size: 14px;
+}
+
+.portal-move-card span {
+	color: #667085;
+	font-size: 12px;
+}
+
 .list {
 	display: grid;
 	gap: 10px;

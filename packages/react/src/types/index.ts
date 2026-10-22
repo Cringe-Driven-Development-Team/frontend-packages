@@ -8,6 +8,9 @@ export type { Context, ContextProviderProps } from "./context.ts";
 
 export type {
 	Key,
+	PortalContainer,
+	PortalElement,
+	PortalProps,
 	ReactElement,
 	ReactElementType,
 	ReactNode,

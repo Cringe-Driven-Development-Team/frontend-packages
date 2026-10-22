@@ -20,5 +20,6 @@ export {
 } from "./hooks.ts";
 
 export { createContext } from "./context.ts";
+export { createPortal } from "./portal.ts";
 
 export type * from "./types/index.ts";

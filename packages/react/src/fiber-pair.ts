@@ -1,4 +1,4 @@
-import { REACT_FRAGMENT_TYPE, REACT_TEXT_TYPE } from "./symbols.ts";
+import { REACT_FRAGMENT_TYPE, REACT_PORTAL_TYPE, REACT_TEXT_TYPE } from "./symbols.ts";
 import type { ReactElement } from "./types/element.ts";
 import { FiberFlags, FiberTag, type Fiber, type FiberTag as FiberTagType } from "./types/fiber.ts";
 import { isContext } from "./context.ts";
@@ -89,6 +89,10 @@ function getFiberTag(element: ReactElement): Fiber["tag"] {
 
 	if (element.type === REACT_FRAGMENT_TYPE) {
 		return FiberTag.FRAGMENT;
+	}
+
+	if (element.type === REACT_PORTAL_TYPE) {
+		return FiberTag.HOST_PORTAL;
 	}
 
 	if (element.type === REACT_TEXT_TYPE) {

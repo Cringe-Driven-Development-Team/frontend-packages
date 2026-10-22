@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "@cdd-team/react";
-import type { ReactElement } from "@cdd-team/react";
+import { createPortal, useEffect, useLayoutEffect, useRef, useState } from "@cdd-team/react";
+import type { MouseEvent, ReactElement } from "@cdd-team/react";
 import { Filters } from "./Filters.tsx";
 import { ExternalStoreDemo } from "./ExternalStoreDemo.tsx";
 import { Header } from "./Header.tsx";
@@ -25,17 +25,45 @@ function createTodoId(): number {
 }
 
 let renderCount = 0;
+let portalMoveTarget: HTMLDivElement | null = null;
+
+function getPortalMoveTarget(): HTMLDivElement {
+	if (!portalMoveTarget) {
+		portalMoveTarget = document.createElement("div");
+		portalMoveTarget.id = "portal-move-target";
+		portalMoveTarget.className = "portal-move-target";
+		document.body.appendChild(portalMoveTarget);
+	}
+
+	return portalMoveTarget;
+}
+
 
 export function App(): ReactElement {
 	const [todos, setTodos] = useState(initialTodos);
 	const [filter, setFilter] = useState<Filter>("all");
 	const [showStats, setShowStats] = useState(true);
 	const [theme, setTheme] = useState<Theme>("light");
+	const [showPortal, setShowPortal] = useState(false);
+	const [portalOrderReversed, setPortalOrderReversed] = useState(false);
 	const addButtonRef = useRef<HTMLButtonElement>(null);
 	const headerActionsRef = useRef<HeaderActions>(null);
+	const portalDialogRef = useRef<HTMLDivElement>(null);
 	const visibleTodos = getVisibleTodos(todos, filter);
 	const completedCount = todos.filter((todo) => todo.done).length;
 	const titleStatus = `${completedCount}/${todos.length} completed`;
+	const portalMoveItems = portalOrderReversed
+		? [
+				{ id: "beta", label: "Portal B" },
+				{ id: "alpha", label: "Portal A" },
+				{ id: "gamma", label: "Portal C" },
+			]
+		: [
+				{ id: "alpha", label: "Portal A" },
+				{ id: "beta", label: "Portal B" },
+				{ id: "gamma", label: "Portal C" },
+			];
+
 
 	renderCount += 1;
 
@@ -47,6 +75,18 @@ export function App(): ReactElement {
 		const todoCount = document.querySelectorAll(".todo").length;
 		console.log(`layout effect: ${todoCount} todo DOM nodes`);
 	}, [visibleTodos.length]);
+
+	useLayoutEffect(() => {
+		if (!showPortal) {
+			return;
+		}
+
+		const dialog = portalDialogRef.current;
+		const backdrop = dialog?.closest(".portal-backdrop");
+		console.log(
+			`portal dialog ref: ${backdrop?.parentElement === document.body ? "attached" : "missing"}`,
+		);
+	}, [showPortal]);
 
 	useEffect(() => {
 		console.log(`subscribe filter "${filter}"`);
@@ -111,6 +151,18 @@ export function App(): ReactElement {
 		setTheme((currentTheme) => (currentTheme === "light" ? "dark" : "light"));
 	}
 
+	function openPortal(): void {
+		setShowPortal(true);
+	}
+
+	function swapPortalOrder(): void {
+		setPortalOrderReversed((isReversed) => !isReversed);
+	}
+
+	function closePortal(): void {
+		setShowPortal(false);
+	}
+
 	return (
 		<ThemeContext value={theme}>
 			<main class="app">
@@ -133,6 +185,8 @@ export function App(): ReactElement {
 						onRotate={rotateTodos}
 						onSort={sortTodos}
 						onToggleTheme={toggleTheme}
+						onOpenPortal={openPortal}
+						onSwapPortalOrder={swapPortalOrder}
 					/>
 					<Filters value={filter} onChange={setFilter} />
 					<SelectiveDemo />
@@ -141,6 +195,34 @@ export function App(): ReactElement {
 					<TodoList todos={visibleTodos} onToggle={toggleTodo} onRemove={removeTodo} />
 				</section>
 			</main>
+			{showPortal
+				? createPortal(
+						<div class="portal-backdrop" onClick={closePortal}>
+							<div
+								ref={portalDialogRef}
+								class="portal-dialog"
+								onClick={(event: MouseEvent) => event.stopPropagation()}
+							>
+								<strong>Portal content</strong>
+								<span>Mounted in document.body, logically rendered by App.</span>
+								<button class="primary" type="button" onClick={closePortal}>
+									Close portal
+								</button>
+							</div>
+						</div>,
+						document.body,
+					)
+				: null}
+			{portalMoveItems.map((item) =>
+				createPortal(
+					<div class={`portal-move-card ${item.id}`} data-portal-move-card={item.id}>
+						<strong>{item.label}</strong>
+						<span>DOM order follows logical portal order.</span>
+					</div>,
+					getPortalMoveTarget(),
+					item.id,
+				),
+			)}
 		</ThemeContext>
 	);
 }

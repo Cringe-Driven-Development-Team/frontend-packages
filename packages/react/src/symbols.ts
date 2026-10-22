@@ -4,3 +4,4 @@ export const REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
 export const REACT_TEXT_TYPE = Symbol.for("react.text");
 export const REACT_MEMO_TYPE = Symbol.for("react.memo");
 export const REACT_CONTEXT_TYPE = Symbol.for("react.context");
+export const REACT_PORTAL_TYPE = Symbol.for("react.portal");

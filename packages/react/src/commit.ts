@@ -1,4 +1,4 @@
-import { FiberFlags, MutationMask, type Fiber } from "./types/fiber.ts";
+import { FiberFlags, FiberTag, MutationMask, type Fiber } from "./types/fiber.ts";
 import { cleanupDom, updateDom } from "./patch-dom.ts";
 import { resetReRenderCount } from "./hooks.ts";
 import {
@@ -10,6 +10,7 @@ import {
 } from "./effects.ts";
 import { hasFiberWork, hasFlags } from "./flags.ts";
 import type { ElementProps } from "./types/props.ts";
+import type { PortalContainer, PortalProps } from "./types/element.ts";
 import type { Ref, RefObject } from "./types";
 import { countProfilerEvent } from "./profiler.ts";
 
@@ -98,6 +99,8 @@ function commitWork(fiber: Fiber | null, refsToAttach: Fiber[]): void {
 		) {
 			updateDom(current.dom, current.alternate.props, current.props);
 			getHostParentDom(current).insertBefore(current.dom, getHostSibling(current));
+		} else if (hasFlags(current.flags, FiberFlags.MOVE) && current.tag === FiberTag.HOST_PORTAL) {
+			commitMoveChildren(current.child, getPortalContainer(current), getPortalHostSibling(current));
 		} else if (hasFlags(current.flags, FiberFlags.MOVE) && current.dom === null) {
 			commitMove(current, getHostParentDom(current));
 		} else if (
@@ -122,6 +125,10 @@ function commitWork(fiber: Fiber | null, refsToAttach: Fiber[]): void {
 }
 
 function insertOrAppendPlacementNode(fiber: Fiber, before: Node | null, parentDom: Node): void {
+	if (fiber.tag === FiberTag.HOST_PORTAL) {
+		return;
+	}
+
 	if (fiber.dom) {
 		parentDom.insertBefore(fiber.dom, before);
 		return;
@@ -147,6 +154,10 @@ function getParentDom(fiber: Fiber | null): Node | null {
 	let parentFiber = fiber;
 
 	while (parentFiber) {
+		if (parentFiber.tag === FiberTag.HOST_PORTAL) {
+			return getPortalContainer(parentFiber);
+		}
+
 		if (parentFiber.dom) {
 			return parentFiber.dom;
 		}
@@ -162,6 +173,11 @@ function getHostSibling(fiber: Fiber): Node | null {
 	let nextFiber = getNextFiberSibling(fiber, hostParentFiber);
 
 	while (nextFiber) {
+		if (nextFiber.tag === FiberTag.HOST_PORTAL) {
+			nextFiber = getNextFiberSibling(nextFiber, hostParentFiber);
+			continue;
+		}
+
 		const isRelocating = hasFlags(nextFiber.flags, FiberFlags.PLACEMENT | FiberFlags.MOVE);
 
 		if (nextFiber.dom && !isRelocating) {
@@ -181,13 +197,67 @@ function getHostSibling(fiber: Fiber): Node | null {
 		nextFiber = getNextFiberSibling(nextFiber, hostParentFiber);
 	}
 
+	return hostParentFiber?.tag === FiberTag.HOST_PORTAL
+		? getPortalHostSibling(hostParentFiber)
+		: null;
+}
+
+function getPortalHostSibling(fiber: Fiber): Node | null {
+	const portalContainer = getPortalContainer(fiber);
+	const hostParentFiber = getHostParentFiber(fiber.parent);
+	let nextFiber = getNextFiberSibling(fiber, hostParentFiber);
+
+	while (nextFiber) {
+		if (nextFiber.tag === FiberTag.HOST_PORTAL) {
+			if (
+				getPortalContainer(nextFiber) === portalContainer &&
+				!hasFlags(nextFiber.flags, FiberFlags.PLACEMENT | FiberFlags.MOVE)
+			) {
+				const hostChild = getFirstStableHostChild(nextFiber.child);
+
+				if (hostChild) {
+					return hostChild;
+				}
+			}
+
+			nextFiber = getNextFiberSibling(nextFiber, hostParentFiber);
+			continue;
+		}
+
+		if (nextFiber.child) {
+			nextFiber = nextFiber.child;
+			continue;
+		}
+
+		nextFiber = getNextFiberSibling(nextFiber, hostParentFiber);
+	}
+
 	return null;
+}
+
+function getFirstStableHostChild(fiber: Fiber | null): Node | null {
+	if (!fiber) {
+		return null;
+	}
+
+	if (
+		fiber.tag === FiberTag.HOST_PORTAL ||
+		hasFlags(fiber.flags, FiberFlags.PLACEMENT | FiberFlags.MOVE)
+	) {
+		return getFirstStableHostChild(fiber.sibling);
+	}
+
+	if (fiber.dom) {
+		return fiber.dom;
+	}
+
+	return getFirstStableHostChild(fiber.child) ?? getFirstStableHostChild(fiber.sibling);
 }
 
 function getHostParentFiber(fiber: Fiber | null): Fiber | null {
 	let parentFiber = fiber;
 
-	while (parentFiber && !parentFiber.dom) {
+	while (parentFiber && !parentFiber.dom && parentFiber.tag !== FiberTag.HOST_PORTAL) {
 		parentFiber = parentFiber.parent;
 	}
 
@@ -215,6 +285,11 @@ function commitMoveChildren(fiber: Fiber | null, domParent: Node, before: Node |
 	let current = fiber;
 
 	while (current) {
+		if (current.tag === FiberTag.HOST_PORTAL) {
+			current = current.sibling;
+			continue;
+		}
+
 		if (current.dom) {
 			domParent.insertBefore(current.dom, before);
 			markMovedFiberAsUpdated(current);
@@ -249,6 +324,11 @@ function commitChildDeletions(parent: Fiber): void {
 }
 
 function commitDeletion(fiber: Fiber, domParent: Node): void {
+	if (fiber.tag === FiberTag.HOST_PORTAL) {
+		commitDeletionChildren(fiber.child, getPortalContainer(fiber));
+		return;
+	}
+
 	if (fiber.dom) {
 		cleanupDomTree(fiber);
 		domParent.removeChild(fiber.dom);
@@ -270,6 +350,11 @@ function commitDeletionChildren(fiber: Fiber | null, domParent: Node): void {
 }
 
 function cleanupDomTree(fiber: Fiber): void {
+	if (fiber.tag === FiberTag.HOST_PORTAL) {
+		commitDeletionChildren(fiber.child, getPortalContainer(fiber));
+		return;
+	}
+
 	if (fiber.dom) {
 		detachRef(fiber);
 		cleanupDom(fiber.dom, fiber.props);
@@ -285,6 +370,10 @@ function cleanupDomTreeChildren(fiber: Fiber | null): void {
 		cleanupDomTree(current);
 		current = current.sibling;
 	}
+}
+
+function getPortalContainer(fiber: Fiber): PortalContainer {
+	return (fiber.props as PortalProps).container;
 }
 
 function commitRefDetach(fiber: Fiber, refsToAttach: Fiber[]): void {

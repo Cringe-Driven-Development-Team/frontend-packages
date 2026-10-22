@@ -1,6 +1,7 @@
-import type { Key, ReactElement } from "./types/element.ts";
+import type { Key, PortalProps, ReactElement } from "./types/element.ts";
 import { FiberFlags, FiberTag, type Fiber, type QueueDeletion } from "./types/fiber.ts";
 import { createFiberFromElement, createWorkInProgressFiber } from "./fiber-pair.ts";
+import { isPortalElement } from "./portal.ts";
 
 type KeyedNode = {
 	key: Key | null;
@@ -15,7 +16,9 @@ export function reconcileChildren(
 	let lastPlacedIndex = 0;
 	let prevSibling: Fiber | null = null;
 	const shouldTrackSideEffects =
-		wipFiberNode.tag === FiberTag.ROOT || wipFiberNode.alternate !== null;
+		wipFiberNode.tag === FiberTag.ROOT ||
+		wipFiberNode.tag === FiberTag.HOST_PORTAL ||
+		wipFiberNode.alternate !== null;
 	warnOnDuplicateKeys(elements);
 	const { keyedFibers, unkeyedFibers } = collectOldFibers(wipFiberNode.alternate?.child ?? null);
 
@@ -175,6 +178,13 @@ function warnDuplicateKey(key: Key): void {
 }
 
 function isSameElementType(previous: Fiber, next: ReactElement): boolean {
+	if (isPortalElement(next)) {
+		return (
+			previous.type === next.type &&
+			(previous.props as PortalProps).container === next.props.container
+		);
+	}
+
 	return previous.type === next.type;
 }
 

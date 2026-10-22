@@ -8,6 +8,8 @@ export function Toolbar({
 							onRotate,
 							onSort,
 							onToggleTheme,
+							onOpenPortal,
+							onSwapPortalOrder,
 						}: ToolbarProps): ReactElement {
 	return (
 		<div class="actions">
@@ -28,6 +30,12 @@ export function Toolbar({
 			</button>
 			<button class="action" type="button" onClick={onToggleTheme}>
 				Toggle theme
+			</button>
+			<button class="action" type="button" onClick={onOpenPortal}>
+				Open portal
+			</button>
+			<button class="action" type="button" onClick={onSwapPortalOrder}>
+				Swap portals
 			</button>
 		</div>
 	);
