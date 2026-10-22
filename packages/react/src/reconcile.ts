@@ -15,7 +15,9 @@ export function reconcileChildren(
 	let lastPlacedIndex = 0;
 	let prevSibling: Fiber | null = null;
 	const shouldTrackSideEffects =
-		wipFiberNode.tag === FiberTag.ROOT || wipFiberNode.alternate !== null;
+		wipFiberNode.tag === FiberTag.ROOT ||
+		wipFiberNode.tag === FiberTag.HOST_PORTAL ||
+		wipFiberNode.alternate !== null;
 	warnOnDuplicateKeys(elements);
 	const { keyedFibers, unkeyedFibers } = collectOldFibers(wipFiberNode.alternate?.child ?? null);
 

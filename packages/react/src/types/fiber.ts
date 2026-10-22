@@ -35,6 +35,7 @@ export const FiberTag = {
 	FUNCTION_COMPONENT: "function-component",
 	MEMO_COMPONENT: "memo-component",
 	CONTEXT_PROVIDER: "context-provider",
+	HOST_PORTAL: "host-portal",
 } as const;
 
 export type FiberTag = (typeof FiberTag)[keyof typeof FiberTag];

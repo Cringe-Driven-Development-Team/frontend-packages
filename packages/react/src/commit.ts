@@ -1,4 +1,4 @@
-import { FiberFlags, MutationMask, type Fiber } from "./types/fiber.ts";
+import { FiberFlags, FiberTag, MutationMask, type Fiber } from "./types/fiber.ts";
 import { cleanupDom, updateDom } from "./patch-dom.ts";
 import { resetReRenderCount } from "./hooks.ts";
 import {
@@ -10,6 +10,7 @@ import {
 } from "./effects.ts";
 import { hasFiberWork, hasFlags } from "./flags.ts";
 import type { ElementProps } from "./types/props.ts";
+import type { PortalContainer, PortalProps } from "./types/element.ts";
 import type { Ref, RefObject } from "./types";
 import { countProfilerEvent } from "./profiler.ts";
 
@@ -122,6 +123,10 @@ function commitWork(fiber: Fiber | null, refsToAttach: Fiber[]): void {
 }
 
 function insertOrAppendPlacementNode(fiber: Fiber, before: Node | null, parentDom: Node): void {
+	if (fiber.tag === FiberTag.HOST_PORTAL) {
+		return;
+	}
+
 	if (fiber.dom) {
 		parentDom.insertBefore(fiber.dom, before);
 		return;
@@ -147,6 +152,10 @@ function getParentDom(fiber: Fiber | null): Node | null {
 	let parentFiber = fiber;
 
 	while (parentFiber) {
+		if (parentFiber.tag === FiberTag.HOST_PORTAL) {
+			return getPortalContainer(parentFiber);
+		}
+
 		if (parentFiber.dom) {
 			return parentFiber.dom;
 		}
@@ -162,6 +171,11 @@ function getHostSibling(fiber: Fiber): Node | null {
 	let nextFiber = getNextFiberSibling(fiber, hostParentFiber);
 
 	while (nextFiber) {
+		if (nextFiber.tag === FiberTag.HOST_PORTAL) {
+			nextFiber = getNextFiberSibling(nextFiber, hostParentFiber);
+			continue;
+		}
+
 		const isRelocating = hasFlags(nextFiber.flags, FiberFlags.PLACEMENT | FiberFlags.MOVE);
 
 		if (nextFiber.dom && !isRelocating) {
@@ -187,7 +201,7 @@ function getHostSibling(fiber: Fiber): Node | null {
 function getHostParentFiber(fiber: Fiber | null): Fiber | null {
 	let parentFiber = fiber;
 
-	while (parentFiber && !parentFiber.dom) {
+	while (parentFiber && !parentFiber.dom && parentFiber.tag !== FiberTag.HOST_PORTAL) {
 		parentFiber = parentFiber.parent;
 	}
 
@@ -215,6 +229,11 @@ function commitMoveChildren(fiber: Fiber | null, domParent: Node, before: Node |
 	let current = fiber;
 
 	while (current) {
+		if (current.tag === FiberTag.HOST_PORTAL) {
+			current = current.sibling;
+			continue;
+		}
+
 		if (current.dom) {
 			domParent.insertBefore(current.dom, before);
 			markMovedFiberAsUpdated(current);
@@ -249,6 +268,11 @@ function commitChildDeletions(parent: Fiber): void {
 }
 
 function commitDeletion(fiber: Fiber, domParent: Node): void {
+	if (fiber.tag === FiberTag.HOST_PORTAL) {
+		commitDeletionChildren(fiber.child, getPortalContainer(fiber));
+		return;
+	}
+
 	if (fiber.dom) {
 		cleanupDomTree(fiber);
 		domParent.removeChild(fiber.dom);
@@ -285,6 +309,10 @@ function cleanupDomTreeChildren(fiber: Fiber | null): void {
 		cleanupDomTree(current);
 		current = current.sibling;
 	}
+}
+
+function getPortalContainer(fiber: Fiber): PortalContainer {
+	return (fiber.props as PortalProps).container;
 }
 
 function commitRefDetach(fiber: Fiber, refsToAttach: Fiber[]): void {

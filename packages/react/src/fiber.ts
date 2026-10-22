@@ -25,6 +25,8 @@ export function performUnitOfWork(fiber: Fiber): Fiber | null {
 
 	if (fiber.tag === FiberTag.CONTEXT_PROVIDER) {
 		updateContextProvider(fiber);
+	} else if (fiber.tag === FiberTag.HOST_PORTAL) {
+		updatePortalComponent(fiber);
 	} else if (isFunctionComponentFiber(fiber)) {
 		updateFunctionComponent(fiber);
 	} else if (isMemoComponentFiber(fiber)) {
@@ -84,11 +86,13 @@ function appendAllChildren(parent: Node, fiber: Fiber): void {
 	let node = fiber.child;
 
 	while (node) {
-		if (node.dom) {
-			parent.appendChild(node.dom);
-		} else if (node.child) {
-			node = node.child;
-			continue;
+		if (node.tag !== FiberTag.HOST_PORTAL) {
+			if (node.dom) {
+				parent.appendChild(node.dom);
+			} else if (node.child) {
+				node = node.child;
+				continue;
+			}
 		}
 
 		while (!node.sibling) {
@@ -239,6 +243,10 @@ function updateFragmentComponent(fiber: Fiber): void {
 function updateContextProvider(fiber: Fiber): void {
 	warnIfProviderValueMissing(fiber);
 	propagateContextChange(fiber);
+	reconcileChildren(fiber, fiber.props.children, queueDeletion);
+}
+
+function updatePortalComponent(fiber: Fiber): void {
 	reconcileChildren(fiber, fiber.props.children, queueDeletion);
 }
 
