@@ -12,14 +12,17 @@ export type PackageResult = {
 	errorKind?: ErrorKind;
 };
 
-// Каждая попытка запуска выгружает свой отчёт, поздняя попытка важнее ранней. Но skipped после другого
-// статуса значит, что версия появилась в npm за время запуска: ранняя попытка её ещё не нашла. Такой пакет
-// опубликован этим выпуском, даже если ранняя попытка записала сбой или не дошла до публикации.
+// Каждая попытка запуска выгружает свой отчёт, поздняя попытка важнее ранней. Но skipped или конфликт
+// версии после другого статуса значат, что версия появилась в npm за время запуска: ранняя попытка её ещё
+// не нашла. Такой пакет опубликован этим выпуском, даже если ранняя попытка записала сбой.
+// not-attempted сведений о пакете не несёт и ранний статус не перекрывает.
 export function mergeReports(reports: PackageResult[][]): PackageResult[] {
 	const merged = new Map<string, PackageResult>();
 	for (const entry of reports.flat()) {
 		const current = merged.get(entry.path);
-		const appeared = entry.status === "skipped" && current && current.status !== "skipped";
+		if (current && entry.status === "not-attempted") continue;
+		const inNpm = entry.status === "skipped" || entry.errorKind === "conflict";
+		const appeared = inNpm && current && current.status !== "skipped";
 		const { reason: _reason, errorKind: _errorKind, ...published } = entry;
 		merged.set(entry.path, appeared ? { ...published, status: "published" } : entry);
 	}

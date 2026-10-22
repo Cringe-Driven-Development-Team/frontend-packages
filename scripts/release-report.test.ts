@@ -20,6 +20,21 @@ describe("mergeReports", () => {
 		},
 	);
 
+	test("конфликт версии после другого статуса — опубликован", () => {
+		const conflict = {
+			...react("failed", "версия уже занята в npm"),
+			errorKind: "conflict" as const,
+		};
+
+		expect(mergeReports([[react("published")], [conflict]])).toEqual([react("published")]);
+	});
+
+	test("пакет, до которого поздняя попытка не дошла, сохраняет статус ранней", () => {
+		expect(mergeReports([[react("published")], [react("not-attempted")]])).toEqual([
+			react("published"),
+		]);
+	});
+
 	test("из нескольких попыток с публикацией берётся последняя", () => {
 		expect(mergeReports([[react("failed", "403")], [react("published")]])).toEqual([
 			react("published"),

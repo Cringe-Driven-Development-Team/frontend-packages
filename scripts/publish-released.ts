@@ -60,25 +60,34 @@ export async function publishReleased(
 		isVisible?: IsPublished;
 		manifest?: Manifest;
 		confirm?: Confirm;
+		// Отчёт пишется после каждого шага: отменённый job не успевает дойти до конца, а перезапуск по
+		// отчёту отличает версию, опубликованную этим выпуском, от уже бывшей в npm.
+		save?: (results: PackageResult[]) => Promise<void>;
 	} = {},
 ): Promise<PackageResult[]> {
 	const isPublished = options.isPublished ?? (async () => false);
 	const isVisible = options.isVisible ?? options.isPublished ?? (async () => true);
 	const manifest = options.manifest ?? readManifest;
 	const confirm = options.confirm ?? { attempts: 1, delayMs: 0, sleep: async () => {} };
+	const save = options.save ?? (async () => {});
 	const results: PackageResult[] = [];
+	const record = async (result: PackageResult, replace = false) => {
+		if (replace) results.pop();
+		results.push(result);
+		await save(results);
+	};
 	let stopped = false;
 
 	for (const path of orderForPublish(paths)) {
 		const { name, version } = await manifest(path);
 		const base = { path, name, version };
 		if (stopped) {
-			results.push({ ...base, status: "not-attempted" });
+			await record({ ...base, status: "not-attempted" });
 			continue;
 		}
 		if (await isPublished(path)) {
 			console.log(`${path}: версия уже опубликована, пропускаем`);
-			results.push({ ...base, status: "skipped" });
+			await record({ ...base, status: "skipped" });
 			continue;
 		}
 		const { code, stderr } = await run(["npm", "publish", "--access", "public"], path);
@@ -86,15 +95,16 @@ export async function publishReleased(
 			console.error(
 				`npm publish в ${path} завершилась кодом ${code}; следующие пакеты не опубликованы`,
 			);
-			results.push({ ...base, status: "failed", ...classifyPublishError(stderr, code) });
+			await record({ ...base, status: "failed", ...classifyPublishError(stderr, code) });
 			stopped = true;
 			continue;
 		}
+		// npm publish прошёл: до подтверждения версия в отчёте неподтверждённая.
+		await record({ ...base, status: "unconfirmed" });
 		if (await isConfirmed(path, isVisible, confirm)) {
-			results.push({ ...base, status: "published" });
+			await record({ ...base, status: "published" }, true);
 		} else {
 			console.error(`${path}: ${name}@${version} не видна в registry, публикация не подтверждена`);
-			results.push({ ...base, status: "unconfirmed" });
 		}
 	}
 	return results;
@@ -144,16 +154,15 @@ if (import.meta.main) {
 		process.exit(2);
 	}
 	const report = flag === "--report" ? reportFile : undefined;
-	let results: PackageResult[] = [];
-	try {
-		results = await publishReleased(paths, runInRepo, {
-			isPublished: isPublishedInNpm,
-			manifest: readManifest,
-			confirm: { ...CONFIRM_DEFAULT, sleep: (ms) => Bun.sleep(ms) },
-		});
-	} finally {
+	const save = async (results: PackageResult[]) => {
 		if (report) await Bun.write(report, `${JSON.stringify(results, null, "\t")}\n`);
-	}
+	};
+	const results = await publishReleased(paths, runInRepo, {
+		isPublished: isPublishedInNpm,
+		manifest: readManifest,
+		confirm: { ...CONFIRM_DEFAULT, sleep: (ms) => Bun.sleep(ms) },
+		save,
+	});
 	if (results.some((result) => result.status === "failed" || result.status === "unconfirmed")) {
 		process.exit(1);
 	}
