@@ -12,7 +12,7 @@ import {
 	type Stage,
 } from "./release-card.ts";
 import { bumpType, parseChangelogSection, previousVersion } from "./release-changelog.ts";
-import type { PackageResult } from "./release-report.ts";
+import { mergeReports, type PackageResult, reportAttempt } from "./release-report.ts";
 import { type SendResult, sendCard } from "./telegram.ts";
 
 export type NotifyIo = {
@@ -32,9 +32,11 @@ export type NotifyEnv = {
 	server: string;
 	repo: string;
 	runId: string;
+	// Пусто при ручном повторе: попытка запуска-повтора к запуску выпуска не относится.
 	attempt: string;
 	sha: string;
-	reportFile: string;
+	// Отчёты попыток запуска по возрастанию номера попытки.
+	reportFiles: string[];
 };
 
 const stages: Stage[] = ["install", "build", "verify", "integration", "node", "publish"];
@@ -64,9 +66,13 @@ async function readJson<T>(io: NotifyIo, path: string): Promise<T | null> {
 	}
 }
 
-async function readReport(io: NotifyIo, file: string): Promise<PackageResult[] | null> {
-	const report = await readJson<unknown>(io, file);
-	return Array.isArray(report) ? (report as PackageResult[]) : null;
+async function readReport(io: NotifyIo, files: string[]): Promise<PackageResult[] | null> {
+	const reports: PackageResult[][] = [];
+	for (const file of files) {
+		const report = await readJson<unknown>(io, file);
+		if (Array.isArray(report)) reports.push(report as PackageResult[]);
+	}
+	return reports.length > 0 ? mergeReports(reports) : null;
 }
 
 async function registryOutcome(io: NotifyIo, name: string, version: string): Promise<Outcome> {
@@ -95,7 +101,7 @@ export async function notify(env: NotifyEnv, io: NotifyIo): Promise<number> {
 	);
 	// download-artifact видит артефакты прошлых попыток: отчёт верен, только если publish шёл в этой.
 	const publishRan = Boolean(env.outcomes.publish) && env.outcomes.publish !== "skipped";
-	const report = publishRan ? await readReport(io, env.reportFile) : null;
+	const report = publishRan ? await readReport(io, env.reportFiles) : null;
 	const tags = await io.tags();
 	const base = `${env.server}/${env.repo}`;
 	const packages: CardPackage[] = [];
@@ -134,7 +140,7 @@ export async function notify(env: NotifyEnv, io: NotifyIo): Promise<number> {
 		...stageFromOutcomes(env.outcomes),
 		integrationPassed: env.outcomes.integration === "success",
 		hasReport: report !== null,
-		runUrl: `${base}/actions/runs/${env.runId}/attempts/${env.attempt}`,
+		runUrl: `${base}/actions/runs/${env.runId}${env.attempt ? `/attempts/${env.attempt}` : ""}`,
 		changesUrl: (await io.releasePrUrl(env.sha)) ?? packages[0]?.releaseUrl ?? base,
 		// Telegram принимает в кнопках только корректно закодированные URL.
 		recoveryUrl: encodeURI(`${base}/blob/${env.sha}/docs/release-runbook.md#5-частичный-выпуск`),
@@ -233,6 +239,14 @@ if (import.meta.main) {
 		stages.map((stage) => [stage, env[`OUTCOME_${stage.toUpperCase()}`] ?? ""]),
 	);
 	const repo = env.GITHUB_REPOSITORY ?? "";
+	const reportFiles: string[] = [];
+	const glob = new Bun.Glob(
+		`${env.RELEASE_REPORTS ?? "reports"}/release-report-*/release-report.json`,
+	);
+	for await (const file of glob.scan({ cwd: root })) {
+		if (reportAttempt(file) !== null) reportFiles.push(file);
+	}
+	reportFiles.sort((a, b) => (reportAttempt(a) ?? 0) - (reportAttempt(b) ?? 0));
 	const code = await notify(
 		{
 			paths,
@@ -241,9 +255,9 @@ if (import.meta.main) {
 			repo,
 			// При ручном повторе карточка ссылается на запуск выпуска, а не на текущий.
 			runId: env.RELEASE_RUN_ID || (env.GITHUB_RUN_ID ?? ""),
-			attempt: env.GITHUB_RUN_ATTEMPT ?? "1",
+			attempt: env.RELEASE_RUN_ID ? "" : (env.GITHUB_RUN_ATTEMPT ?? "1"),
 			sha: env.RELEASE_SHA || (env.GITHUB_SHA ?? ""),
-			reportFile: env.RELEASE_REPORT ?? "release-report.json",
+			reportFiles,
 		},
 		realIo(repo),
 	);

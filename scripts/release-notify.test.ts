@@ -3,6 +3,9 @@ import type { Card } from "./release-card.ts";
 import { type NotifyEnv, type NotifyIo, notify } from "./release-notify.ts";
 import type { PackageResult } from "./release-report.ts";
 
+const first = "reports/release-report-1/release-report.json";
+const second = "reports/release-report-2/release-report.json";
+
 const env: NotifyEnv = {
 	paths: ["packages/react"],
 	outcomes: {
@@ -18,13 +21,15 @@ const env: NotifyEnv = {
 	runId: "1",
 	attempt: "1",
 	sha: "abc",
-	reportFile: "release-report.json",
+	reportFiles: [first],
 };
 
-function fakeIo(report: PackageResult[], inNpm: boolean | null) {
+function fakeIo(reports: Record<string, PackageResult[]>, inNpm: boolean | null) {
 	const sent: Card[] = [];
 	const files: Record<string, string> = {
-		"release-report.json": JSON.stringify(report),
+		...Object.fromEntries(
+			Object.entries(reports).map(([path, report]) => [path, JSON.stringify(report)]),
+		),
 		"release-please-config.json": JSON.stringify({
 			packages: { "packages/react": { component: "react" } },
 		}),
@@ -45,13 +50,13 @@ function fakeIo(report: PackageResult[], inNpm: boolean | null) {
 	return { io, sent };
 }
 
-const unconfirmed: PackageResult[] = [
-	{ path: "packages/react", name: "@cdd-team/react", version: "1.4.0", status: "unconfirmed" },
+const react = (status: PackageResult["status"]): PackageResult[] => [
+	{ path: "packages/react", name: "@cdd-team/react", version: "1.4.0", status },
 ];
 
 describe("notify", () => {
 	test("неподтверждённая версия, которая уже есть в npm, показывается опубликованной", async () => {
-		const { io, sent } = fakeIo(unconfirmed, true);
+		const { io, sent } = fakeIo({ [first]: react("unconfirmed") }, true);
 
 		expect(await notify(env, io)).toBe(0);
 
@@ -59,10 +64,31 @@ describe("notify", () => {
 	});
 
 	test("неподтверждённая версия, которой всё ещё нет в npm, остаётся неподтверждённой", async () => {
-		const { io, sent } = fakeIo(unconfirmed, false);
+		const { io, sent } = fakeIo({ [first]: react("unconfirmed") }, false);
 
 		await notify(env, io);
 
 		expect(sent[0]?.text).toContain("Публикация не подтверждена");
+	});
+
+	test("публикация первой попытки не теряется за пропуском при перезапуске", async () => {
+		const { io, sent } = fakeIo(
+			{ [first]: react("unconfirmed"), [second]: react("skipped") },
+			true,
+		);
+
+		await notify({ ...env, attempt: "2", reportFiles: [first, second] }, io);
+
+		expect(sent[0]?.text).toStartWith("✅ <b>Библиотеки опубликованы</b>");
+	});
+
+	test("ссылка ручного повтора ведёт на запуск выпуска без номера попытки", async () => {
+		const { io, sent } = fakeIo({ [first]: react("published") }, true);
+
+		await notify({ ...env, runId: "42", attempt: "" }, io);
+
+		expect(sent[0]?.keyboard.flat().map((button) => button.url)).toContain(
+			"https://github.com/team/frontend-packages/actions/runs/42",
+		);
 	});
 });
