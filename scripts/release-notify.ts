@@ -99,7 +99,8 @@ export async function notify(env: NotifyEnv, io: NotifyIo): Promise<number> {
 		io,
 		"release-please-config.json",
 	);
-	// download-artifact видит артефакты прошлых попыток: отчёт верен, только если publish шёл в этой.
+	// Отчёты прошлых попыток сводятся, только если publish шёл в этой: иначе карточку решает этап, на
+	// котором попытка остановилась, а доступность пакетов проверяется в npm.
 	const publishRan = Boolean(env.outcomes.publish) && env.outcomes.publish !== "skipped";
 	const report = publishRan ? await readReport(io, env.reportFiles) : null;
 	const tags = await io.tags();

@@ -9,6 +9,11 @@ const react = (status: PackageResult["status"], reason?: string): PackageResult 
 	...(reason ? { reason } : {}),
 });
 
+const conflict: PackageResult = {
+	...react("failed", "версия уже занята в npm"),
+	errorKind: "conflict",
+};
+
 describe("mergeReports", () => {
 	// Поздняя попытка нашла версию в npm, а ранняя — нет: версия появилась за время запуска.
 	test.each(["published", "unconfirmed", "failed", "not-attempted"] as const)(
@@ -20,13 +25,21 @@ describe("mergeReports", () => {
 		},
 	);
 
-	test("конфликт версии после другого статуса — опубликован", () => {
-		const conflict = {
-			...react("failed", "версия уже занята в npm"),
-			errorKind: "conflict" as const,
-		};
+	test.each(["published", "unconfirmed", "failed"] as const)(
+		"конфликт версии после %s — опубликован",
+		(status) => {
+			expect(mergeReports([[react(status, "сбой сети")], [conflict]])).toEqual([
+				react("published"),
+			]);
+		},
+	);
 
-		expect(mergeReports([[react("published")], [conflict]])).toEqual([react("published")]);
+	// Конфликт доказывает публикацию этим выпуском, только если раньше публиковать пробовали.
+	test.each([
+		["конфликта", conflict],
+		["not-attempted", react("not-attempted")],
+	])("конфликт после %s остаётся сбоем", (_label, earlier) => {
+		expect(mergeReports([[earlier], [conflict]])).toEqual([conflict]);
 	});
 
 	test("пакет, до которого поздняя попытка не дошла, сохраняет статус ранней", () => {
