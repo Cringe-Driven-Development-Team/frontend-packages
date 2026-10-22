@@ -80,10 +80,11 @@ jobs:
         env:
           PATHS_RELEASED: ${{ needs.release-please.outputs.paths_released }}
         run: bun scripts/publish-released.ts "$PATHS_RELEASED" --report release-report.json
+      # Своё имя у каждой попытки: перезапуск не должен затирать отчёт попытки, которая опубликовала.
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: release-report
+          name: release-report-${{ github.run_attempt }}
           path: release-report.json
           if-no-files-found: ignore
 
@@ -106,16 +107,19 @@ jobs:
         with:
           bun-version: 1.4.2
       - run: bun install --frozen-lockfile
+      # Отчёты всех попыток: каждый ложится в каталог reports/release-report-<попытка>.
       - if: github.event_name == 'push'
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
-          name: release-report
+          pattern: release-report-*
+          path: reports
       # Отчёт есть, только если шаг публикации запускался: все этапы до него прошли успешно.
       - if: github.event_name == 'workflow_dispatch'
         uses: actions/download-artifact@v4
         with:
-          name: release-report
+          pattern: release-report-*
+          path: reports
           run-id: ${{ inputs.run_id }}
           github-token: ${{ github.token }}
       - id: replay
@@ -127,13 +131,15 @@ jobs:
         # Скрипты остаются из текущей ветки: в коммитах до ручного повтора его поддержки нет.
         # Версии и changelog берутся из коммита того запуска, иначе карточка покажет следующий выпуск.
         # Манифесты React и Zustand — всегда оба: блок совместимости читает версии пары целиком.
+        # Без отчётов glob не раскроется, jq упадёт, и повтор остановится.
         run: |
           sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq .head_sha)
-          files=$(jq -r '[.[].path | "\(.)/package.json", "\(.)/CHANGELOG.md"]
-            + ["packages/react/package.json", "packages/zustand/package.json"] | unique[]' release-report.json)
+          reports=(reports/release-report-*/release-report.json)
+          files=$(jq -rs '[.[][].path | "\(.)/package.json", "\(.)/CHANGELOG.md"]
+            + ["packages/react/package.json", "packages/zustand/package.json"] | unique[]' "${reports[@]}")
           echo "Файлы выпуска из $sha:" release-please-config.json $files
           git checkout "$sha" -- release-please-config.json $files
-          echo "paths=$(jq -c '[.[].path]' release-report.json)" >> "$GITHUB_OUTPUT"
+          echo "paths=$(jq -cs '[.[][].path] | unique' "${reports[@]}")" >> "$GITHUB_OUTPUT"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
       - name: Отправить итоговую карточку в Telegram
         env:

@@ -94,6 +94,22 @@ describe("publishReleased", () => {
 		expect(sleeps).toEqual([100, 100]);
 	});
 
+	test("отчёт сохраняется после каждого пакета, а публикация — ещё до подтверждения", async () => {
+		const { run } = recorder();
+		const saved: string[][] = [];
+		const save = async (results: { status: string }[]) => {
+			saved.push(results.map((result) => result.status));
+		};
+
+		await publishReleased(["packages/react", "packages/zustand"], run, {
+			isPublished: async (path) => path === "packages/react",
+			isVisible: async () => true,
+			save,
+		});
+
+		expect(saved).toEqual([["skipped"], ["skipped", "unconfirmed"], ["skipped", "published"]]);
+	});
+
 	test("версия, не появившаяся в registry за все попытки, не подтверждена", async () => {
 		const { run } = recorder();
 
