@@ -10,11 +10,15 @@ const react = (status: PackageResult["status"], reason?: string): PackageResult 
 });
 
 describe("mergeReports", () => {
-	test("публикация ранней попытки не теряется за пропуском в поздней", () => {
-		expect(mergeReports([[react("unconfirmed")], [react("skipped")]])).toEqual([
-			react("unconfirmed"),
-		]);
-	});
+	// Поздняя попытка нашла версию в npm, а ранняя — нет: версия появилась за время запуска.
+	test.each(["published", "unconfirmed", "failed", "not-attempted"] as const)(
+		"%s, а затем пропуск — опубликован",
+		(status) => {
+			expect(mergeReports([[react(status, "сбой")], [react("skipped")]])).toEqual([
+				react("published"),
+			]);
+		},
+	);
 
 	test("из нескольких попыток с публикацией берётся последняя", () => {
 		expect(mergeReports([[react("failed", "403")], [react("published")]])).toEqual([
