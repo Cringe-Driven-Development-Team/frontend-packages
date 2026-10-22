@@ -238,16 +238,15 @@ function getFirstStableHostChild(fiber: Fiber | null): Node | null {
 		return null;
 	}
 
-	if (fiber.tag === FiberTag.HOST_PORTAL) {
+	if (
+		fiber.tag === FiberTag.HOST_PORTAL ||
+		hasFlags(fiber.flags, FiberFlags.PLACEMENT | FiberFlags.MOVE)
+	) {
 		return getFirstStableHostChild(fiber.sibling);
 	}
 
 	if (fiber.dom) {
-		if (!hasFlags(fiber.flags, FiberFlags.PLACEMENT | FiberFlags.MOVE)) {
-			return fiber.dom;
-		}
-
-		return getFirstStableHostChild(fiber.sibling);
+		return fiber.dom;
 	}
 
 	return getFirstStableHostChild(fiber.child) ?? getFirstStableHostChild(fiber.sibling);

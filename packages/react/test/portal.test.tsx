@@ -416,4 +416,36 @@ describe("перестановка порталов", () => {
 		expect(container.innerHTML).toBe("<div><button>next</button></div>");
 		root.unmount();
 	});
+
+	test("перестановка с новым не-host ребёнком у следующего портала не падает", async () => {
+		const target = createTarget();
+
+		function Comp() {
+			return <i />;
+		}
+
+		function App() {
+			const [swapped, setSwapped] = useState(false);
+			const order = swapped ? ["b", "a", "c"] : ["a", "b", "c"];
+			return (
+				<div>
+					<button onClick={() => setSwapped(true)}>swap</button>
+					{order.map((id) =>
+						createPortal(
+							id === "c" && swapped ? [<Comp key="new" />, <p key="p">c</p>] : <p key="p">{id}</p>,
+							target,
+							id,
+						),
+					)}
+				</div>
+			);
+		}
+
+		const { container, root } = await mount(<App />);
+		click(container);
+		await flush();
+
+		expect(target.innerHTML).toBe("<p>b</p><p>a</p><i></i><p>c</p>");
+		root.unmount();
+	});
 });
