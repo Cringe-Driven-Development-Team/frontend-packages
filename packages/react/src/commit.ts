@@ -294,6 +294,11 @@ function commitDeletionChildren(fiber: Fiber | null, domParent: Node): void {
 }
 
 function cleanupDomTree(fiber: Fiber): void {
+	if (fiber.tag === FiberTag.HOST_PORTAL) {
+		commitDeletionChildren(fiber.child, getPortalContainer(fiber));
+		return;
+	}
+
 	if (fiber.dom) {
 		detachRef(fiber);
 		cleanupDom(fiber.dom, fiber.props);

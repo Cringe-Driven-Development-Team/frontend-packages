@@ -233,3 +233,137 @@ describe("монтирование и обновление портала", () =
 		root.unmount();
 	});
 });
+
+function Toggle({ render }: { render: (show: boolean) => ReactElement | null }) {
+	const [show, setShow] = useState(true);
+	return (
+		<div>
+			<button onClick={() => setShow(!show)}>toggle</button>
+			{render(show)}
+		</div>
+	);
+}
+
+describe("смена контейнера и удаление портала", () => {
+	test("смена container переносит детей в новый контейнер", async () => {
+		const a = createTarget();
+		const b = createTarget();
+		const { container, root } = await mount(
+			<Toggle render={(show) => createPortal(<p />, show ? a : b)} />,
+		);
+		expect(a.innerHTML).toBe("<p></p>");
+
+		click(container);
+		await flush();
+
+		expect(a.innerHTML).toBe("");
+		expect(b.innerHTML).toBe("<p></p>");
+		root.unmount();
+	});
+
+	test("удаление самого портала очищает контейнер и ref", async () => {
+		const target = createTarget();
+		const ref: RefObject<HTMLParagraphElement | null> = { current: null };
+		const { container, root } = await mount(
+			<Toggle render={(show) => (show ? createPortal(<p ref={ref} />, target) : null)} />,
+		);
+
+		click(container);
+		await flush();
+
+		expect(target.innerHTML).toBe("");
+		expect(ref.current).toBeNull();
+		root.unmount();
+	});
+
+	test("удаление host-предка удаляет DOM вложенного портала", async () => {
+		const target = createTarget();
+		const ref: RefObject<HTMLParagraphElement | null> = { current: null };
+		const { container, root } = await mount(
+			<Toggle
+				render={(show) =>
+					show ? (
+						<div>
+							<span>{createPortal(<p ref={ref} />, target)}</span>
+						</div>
+					) : null
+				}
+			/>,
+		);
+		expect(target.innerHTML).toBe("<p></p>");
+
+		click(container);
+		await flush();
+
+		expect(target.innerHTML).toBe("");
+		expect(ref.current).toBeNull();
+		root.unmount();
+	});
+
+	test("cleanup эффектов внутри портала при удалении host-предка", async () => {
+		const target = createTarget();
+		const log: string[] = [];
+
+		function Child() {
+			useLayoutEffect(() => () => log.push("layout cleanup"), []);
+			useEffect(() => () => log.push("passive cleanup"), []);
+			return <p />;
+		}
+
+		const { container, root } = await mount(
+			<Toggle
+				render={(show) => (show ? <section>{createPortal(<Child />, target)}</section> : null)}
+			/>,
+		);
+		click(container);
+		await flush();
+
+		expect(log).toContain("layout cleanup");
+		expect(log).toContain("passive cleanup");
+		root.unmount();
+	});
+
+	test("root.unmount() очищает контейнер портала под host", async () => {
+		const target = createTarget();
+		const { root } = await mount(<div>{createPortal(<p />, target)}</div>);
+
+		root.unmount();
+
+		expect(target.innerHTML).toBe("");
+	});
+
+	test("удаление внешнего портала очищает и вложенный портал", async () => {
+		const outer = createTarget();
+		const inner = createTarget();
+		const { container, root } = await mount(
+			<Toggle
+				render={(show) =>
+					show ? createPortal(<div>{createPortal(<p />, inner)}</div>, outer) : null
+				}
+			/>,
+		);
+		expect(inner.innerHTML).toBe("<p></p>");
+
+		click(container);
+		await flush();
+
+		expect(outer.innerHTML).toBe("");
+		expect(inner.innerHTML).toBe("");
+		root.unmount();
+	});
+
+	test("повторное открытие не оставляет дублей", async () => {
+		const target = createTarget();
+		const { container, root } = await mount(
+			<Toggle render={(show) => (show ? <div>{createPortal(<p />, target)}</div> : null)} />,
+		);
+
+		click(container);
+		await flush();
+		click(container);
+		await flush();
+
+		expect(target.children.length).toBe(1);
+		root.unmount();
+	});
+});
