@@ -42,6 +42,8 @@ export type ToolbarProps = {
 	onRotate: () => void;
 	onSort: () => void;
 	onToggleTheme: () => void;
+	onOpenPortal: () => void;
+	onSwapPortalOrder: () => void;
 };
 
 export type FiltersProps = {
