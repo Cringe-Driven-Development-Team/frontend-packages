@@ -197,7 +197,9 @@ function getHostSibling(fiber: Fiber): Node | null {
 		nextFiber = getNextFiberSibling(nextFiber, hostParentFiber);
 	}
 
-	return null;
+	return hostParentFiber?.tag === FiberTag.HOST_PORTAL
+		? getPortalHostSibling(hostParentFiber)
+		: null;
 }
 
 function getPortalHostSibling(fiber: Fiber): Node | null {
