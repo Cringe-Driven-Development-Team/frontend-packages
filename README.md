@@ -8,6 +8,7 @@
 | `@cdd-team/zustand` | `packages/zustand` | учебный стейт-менеджер; `@cdd-team/react` — необязательный peer, `@cdd-team/zustand/vanilla` работает без React |
 | `@cdd-team/openapi` | `packages/openapi` | генератор типов из OpenAPI 3.1 и typed fetch-клиент |
 | `@cdd-team/oxlint-plugin-jsdoc` | `packages/oxlint-plugin-jsdoc` | правила oxlint про JSDoc: `cdd/require-jsdoc` и `cdd/check-param-names` |
+| `@cdd-team/vite-plugin-bff-html` | `packages/vite-plugin-bff-html` | плагин dev-сервера Vite: HTML страниц от BFF с клиентом HMR |
 
 ## Структура
 
@@ -17,6 +18,7 @@ packages/
   zustand/
   openapi/
   oxlint-plugin-jsdoc/  # тесты собирают dist и ходят в CLI oxlint, а не в RuleTester
+  vite-plugin-bff-html/ # тесты поднимают dev-сервер Vite против подставного BFF
 scripts/        # проверка архивов и публикация (verify-packages, publish-released) и их тесты
 tests/integration/  # runtime-интеграция React + Zustand и vanilla без React
 docs/release-runbook.md
@@ -48,7 +50,7 @@ Playground React не входит в `workspaces`, CI и релизы. На Win
 
 - **Bun** — установка зависимостей, тулинг, тесты и сборка. `bunfig.toml` содержит `[run] bun = true`: утилиты с `#!/usr/bin/env node` (tsdown, oxlint, oxfmt) запускаются в рантайме Bun, а не в Node, поэтому версия Node на сборку не влияет.
 - **Node и npm CLI** — только публикация по OIDC (Node 22.14.0+, npm 11.5.1+ ставятся лишь в publish job) (`npm publish` в [release.yml](.github/workflows/release.yml)).
-- **release-please** — версии, `CHANGELOG.md`, теги и release PR. Режим manifest: у каждого пакета своя версия, свой changelog и свой тег (`react-v1.2.0`, `zustand-v1.0.0`, `openapi-v0.2.0`, `oxlint-plugin-jsdoc-v0.1.1`). Плагин `node-workspace` с `updatePeerDependencies` при выпуске React поднимает диапазон `@cdd-team/react` в Zustand (peer и dev), даёт Zustand patch-релиз и запись в его changelog, даже если исходники Zustand не менялись.
+- **release-please** — версии, `CHANGELOG.md`, теги и release PR. Режим manifest: у каждого пакета своя версия, свой changelog и свой тег (`react-v1.2.0`, `zustand-v1.0.0`, `openapi-v0.2.0`, `oxlint-plugin-jsdoc-v0.1.1`, `vite-plugin-bff-html-v0.1.0`). Плагин `node-workspace` с `updatePeerDependencies` при выпуске React поднимает диапазон `@cdd-team/react` в Zustand (peer и dev), даёт Zustand patch-релиз и запись в его changelog, даже если исходники Zustand не менялись.
 
 ## Коммиты и релизы
 
