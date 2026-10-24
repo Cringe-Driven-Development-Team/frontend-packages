@@ -11,8 +11,19 @@ const dependencyBlocks = [
 ] as const;
 const oldScopes = ["@maninthecoat", "@iredtea"];
 
-export type PackageName = "react" | "zustand" | "openapi" | "oxlint-plugin-jsdoc";
-export const packageNames: PackageName[] = ["react", "zustand", "openapi", "oxlint-plugin-jsdoc"];
+export type PackageName =
+	| "react"
+	| "zustand"
+	| "openapi"
+	| "oxlint-plugin-jsdoc"
+	| "vite-plugin-bff-html";
+export const packageNames: PackageName[] = [
+	"react",
+	"zustand",
+	"openapi",
+	"oxlint-plugin-jsdoc",
+	"vite-plugin-bff-html",
+];
 
 type Manifest = Record<string, unknown>;
 
@@ -215,7 +226,7 @@ export async function verify(): Promise<void> {
 		}
 
 		console.log(
-			"OK: архивы react, zustand, openapi, oxlint-plugin-jsdoc и сценарии consumer/vanilla прошли проверку",
+			"OK: архивы react, zustand, openapi, oxlint-plugin-jsdoc, vite-plugin-bff-html и сценарии consumer/vanilla прошли проверку",
 		);
 	} finally {
 		await rm(workDir, { recursive: true, force: true });

@@ -13,6 +13,7 @@ const expected = {
 	"packages/zustand": { component: "zustand" },
 	"packages/openapi": { component: "openapi" },
 	"packages/oxlint-plugin-jsdoc": { component: "oxlint-plugin-jsdoc" },
+	"packages/vite-plugin-bff-html": { component: "vite-plugin-bff-html" },
 };
 
 describe("release-please manifest", () => {

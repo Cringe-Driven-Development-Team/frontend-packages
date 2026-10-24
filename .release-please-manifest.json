@@ -2,5 +2,6 @@
 	"packages/react": "1.5.0",
 	"packages/zustand": "1.0.4",
 	"packages/openapi": "0.2.1",
-	"packages/oxlint-plugin-jsdoc": "0.1.2"
+	"packages/oxlint-plugin-jsdoc": "0.1.2",
+	"packages/vite-plugin-bff-html": "0.1.0"
 }

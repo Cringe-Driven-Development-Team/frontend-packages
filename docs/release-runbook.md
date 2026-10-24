@@ -97,7 +97,7 @@ Optional peer и экспорт `./vanilla` в Zustand должны сохран
 
 ## 6. Bootstrap нового пакета (пример: `@cdd-team/oxlint-plugin-jsdoc`)
 
-Пакет, добавленный в монорепозиторий позже (первые три — раздел 1), проходит тот же путь, но без остальных пакетов. Для плагина jsdoc стартовая версия — `0.1.1`.
+Пакет, добавленный в монорепозиторий позже (первые три — раздел 1), проходит тот же путь, но без остальных пакетов. Для плагина jsdoc стартовая версия — `0.1.1`, для `@cdd-team/vite-plugin-bff-html` — `0.1.0` (каталог `packages/vite-plugin-bff-html`, тег `vite-plugin-bff-html-v0.1.0`).
 
 1. Перед мержем PR, который добавляет пакет: release-please может открыть release PR раньше, чем появится тег baseline. **Не вливайте** этот release PR.
 2. После мержа PR на проверенном коммите `main` (CI зелёный): `bun install --frozen-lockfile && bun run build && bun run verify:packages`, затем
