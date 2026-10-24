@@ -16,7 +16,11 @@ const bff = Bun.serve({
 		if (url.pathname.startsWith("/api/") || url.pathname === "/data") {
 			return Response.json({ path: url.pathname });
 		}
-		const headers = new Headers({ "Content-Type": "text/html; charset=utf-8", "X-Bff": "1" });
+		const headers = new Headers({
+			"Content-Type": "text/html; charset=utf-8",
+			"X-Bff": "1",
+			"Keep-Alive": "timeout=99",
+		});
 		headers.append("Set-Cookie", "__Host-session=abc; Path=/; Secure; HttpOnly");
 		headers.append("Set-Cookie", "other=1; Path=/");
 		const status = url.pathname === "/missing" ? 404 : 200;
@@ -145,4 +149,10 @@ test("ответ BFF не в HTML отдаётся без transformIndexHtml", a
 	expect(await res.json()).toEqual({ path: "/data" });
 	// запрос шёл через плагин, а не прокси: Authorization в BFF не передан
 	expect(seen.at(-1)?.headers.get("authorization")).toBeNull();
+});
+
+test("заголовки соединения BFF в ответ не переносятся: в HTTP/2 Node на них падает", async () => {
+	const res = await page("/");
+	expect(res.status).toBe(200);
+	expect(res.headers.get("keep-alive") ?? "").not.toContain("timeout=99");
 });

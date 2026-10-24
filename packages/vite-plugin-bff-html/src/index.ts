@@ -3,8 +3,19 @@ import type { Plugin } from "vite";
 // заголовки браузера, нужные BFF для HTML: сессия, тип ответа и признаки CSRF
 const REQUEST_HEADERS = ["accept", "cookie", "sec-fetch-site", "user-agent", "x-request-id"];
 
-// длину и сжатие задаёт уже преобразованный HTML, Set-Cookie переносится отдельными заголовками
-const SKIPPED_RESPONSE_HEADERS = ["content-length", "content-encoding", "set-cookie"];
+// длину и сжатие задаёт уже преобразованный HTML, Set-Cookie переносится отдельными заголовками.
+// Заголовки соединения относятся к связи с BFF, а не с браузером: в HTTP/2 (Vite по HTTPS без
+// server.proxy) setHeader на них бросает ERR_HTTP2_INVALID_CONNECTION_HEADERS
+const SKIPPED_RESPONSE_HEADERS = [
+	"content-length",
+	"content-encoding",
+	"set-cookie",
+	"connection",
+	"keep-alive",
+	"proxy-connection",
+	"transfer-encoding",
+	"upgrade",
+];
 
 /**
  * Подходит ли адрес под ключ `server.proxy` — по тем же правилам, что у прокси Vite: ключ с `^` —
