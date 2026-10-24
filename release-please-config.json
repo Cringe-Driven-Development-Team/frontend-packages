@@ -32,6 +32,11 @@
 			"release-type": "node",
 			"component": "oxlint-plugin-jsdoc",
 			"changelog-path": "CHANGELOG.md"
+		},
+		"packages/vite-plugin-bff-html": {
+			"release-type": "node",
+			"component": "vite-plugin-bff-html",
+			"changelog-path": "CHANGELOG.md"
 		}
 	}
 }
