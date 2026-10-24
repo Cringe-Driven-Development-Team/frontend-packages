@@ -27,7 +27,9 @@ export default defineConfig({
 });
 ```
 
-API BFF плагин не проксирует: его пути задаются в `server.proxy`.
+API BFF плагин не проксирует: его пути задаются в `server.proxy`, и такие запросы плагин
+пропускает к прокси, даже с `Accept: text/html` (браузер шлёт его при прямом открытии адреса API).
+Ключи сопоставляются как в Vite: с `^` — регулярное выражение, иначе префикс.
 
 ## Что делает
 
@@ -35,7 +37,8 @@ API BFF плагин не проксирует: его пути задаются
 
 1. уходит в BFF по тому же пути и query, с заголовками `Accept`, `Cookie`, `Sec-Fetch-Site`,
    `User-Agent` и `X-Request-Id`; остальные заголовки браузера в BFF не передаются;
-2. HTML ответа проходит через `server.transformIndexHtml`;
+2. HTML ответа проходит через `server.transformIndexHtml`; ответ не в HTML (`Content-Type` без
+   `text/html`) отдаётся как есть;
 3. браузер получает статус и заголовки BFF, кроме `Content-Length` и `Content-Encoding` (их задаёт
    преобразованный HTML), а каждый `Set-Cookie` — отдельным заголовком; на `HEAD` — без тела.
 

@@ -13,6 +13,9 @@ const bff = Bun.serve({
 	fetch(req) {
 		const url = new URL(req.url);
 		seen.push({ url: url.pathname + url.search, headers: req.headers });
+		if (url.pathname.startsWith("/api/") || url.pathname === "/data") {
+			return Response.json({ path: url.pathname });
+		}
 		const headers = new Headers({ "Content-Type": "text/html; charset=utf-8", "X-Bff": "1" });
 		headers.append("Set-Cookie", "__Host-session=abc; Path=/; Secure; HttpOnly");
 		headers.append("Set-Cookie", "other=1; Path=/");
@@ -33,7 +36,14 @@ beforeAll(async () => {
 		root,
 		configFile: false,
 		logLevel: "silent",
-		server: { port: 0, host: "127.0.0.1" },
+		server: {
+			port: 0,
+			host: "127.0.0.1",
+			proxy: {
+				"/api/trpc": `http://127.0.0.1:${bff.port}`,
+				"^/api/v\\d+/": `http://127.0.0.1:${bff.port}`,
+			},
+		},
 		plugins: [bffHtml(`http://127.0.0.1:${bff.port}`)],
 	});
 	await vite.listen();
@@ -114,4 +124,25 @@ test("модули и запросы без Accept: text/html обрабатыв
 	const post = await fetch(`${base}/`, { method: "POST", headers: { Accept: "text/html" } });
 	await post.arrayBuffer();
 	expect(seen.length).toBe(before);
+});
+
+test("пути server.proxy с Accept: text/html идут через прокси Vite, JSON без клиента HMR", async () => {
+	for (const path of ["/api/trpc/users.me", "/api/v1/users"]) {
+		const res = await page(path, { headers: { Authorization: "Bearer token" } });
+		expect(res.status).toBe(200);
+		expect(res.headers.get("content-type")).toContain("application/json");
+		const body = await res.text();
+		expect(body).not.toContain("/@vite/client");
+		expect(JSON.parse(body)).toEqual({ path });
+		// плагин не передал бы Authorization: запрос пришёл через прокси
+		expect(seen.at(-1)?.headers.get("authorization")).toBe("Bearer token");
+	}
+});
+
+test("ответ BFF не в HTML отдаётся без transformIndexHtml", async () => {
+	const res = await page("/data", { headers: { Authorization: "Bearer token" } });
+	expect(res.headers.get("content-type")).toContain("application/json");
+	expect(await res.json()).toEqual({ path: "/data" });
+	// запрос шёл через плагин, а не прокси: Authorization в BFF не передан
+	expect(seen.at(-1)?.headers.get("authorization")).toBeNull();
 });

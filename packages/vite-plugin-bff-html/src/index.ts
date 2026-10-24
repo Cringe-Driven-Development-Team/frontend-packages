@@ -7,10 +7,22 @@ const REQUEST_HEADERS = ["accept", "cookie", "sec-fetch-site", "user-agent", "x-
 const SKIPPED_RESPONSE_HEADERS = ["content-length", "content-encoding", "set-cookie"];
 
 /**
+ * Подходит ли адрес под ключ `server.proxy` — по тем же правилам, что у прокси Vite: ключ с `^` —
+ * регулярное выражение, остальные — префикс.
+ * @param context ключ `server.proxy`
+ * @param url адрес запроса
+ * @returns `true`, если запрос уйдёт в прокси
+ */
+const proxied = (context: string, url: string) =>
+	context.startsWith("^") ? new RegExp(context).test(url) : url.startsWith(context);
+
+/**
  * Плагин dev-сервера Vite: запрос страницы (`GET`/`HEAD` с `Accept: text/html`) уходит в BFF, а его
  * HTML Vite пропускает через `transformIndexHtml` — добавляет клиент HMR и преобразования
  * `index.html` других плагинов. Статус и заголовки ответа BFF сохраняются, каждый `Set-Cookie` —
- * отдельным заголовком. Остальные запросы обрабатывает Vite.
+ * отдельным заголовком. Пути из `server.proxy` плагин не трогает: при прямом открытии API браузер
+ * тоже шлёт `Accept: text/html`, а ответ должен прийти от прокси без изменений. Ответ BFF не в HTML
+ * отдаётся как есть, без `transformIndexHtml`. Остальные запросы обрабатывает Vite.
  * @param target адрес BFF без слеша в конце, например `http://127.0.0.1:3000`
  * @returns плагин Vite, который работает только в `vite serve`
  */
@@ -19,10 +31,12 @@ export function bffHtml(target: string): Plugin {
 		name: "bff-html",
 		apply: "serve",
 		configureServer(server) {
+			const proxy = Object.keys(server.config.server.proxy ?? {});
 			server.middlewares.use((req, res, next) => {
 				const page = req.method === "GET" || req.method === "HEAD";
 				if (!page || !req.headers.accept?.includes("text/html")) return next();
 				const url = req.originalUrl ?? "/";
+				if (proxy.some((context) => proxied(context, req.url ?? url))) return next();
 				void (async () => {
 					const headers = new Headers();
 					for (const name of REQUEST_HEADERS) {
@@ -30,7 +44,10 @@ export function bffHtml(target: string): Plugin {
 						if (typeof value === "string") headers.set(name, value);
 					}
 					const answer = await fetch(target + url, { headers });
-					const html = await server.transformIndexHtml(url, await answer.text());
+					const body = await answer.text();
+					const html = answer.headers.get("content-type")?.includes("text/html")
+						? await server.transformIndexHtml(url, body)
+						: body;
 					res.statusCode = answer.status;
 					for (const [name, value] of answer.headers) {
 						if (!SKIPPED_RESPONSE_HEADERS.includes(name)) res.setHeader(name, value);
