@@ -1,6 +1,6 @@
 {
 	"name": "@cdd-team/vite-plugin-bff-html",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Плагин dev-сервера Vite: HTML страниц отдаёт BFF, Vite добавляет в него клиент HMR",
 	"license": "MIT",
 	"repository": {
