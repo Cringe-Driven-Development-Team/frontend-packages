@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.6](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/zustand-v1.0.5...zustand-v1.0.6) (2026-10-25)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @cdd-team/react bumped from ^1.6.0 to ^1.7.0
+  * peerDependencies
+    * @cdd-team/react bumped from ^1.6.0 to ^1.7.0
+
 ## [1.0.5](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/zustand-v1.0.4...zustand-v1.0.5) (2026-10-25)
 
 

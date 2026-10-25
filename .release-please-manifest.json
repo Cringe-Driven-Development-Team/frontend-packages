@@ -1,6 +1,6 @@
 {
-	"packages/react": "1.6.0",
-	"packages/zustand": "1.0.5",
+	"packages/react": "1.7.0",
+	"packages/zustand": "1.0.6",
 	"packages/openapi": "0.2.1",
 	"packages/oxlint-plugin-jsdoc": "0.1.2",
 	"packages/vite-plugin-bff-html": "0.2.1"
