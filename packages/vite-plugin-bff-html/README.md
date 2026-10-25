@@ -42,8 +42,8 @@ API BFF плагин не проксирует: его пути задаются
 3. HTML ответа проходит через `server.transformIndexHtml`; ответ не в HTML (`Content-Type` без
    `text/html`) отдаётся как есть;
 4. браузер получает статус и заголовки BFF, кроме `Content-Length` и `Content-Encoding` (их задаёт
-   преобразованный HTML) и заголовков соединения (`Connection`, `Keep-Alive`, `Transfer-Encoding` и
-   других: в HTTP/2 они запрещены), а каждый `Set-Cookie` — отдельным заголовком; на `HEAD` — без тела.
+   преобразованный HTML) и заголовков соединения: `Connection`, `Keep-Alive`, `Proxy-Connection`, `TE`, `Trailer`,
+   `Transfer-Encoding`, `Upgrade` и перечисленных в `Connection` (в HTTP/2 они запрещены), а каждый `Set-Cookie` — отдельным заголовком; на `HEAD` — без тела.
 
 Модули, стили, ассеты и остальные запросы обрабатывает Vite. Если BFF недоступен, Vite отвечает
 ошибкой `500`.

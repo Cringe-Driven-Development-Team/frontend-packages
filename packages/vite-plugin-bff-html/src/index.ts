@@ -3,19 +3,33 @@ import type { Plugin } from "vite";
 // заголовки браузера, нужные BFF для HTML: сессия, тип ответа и признаки CSRF
 const REQUEST_HEADERS = ["accept", "cookie", "sec-fetch-site", "user-agent", "x-request-id"];
 
-// длину и сжатие задаёт уже преобразованный HTML, Set-Cookie переносится отдельными заголовками.
-// Заголовки соединения относятся к связи с BFF, а не с браузером: в HTTP/2 (Vite по HTTPS без
-// server.proxy) setHeader на них бросает ERR_HTTP2_INVALID_CONNECTION_HEADERS
-const SKIPPED_RESPONSE_HEADERS = [
-	"content-length",
-	"content-encoding",
-	"set-cookie",
+// длину и сжатие задаёт уже преобразованный HTML, Set-Cookie переносится отдельными заголовками
+const SKIPPED_RESPONSE_HEADERS = ["content-length", "content-encoding", "set-cookie"];
+
+// Заголовки соединения (hop-by-hop, RFC 9110 §7.6.1) относятся к связи с BFF, а не с браузером: в
+// HTTP/2 (Vite по HTTPS без server.proxy) Node на них бросает ERR_HTTP2_INVALID_CONNECTION_HEADERS
+const HOP_BY_HOP_HEADERS = [
 	"connection",
 	"keep-alive",
 	"proxy-connection",
+	"te",
+	"trailer",
 	"transfer-encoding",
 	"upgrade",
 ];
+
+/**
+ * Заголовки ответа BFF, которые браузеру не передаются: свои и перечисленные самим BFF в `Connection`.
+ * @param headers заголовки ответа BFF
+ * @returns имена в нижнем регистре
+ */
+function skippedHeaders(headers: Headers): Set<string> {
+	const listed = (headers.get("connection") ?? "")
+		.split(",")
+		.map((name) => name.trim().toLowerCase())
+		.filter(Boolean);
+	return new Set([...SKIPPED_RESPONSE_HEADERS, ...HOP_BY_HOP_HEADERS, ...listed]);
+}
 
 /**
  * Подходит ли адрес под ключ `server.proxy` — по тем же правилам, что у прокси Vite: ключ с `^` —
@@ -65,8 +79,9 @@ export function bffHtml(target: string): Plugin {
 							? await server.transformIndexHtml(url, body)
 							: body;
 					res.statusCode = answer.status;
+					const skipped = skippedHeaders(answer.headers);
 					for (const [name, value] of answer.headers) {
-						if (!SKIPPED_RESPONSE_HEADERS.includes(name)) res.setHeader(name, value);
+						if (!skipped.has(name)) res.setHeader(name, value);
 					}
 					const cookies = answer.headers.getSetCookie();
 					if (cookies.length > 0) res.setHeader("Set-Cookie", cookies);

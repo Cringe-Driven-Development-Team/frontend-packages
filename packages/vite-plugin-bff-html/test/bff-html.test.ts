@@ -26,6 +26,10 @@ const bff = Bun.serve({
 			"Content-Type": "text/html; charset=utf-8",
 			"X-Bff": "1",
 			"Keep-Alive": "timeout=99",
+			TE: "gzip",
+			Trailer: "X-Checksum",
+			Connection: "keep-alive, X-Hop",
+			"X-Hop": "1",
 		});
 		headers.append("Set-Cookie", "__Host-session=abc; Path=/; Secure; HttpOnly");
 		headers.append("Set-Cookie", "other=1; Path=/");
@@ -161,6 +165,11 @@ test("заголовки соединения BFF в ответ не перен�
 	const res = await page("/");
 	expect(res.status).toBe(200);
 	expect(res.headers.get("keep-alive") ?? "").not.toContain("timeout=99");
+	expect(res.headers.get("te")).toBeNull();
+	expect(res.headers.get("trailer")).toBeNull();
+	// заголовок, который BFF перечислил в Connection, тоже относится к соединению
+	expect(res.headers.get("x-hop")).toBeNull();
+	expect(res.headers.get("x-bff")).toBe("1");
 });
 
 test("редирект BFF доходит до браузера как есть: статус, Location, оба Set-Cookie", async () => {
