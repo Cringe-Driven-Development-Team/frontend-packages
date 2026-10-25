@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { createRoot } from "../src/index.ts";
-import type { ReactElement, Root } from "../src/index.ts";
+import type { ReactElement, Root, SVGAttributes, SVGProps } from "../src/index.ts";
 
 const SVG = "http://www.w3.org/2000/svg";
 const HTML = "http://www.w3.org/1999/xhtml";
@@ -240,5 +240,19 @@ describe("svg attributes", () => {
 		expect(input.value).toBe("x");
 		expect(input.getAttribute("class")).toBe("f");
 		root.unmount();
+	});
+});
+
+describe("svg types", () => {
+	test("SVGAttributes без key и ref, SVGProps добавляет их", () => {
+		const ref = { current: null as SVGSVGElement | null };
+		const props: SVGProps<SVGSVGElement> = { key: "icon", ref, viewBox: "0 0 24 24" };
+		const attributes: SVGAttributes<SVGSVGElement> = { viewBox: "0 0 24 24" };
+		// @ts-expect-error: key есть только у SVGProps
+		const withKey: SVGAttributes<SVGSVGElement> = { key: "icon" };
+		// @ts-expect-error: ref есть только у SVGProps
+		const withRef: SVGAttributes<SVGSVGElement> = { ref };
+
+		expect([props, attributes, withKey, withRef]).toHaveLength(4);
 	});
 });

@@ -316,15 +316,15 @@ export type AnchorHTMLAttributes<ElementType extends HTMLAnchorElement = HTMLAnc
 		download?: boolean | string;
 	};
 
+// Как в React: SVGAttributes — атрибуты и события элемента, SVGProps добавляет key и ref.
 export interface SVGAttributes<ElementType extends SVGElement = SVGElement>
-	extends Attributes, DOMAttributes<ElementType>, AriaAttributes {
+	extends DOMAttributes<ElementType>, AriaAttributes {
 	class?: string;
 	className?: string;
 	style?: CSSProperties;
 	id?: string;
 	tabIndex?: number;
 	children?: ReactNode;
-	ref?: Ref<ElementType>;
 
 	[key: `data-${string}`]: any;
 
@@ -369,7 +369,10 @@ export interface SVGAttributes<ElementType extends SVGElement = SVGElement>
 	y2?: string | number;
 }
 
-export type SVGProps<ElementType extends SVGElement = SVGElement> = SVGAttributes<ElementType>;
+export interface SVGProps<ElementType extends SVGElement = SVGElement>
+	extends SVGAttributes<ElementType>, Attributes {
+	ref?: Ref<ElementType>;
+}
 
 // ValueType - тип для значений input
 type ValueType = string | number | string[] | boolean | Date | File | FileList | null | undefined;
