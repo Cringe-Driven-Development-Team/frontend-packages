@@ -29,4 +29,6 @@ export type {
 	BaseHTMLAttributes,
 	JSX,
 	MouseEvent,
+	SVGAttributes,
+	SVGProps,
 } from "./jsx.ts";

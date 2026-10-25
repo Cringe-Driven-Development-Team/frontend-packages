@@ -316,6 +316,61 @@ export type AnchorHTMLAttributes<ElementType extends HTMLAnchorElement = HTMLAnc
 		download?: boolean | string;
 	};
 
+export interface SVGAttributes<ElementType extends SVGElement = SVGElement>
+	extends Attributes, DOMAttributes<ElementType>, AriaAttributes {
+	class?: string;
+	className?: string;
+	style?: CSSProperties;
+	id?: string;
+	tabIndex?: number;
+	children?: ReactNode;
+	ref?: Ref<ElementType>;
+
+	[key: `data-${string}`]: any;
+
+	clipPath?: string;
+	cx?: string | number;
+	cy?: string | number;
+	d?: string;
+	fill?: string;
+	fillOpacity?: string | number;
+	fillRule?: "nonzero" | "evenodd" | "inherit";
+	focusable?: boolean | "auto" | "true" | "false";
+	height?: string | number;
+	href?: string;
+	imageRendering?: string;
+	opacity?: string | number;
+	pointerEvents?: string;
+	points?: string;
+	r?: string | number;
+	rx?: string | number;
+	ry?: string | number;
+	shapeRendering?: string;
+	stroke?: string;
+	strokeDasharray?: string | number;
+	strokeDashoffset?: string | number;
+	strokeLinecap?: "butt" | "round" | "square" | "inherit";
+	strokeLinejoin?: "miter" | "round" | "bevel" | "inherit";
+	strokeMiterlimit?: string | number;
+	strokeOpacity?: string | number;
+	strokeWidth?: string | number;
+	textRendering?: string;
+	transform?: string;
+	vectorEffect?: string;
+	viewBox?: string;
+	width?: string | number;
+	x?: string | number;
+	x1?: string | number;
+	x2?: string | number;
+	xlinkHref?: string;
+	xmlns?: string;
+	y?: string | number;
+	y1?: string | number;
+	y2?: string | number;
+}
+
+export type SVGProps<ElementType extends SVGElement = SVGElement> = SVGAttributes<ElementType>;
+
 // ValueType - тип для значений input
 type ValueType = string | number | string[] | boolean | Date | File | FileList | null | undefined;
 
@@ -499,6 +554,28 @@ export namespace JSX {
 		};
 		pre: IntrinsicHTMLAttributes<"pre">;
 		code: IntrinsicHTMLAttributes<"code">;
+
+		// SVG
+		svg: SVGProps<SVGSVGElement>;
+		g: SVGProps<SVGGElement>;
+		path: SVGProps<SVGPathElement>;
+		circle: SVGProps<SVGCircleElement>;
+		rect: SVGProps<SVGRectElement>;
+		line: SVGProps<SVGLineElement>;
+		polyline: SVGProps<SVGPolylineElement>;
+		polygon: SVGProps<SVGPolygonElement>;
+		ellipse: SVGProps<SVGEllipseElement>;
+		text: SVGProps<SVGTextElement>;
+		tspan: SVGProps<SVGTSpanElement>;
+		defs: SVGProps<SVGDefsElement>;
+		linearGradient: SVGProps<SVGLinearGradientElement>;
+		radialGradient: SVGProps<SVGRadialGradientElement>;
+		stop: SVGProps<SVGStopElement>;
+		clipPath: SVGProps<SVGClipPathElement>;
+		mask: SVGProps<SVGMaskElement>;
+		use: SVGProps<SVGUseElement>;
+		foreignObject: SVGProps<SVGForeignObjectElement>;
+		symbol: SVGProps<SVGSymbolElement>;
 	}
 
 	export interface ElementAttributesProperty {
