@@ -5,6 +5,7 @@ import { ExternalStoreDemo } from "./ExternalStoreDemo.tsx";
 import { Header } from "./Header.tsx";
 import { nestedProviderDemoFixture } from "./NestedProviderDemo.tsx";
 import { SelectiveDemo } from "./SelectiveDemo.tsx";
+import { SvgIcon } from "./SvgIcon.tsx";
 import { TodoList } from "./TodoList.tsx";
 import { Toolbar } from "./Toolbar.tsx";
 import { ThemeContext, type Theme } from "./theme.ts";
@@ -191,6 +192,7 @@ export function App(): ReactElement {
 					<Filters value={filter} onChange={setFilter} />
 					<SelectiveDemo />
 					<ExternalStoreDemo />
+					<SvgIcon />
 					{nestedProviderDemoFixture}
 					<TodoList todos={visibleTodos} onToggle={toggleTodo} onRemove={removeTodo} />
 				</section>
