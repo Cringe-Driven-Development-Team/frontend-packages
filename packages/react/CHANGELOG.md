@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.0](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/react-v1.5.0...react-v1.6.0) (2026-10-25)
+
+
+### Features
+
+* useSyncExternalStoreWithSelector в @cdd-team/react ([43065f0](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/43065f0ca941b8fd950674de3efa82e775f7f7ff))
+
+
+### Bug Fixes
+
+* useSyncExternalStore не бросает из layout effect при ошибке повторного чтения snapshot ([4b1896a](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/4b1896a568df419930ec7ea5fae5bc4e6a72e69b))
+
 ## [1.5.0](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/react-v1.4.0...react-v1.5.0) (2026-10-22)
 
 

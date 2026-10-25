@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.1](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/vite-plugin-bff-html-v0.2.0...vite-plugin-bff-html-v0.2.1) (2026-10-25)
+
+
+### Bug Fixes
+
+* vite-plugin-bff-html не переносит TE, Trailer и заголовки из Connection ([3efd115](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/3efd115d0923f7d04e37651e75df0d814f43a0c9))
+* vite-plugin-bff-html не переносит заголовки соединения BFF — в HTTP/2 Vite на них падал ([92e4a56](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/92e4a5602bdcd4c6cc54ff47aefb5c9b940eac37))
+* vite-plugin-bff-html отдаёт редирект BFF браузеру как есть, без перехода внутри плагина ([ec65469](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/ec65469f5a423cce14e604b21623a2463b633277))
+
 ## [0.2.0](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/vite-plugin-bff-html-v0.1.0...vite-plugin-bff-html-v0.2.0) (2026-10-24)
 
 
