@@ -1,7 +1,7 @@
 import type { ElementProps, RuntimeProps } from "./types/props.ts";
 import { FiberTag, type Fiber } from "./types/fiber.ts";
 import type { Tag } from "./types/element.ts";
-import { getSvgAttributeName, SVG_NAMESPACE, XLINK_NAMESPACE } from "./constants/svg.ts";
+import { getSvgAttributeName, SVG_NAMESPACE, XLINK_NAMESPACE } from "./svg.ts";
 import { countProfilerEvent } from "./profiler.ts";
 
 export function createDom(fiber: Fiber): Node {
