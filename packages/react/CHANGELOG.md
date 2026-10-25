@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.7.0](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/react-v1.6.0...react-v1.7.0) (2026-10-25)
+
+
+### Features
+
+* SVG-элементы создаются в пространстве имён SVG ([087aa54](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/087aa54e0822e816fb59c9bc03cdcc606b2afd82))
+* атрибуты SVG в kebab-case и xlink:href ([0aea8ba](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/0aea8bab050387a943bad2837452057aca77876f))
+
+
+### Bug Fixes
+
+* aria-атрибуты со значением false пишутся строкой у HTML и SVG ([39bff53](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/39bff53a36e0e4aa52219df1feb744b8c773f4f1))
+* типы SVG-атрибутов выводятся из словаря имён, tabIndex пишется как tabindex ([8e9b17a](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/8e9b17a0ea6295e9f2c694a8573d9cca9affc93d))
+
 ## [1.6.0](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/react-v1.5.0...react-v1.6.0) (2026-10-25)
 
 
