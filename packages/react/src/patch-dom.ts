@@ -1,4 +1,4 @@
-import { isBlockedHtmlProp, isEventProp } from "./dom-policy.ts";
+import { isBlockedHtmlProp, isEventProp, isUnsafeJavaScriptUrl, isUrlProp } from "./dom-policy.ts";
 import type { ElementProps, RuntimeProps } from "./types/props.ts";
 import { FiberTag, type Fiber } from "./types/fiber.ts";
 import type { Tag } from "./types/element.ts";
@@ -137,6 +137,21 @@ function removeEventListener(dom: Node, name: string, listener: unknown): void {
 function setDomProperty(dom: Node, name: string, value: unknown, prevValue?: unknown): void {
 	if (isBlockedHtmlProp(name)) {
 		return;
+	}
+
+	if (isUrlProp(name)) {
+		if (value === null || value === undefined || value === false) {
+			removeDomProperty(dom, name);
+			return;
+		}
+
+		// Строка получается один раз: проверяется и записывается одно и то же значение.
+		const url = String(value);
+		if (isUnsafeJavaScriptUrl(url)) {
+			removeDomProperty(dom, name);
+			return;
+		}
+		value = url;
 	}
 
 	if (name === "style" && dom instanceof Element) {
