@@ -195,7 +195,6 @@ function removeDomProperty(dom: Node, name: string): void {
 	}
 }
 
-// У SVGElement свойства вроде viewBox и d только для чтения, поэтому всё пишется атрибутами.
 function setSvgAttribute(dom: SVGElement, name: string, value: unknown): void {
 	if (value === null || value === undefined || value === false) {
 		removeSvgAttribute(dom, name);
