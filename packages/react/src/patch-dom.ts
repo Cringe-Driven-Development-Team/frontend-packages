@@ -27,8 +27,8 @@ function createElement(type: Tag, svg: boolean): Element {
 	return document.createElement(type);
 }
 
-// DOM строится снизу вверх, поэтому пространство имён выводится из типов хост-предков:
 // `svg` открывает SVG, `foreignObject` возвращает его детей в HTML, портал и корень — HTML.
+// Решает ближайший хост-предок `svg` или `foreignObject`.
 function isSvgFiber(fiber: Fiber): boolean {
 	if (fiber.type === "svg") {
 		return true;
@@ -38,10 +38,12 @@ function isSvgFiber(fiber: Fiber): boolean {
 		if (parent.tag === FiberTag.ROOT || parent.tag === FiberTag.HOST_PORTAL) {
 			return false;
 		}
-		if (parent.tag !== FiberTag.HOST) {
-			continue;
+		if (
+			parent.tag === FiberTag.HOST &&
+			(parent.type === "svg" || parent.type === "foreignObject")
+		) {
+			return parent.type === "svg";
 		}
-		return parent.type !== "foreignObject" && isSvgFiber(parent);
 	}
 
 	return false;
