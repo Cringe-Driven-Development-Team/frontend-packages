@@ -222,7 +222,7 @@ export function useSyncExternalStore<Snapshot>(
 	useLayoutEffect(() => {
 		// oxlint-disable-next-line react/immutability
 		committed.current = { getSnapshot, snapshot };
-		if (!Object.is(getSnapshot(), snapshot)) {
+		if (didSnapshotChange(committed.current)) {
 			forceUpdate((value) => value + 1);
 		}
 	});
@@ -246,6 +246,39 @@ export function useSyncExternalStore<Snapshot>(
 	}, [subscribe]);
 
 	return snapshot;
+}
+
+export function useSyncExternalStoreWithSelector<Snapshot, Selection>(
+	subscribe: (onStoreChange: () => void) => () => void,
+	getSnapshot: () => Snapshot,
+	selector: (snapshot: Snapshot) => Selection,
+	isEqual: (previous: Selection, next: Selection) => boolean = Object.is,
+): Selection {
+	const committed = useRef<{ selection: Selection } | null>(null);
+	const getSelection = useMemo(() => {
+		let cache: { snapshot: Snapshot; selection: Selection } | undefined;
+
+		return (): Selection => {
+			const snapshot = getSnapshot();
+			if (cache && Object.is(cache.snapshot, snapshot)) {
+				return cache.selection;
+			}
+
+			const next = selector(snapshot);
+			const previous = cache ?? committed.current;
+			const selection = previous && isEqual(previous.selection, next) ? previous.selection : next;
+			cache = { snapshot, selection };
+			return selection;
+		};
+	}, [getSnapshot, selector, isEqual]);
+
+	const selection = useSyncExternalStore(subscribe, getSelection);
+	useLayoutEffect(() => {
+		// oxlint-disable-next-line react/immutability
+		committed.current = { selection };
+	});
+
+	return selection;
 }
 
 function createDispatch<State>(fiber: Fiber, queue: StateAction<State>[]): Dispatch<State> {
