@@ -1,5 +1,6 @@
 import type { Key, ReactElement, ReactNode } from "./element.ts";
 import type { Ref } from "./hooks.ts";
+import type { SVG_ATTRIBUTE_NAMES } from "../svg.ts";
 
 export type MouseEvent<T extends globalThis.Element = globalThis.Element> =
 	globalThis.MouseEvent & {
@@ -316,6 +317,69 @@ export type AnchorHTMLAttributes<ElementType extends HTMLAnchorElement = HTMLAnc
 		download?: boolean | string;
 	};
 
+type SVGMappedAttributes = {
+	[Name in keyof typeof SVG_ATTRIBUTE_NAMES]?: string | number;
+};
+
+// SVGAttributes — атрибуты и события элемента, SVGProps добавляет key и ref.
+// Атрибуты с переводом в kebab-case выводятся из SVG_ATTRIBUTE_NAMES, ниже — только уточнения типов.
+export interface SVGAttributes<ElementType extends SVGElement = SVGElement>
+	extends SVGMappedAttributes, DOMAttributes<ElementType>, AriaAttributes {
+	class?: string;
+	className?: string;
+	style?: CSSProperties;
+	id?: string;
+	tabIndex?: number;
+	children?: ReactNode;
+
+	[key: `data-${string}`]: any;
+
+	clipPath?: string;
+	cx?: string | number;
+	cy?: string | number;
+	d?: string;
+	fill?: string;
+	fillOpacity?: string | number;
+	fillRule?: "nonzero" | "evenodd" | "inherit";
+	focusable?: boolean | "auto" | "true" | "false";
+	height?: string | number;
+	href?: string;
+	imageRendering?: string;
+	opacity?: string | number;
+	pointerEvents?: string;
+	points?: string;
+	r?: string | number;
+	rx?: string | number;
+	ry?: string | number;
+	shapeRendering?: string;
+	stroke?: string;
+	strokeDasharray?: string | number;
+	strokeDashoffset?: string | number;
+	strokeLinecap?: "butt" | "round" | "square" | "inherit";
+	strokeLinejoin?: "miter" | "round" | "bevel" | "inherit";
+	strokeMiterlimit?: string | number;
+	strokeOpacity?: string | number;
+	strokeWidth?: string | number;
+	textRendering?: string;
+	transform?: string;
+	vectorEffect?: string;
+	viewBox?: string;
+	width?: string | number;
+	x?: string | number;
+	x1?: string | number;
+	x2?: string | number;
+	xlinkHref?: string;
+	xmlns?: string;
+	y?: string | number;
+	y1?: string | number;
+	y2?: string | number;
+}
+
+export interface SVGProps<ElementType extends SVGElement = SVGElement>
+	extends SVGAttributes<ElementType>, Attributes {
+	ref?: Ref<ElementType>;
+}
+
 // ValueType - тип для значений input
 type ValueType = string | number | string[] | boolean | Date | File | FileList | null | undefined;
 
@@ -499,6 +563,28 @@ export namespace JSX {
 		};
 		pre: IntrinsicHTMLAttributes<"pre">;
 		code: IntrinsicHTMLAttributes<"code">;
+
+		// SVG
+		svg: SVGProps<SVGSVGElement>;
+		g: SVGProps<SVGGElement>;
+		path: SVGProps<SVGPathElement>;
+		circle: SVGProps<SVGCircleElement>;
+		rect: SVGProps<SVGRectElement>;
+		line: SVGProps<SVGLineElement>;
+		polyline: SVGProps<SVGPolylineElement>;
+		polygon: SVGProps<SVGPolygonElement>;
+		ellipse: SVGProps<SVGEllipseElement>;
+		text: SVGProps<SVGTextElement>;
+		tspan: SVGProps<SVGTSpanElement>;
+		defs: SVGProps<SVGDefsElement>;
+		linearGradient: SVGProps<SVGLinearGradientElement>;
+		radialGradient: SVGProps<SVGRadialGradientElement>;
+		stop: SVGProps<SVGStopElement>;
+		clipPath: SVGProps<SVGClipPathElement>;
+		mask: SVGProps<SVGMaskElement>;
+		use: SVGProps<SVGUseElement>;
+		foreignObject: SVGProps<SVGForeignObjectElement>;
+		symbol: SVGProps<SVGSymbolElement>;
 	}
 
 	export interface ElementAttributesProperty {

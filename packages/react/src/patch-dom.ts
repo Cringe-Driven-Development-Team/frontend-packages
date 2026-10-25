@@ -1,5 +1,7 @@
 import type { ElementProps, RuntimeProps } from "./types/props.ts";
 import { FiberTag, type Fiber } from "./types/fiber.ts";
+import type { Tag } from "./types/element.ts";
+import { getSvgAttributeName, SVG_NAMESPACE, XLINK_NAMESPACE } from "./svg.ts";
 import { countProfilerEvent } from "./profiler.ts";
 
 export function createDom(fiber: Fiber): Node {
@@ -10,11 +12,43 @@ export function createDom(fiber: Fiber): Node {
 	const dom =
 		fiber.tag === FiberTag.TEXT
 			? document.createTextNode("")
-			: document.createElement(fiber.type as keyof HTMLElementTagNameMap);
+			: createElement(fiber.type as Tag, isSvgFiber(fiber));
 
 	updateDom(dom, {}, fiber.props);
 
 	return dom;
+}
+
+function createElement(type: Tag, svg: boolean): Element {
+	if (svg) {
+		return document.createElementNS(SVG_NAMESPACE, type);
+	}
+
+	return document.createElement(type);
+}
+
+// `svg` открывает SVG, `foreignObject` возвращает его детей в HTML, портал и корень — HTML.
+function isSvgFiber(fiber: Fiber): boolean {
+	if (fiber.type === "svg") {
+		return true;
+	}
+
+	for (let parent = fiber.parent; parent; parent = parent.parent) {
+		if (parent.tag === FiberTag.ROOT || parent.tag === FiberTag.HOST_PORTAL) {
+			return false;
+		}
+		if (parent.tag !== FiberTag.HOST) {
+			continue;
+		}
+		if (parent.type === "svg") {
+			return true;
+		}
+		if (parent.type === "foreignObject") {
+			return false;
+		}
+	}
+
+	return false;
 }
 
 export function updateDom(dom: Node, prevProps: ElementProps, nextProps: ElementProps): void {
@@ -116,13 +150,18 @@ function setDomProperty(dom: Node, name: string, value: unknown, prevValue?: unk
 		return;
 	}
 
+	if (dom instanceof SVGElement) {
+		setSvgAttribute(dom, name, value);
+		return;
+	}
+
 	if (name in dom) {
 		(dom as unknown as Record<string, unknown>)[name] = value;
 		return;
 	}
 
 	if (dom instanceof Element) {
-		if (value === null || value === undefined || value === false) {
+		if (isRemovedAttributeValue(name, value)) {
 			dom.removeAttribute(name);
 		} else {
 			dom.setAttribute(name, String(value));
@@ -141,6 +180,11 @@ function removeDomProperty(dom: Node, name: string): void {
 		return;
 	}
 
+	if (dom instanceof SVGElement) {
+		removeSvgAttribute(dom, name);
+		return;
+	}
+
 	if (dom instanceof Element) {
 		dom.removeAttribute(name);
 	}
@@ -149,6 +193,34 @@ function removeDomProperty(dom: Node, name: string): void {
 	if (name in dom && typeof domProperties[name] === "boolean") {
 		(dom as unknown as Record<string, boolean>)[name] = false;
 	}
+}
+
+// Для aria-* false — конкретное состояние, поэтому пишется строкой, а не удаляет атрибут.
+function isRemovedAttributeValue(name: string, value: unknown): boolean {
+	return value === null || value === undefined || (value === false && !name.startsWith("aria-"));
+}
+
+function setSvgAttribute(dom: SVGElement, name: string, value: unknown): void {
+	if (isRemovedAttributeValue(name, value)) {
+		removeSvgAttribute(dom, name);
+		return;
+	}
+
+	if (name === "xlinkHref") {
+		dom.setAttributeNS(XLINK_NAMESPACE, "xlink:href", String(value));
+		return;
+	}
+
+	dom.setAttribute(getSvgAttributeName(name), String(value));
+}
+
+function removeSvgAttribute(dom: SVGElement, name: string): void {
+	if (name === "xlinkHref") {
+		dom.removeAttributeNS(XLINK_NAMESPACE, "href");
+		return;
+	}
+
+	dom.removeAttribute(getSvgAttributeName(name));
 }
 
 const OVERLOADED_BOOLEAN_ATTRIBUTES = new Set(["download"]);

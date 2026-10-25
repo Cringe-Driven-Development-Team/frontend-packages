@@ -9,13 +9,13 @@ import type { FunctionComponent, MemoComponent } from "./component.ts";
 import type { ElementProps } from "./props.ts";
 import type { Context } from "./context.ts";
 
-export type Tag = keyof HTMLElementTagNameMap;
+export type Tag = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap;
 
 export type Key = string | number;
 export type PortalContainer = Element | DocumentFragment;
 
 export type ReactElementType =
-	| keyof HTMLElementTagNameMap
+	| Tag
 	| FunctionComponent
 	| MemoComponent
 	| Context<unknown>
