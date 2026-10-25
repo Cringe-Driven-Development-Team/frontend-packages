@@ -1,3 +1,4 @@
+import { assertValidElement } from "./children.ts";
 import type { ReactElement } from "./types/element.ts";
 import type { FiberRoot } from "./types/fiber.ts";
 import { configureWorkLoop, scheduleWork, unscheduleWork } from "./scheduler.ts";
@@ -57,6 +58,7 @@ export function createRoot(container: Element): Root {
 				throw new Error("Root.render was called on an unmounted root.");
 			}
 
+			assertValidElement(element);
 			flushPassiveEffects();
 			staleSnapshotRestarts.delete(fiberRoot);
 			createRenderRoot(fiberRoot, element);

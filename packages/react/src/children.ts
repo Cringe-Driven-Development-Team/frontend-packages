@@ -20,6 +20,12 @@ export function isValidElement<Props extends ElementProps = ElementProps>(
 	);
 }
 
+export function assertValidElement(value: unknown): asserts value is ReactElement {
+	if (!isValidElement(value)) {
+		throw new TypeError("Expected a React element with a valid $$typeof marker.");
+	}
+}
+
 export function toChildren(children: ReactNode[]): ReactElement[] {
 	const normalized = normalizeChildren(children);
 	return normalized.length === 0 ? EMPTY_CHILDREN : normalized;
@@ -32,6 +38,9 @@ export function normalizeChildren(children: ReactNode[]): ReactElement[] {
 		if (Array.isArray(child)) {
 			normalizedChildren.push(...normalizeChildren(child));
 		} else if (isRenderableChild(child)) {
+			if (typeof child === "object") {
+				assertValidElement(child);
+			}
 			normalizedChildren.push(typeof child === "object" ? child : hString(String(child)));
 		}
 	}
@@ -70,6 +79,9 @@ function appendChildren(result: RenderableChild[], child: ReactNode): void {
 	}
 
 	if (child !== null && child !== undefined && typeof child !== "boolean") {
+		if (typeof child === "object") {
+			assertValidElement(child);
+		}
 		result.push(child);
 	}
 }
