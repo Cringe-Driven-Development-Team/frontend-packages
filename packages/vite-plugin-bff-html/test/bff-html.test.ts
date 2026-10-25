@@ -13,10 +13,24 @@ const bff = Bun.serve({
 	fetch(req) {
 		const url = new URL(req.url);
 		seen.push({ url: url.pathname + url.search, headers: req.headers });
+		if (url.pathname === "/private") {
+			const redirect = new Headers({ Location: "/login" });
+			redirect.append("Set-Cookie", "__Host-session=; Path=/; Max-Age=0");
+			redirect.append("Set-Cookie", "flash=login; Path=/");
+			return new Response(null, { status: 302, headers: redirect });
+		}
 		if (url.pathname.startsWith("/api/") || url.pathname === "/data") {
 			return Response.json({ path: url.pathname });
 		}
-		const headers = new Headers({ "Content-Type": "text/html; charset=utf-8", "X-Bff": "1" });
+		const headers = new Headers({
+			"Content-Type": "text/html; charset=utf-8",
+			"X-Bff": "1",
+			"Keep-Alive": "timeout=99",
+			TE: "gzip",
+			Trailer: "X-Checksum",
+			Connection: "keep-alive, X-Hop",
+			"X-Hop": "1",
+		});
 		headers.append("Set-Cookie", "__Host-session=abc; Path=/; Secure; HttpOnly");
 		headers.append("Set-Cookie", "other=1; Path=/");
 		const status = url.pathname === "/missing" ? 404 : 200;
@@ -145,4 +159,36 @@ test("ответ BFF не в HTML отдаётся без transformIndexHtml", a
 	expect(await res.json()).toEqual({ path: "/data" });
 	// запрос шёл через плагин, а не прокси: Authorization в BFF не передан
 	expect(seen.at(-1)?.headers.get("authorization")).toBeNull();
+});
+
+test("заголовки соединения BFF в ответ не переносятся: в HTTP/2 Node на них падает", async () => {
+	const res = await page("/");
+	expect(res.status).toBe(200);
+	expect(res.headers.get("keep-alive") ?? "").not.toContain("timeout=99");
+	expect(res.headers.get("te")).toBeNull();
+	expect(res.headers.get("trailer")).toBeNull();
+	// заголовок, который BFF перечислил в Connection, тоже относится к соединению
+	expect(res.headers.get("x-hop")).toBeNull();
+	expect(res.headers.get("x-bff")).toBe("1");
+});
+
+test("редирект BFF доходит до браузера как есть: статус, Location, оба Set-Cookie", async () => {
+	const before = seen.length;
+	const res = await page("/private", { redirect: "manual" });
+	expect(res.status).toBe(302);
+	expect(res.headers.get("location")).toBe("/login");
+	expect(res.headers.getSetCookie()).toEqual([
+		"__Host-session=; Path=/; Max-Age=0",
+		"flash=login; Path=/",
+	]);
+	expect(await res.text()).not.toContain("/@vite/client");
+	// плагин сам за редиректом не ходил: в BFF ушёл один запрос, /login не запрашивался
+	expect(seen.slice(before).map((r) => r.url)).toEqual(["/private"]);
+});
+
+test("HEAD с редиректом BFF — тот же 302 без тела", async () => {
+	const res = await page("/private", { method: "HEAD", redirect: "manual" });
+	expect(res.status).toBe(302);
+	expect(res.headers.get("location")).toBe("/login");
+	expect(await res.text()).toBe("");
 });

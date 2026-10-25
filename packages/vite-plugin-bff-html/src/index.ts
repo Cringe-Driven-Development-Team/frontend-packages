@@ -6,6 +6,31 @@ const REQUEST_HEADERS = ["accept", "cookie", "sec-fetch-site", "user-agent", "x-
 // длину и сжатие задаёт уже преобразованный HTML, Set-Cookie переносится отдельными заголовками
 const SKIPPED_RESPONSE_HEADERS = ["content-length", "content-encoding", "set-cookie"];
 
+// Заголовки соединения (hop-by-hop, RFC 9110 §7.6.1) относятся к связи с BFF, а не с браузером: в
+// HTTP/2 (Vite по HTTPS без server.proxy) Node на них бросает ERR_HTTP2_INVALID_CONNECTION_HEADERS
+const HOP_BY_HOP_HEADERS = [
+	"connection",
+	"keep-alive",
+	"proxy-connection",
+	"te",
+	"trailer",
+	"transfer-encoding",
+	"upgrade",
+];
+
+/**
+ * Заголовки ответа BFF, которые браузеру не передаются: свои и перечисленные самим BFF в `Connection`.
+ * @param headers заголовки ответа BFF
+ * @returns имена в нижнем регистре
+ */
+function skippedHeaders(headers: Headers): Set<string> {
+	const listed = (headers.get("connection") ?? "")
+		.split(",")
+		.map((name) => name.trim().toLowerCase())
+		.filter(Boolean);
+	return new Set([...SKIPPED_RESPONSE_HEADERS, ...HOP_BY_HOP_HEADERS, ...listed]);
+}
+
 /**
  * Подходит ли адрес под ключ `server.proxy` — по тем же правилам, что у прокси Vite: ключ с `^` —
  * регулярное выражение, остальные — префикс.
@@ -20,7 +45,8 @@ const proxied = (context: string, url: string) =>
  * Плагин dev-сервера Vite: запрос страницы (`GET`/`HEAD` с `Accept: text/html`) уходит в BFF, а его
  * HTML Vite пропускает через `transformIndexHtml` — добавляет клиент HMR и преобразования
  * `index.html` других плагинов. Статус и заголовки ответа BFF сохраняются, каждый `Set-Cookie` —
- * отдельным заголовком. Пути из `server.proxy` плагин не трогает: при прямом открытии API браузер
+ * отдельным заголовком. Редирект BFF (`3xx`) отдаётся браузеру как есть — с `Location` и `Set-Cookie`,
+ * без перехода внутри плагина и без `transformIndexHtml`. Пути из `server.proxy` плагин не трогает: при прямом открытии API браузер
  * тоже шлёт `Accept: text/html`, а ответ должен прийти от прокси без изменений. Ответ BFF не в HTML
  * отдаётся как есть, без `transformIndexHtml`. Остальные запросы обрабатывает Vite.
  * @param target адрес BFF без слеша в конце, например `http://127.0.0.1:3000`
@@ -43,14 +69,19 @@ export function bffHtml(target: string): Plugin {
 						const value = req.headers[name];
 						if (typeof value === "string") headers.set(name, value);
 					}
-					const answer = await fetch(target + url, { headers });
-					const body = await answer.text();
-					const html = answer.headers.get("content-type")?.includes("text/html")
-						? await server.transformIndexHtml(url, body)
-						: body;
+					// редирект BFF (гость на защищённой странице) уходит браузеру как есть: со своими
+					// Location и Set-Cookie, без перехода внутри плагина и без transformIndexHtml
+					const answer = await fetch(target + url, { headers, redirect: "manual" });
+					const redirect = answer.status >= 300 && answer.status < 400;
+					const body = redirect ? "" : await answer.text();
+					const html =
+						!redirect && answer.headers.get("content-type")?.includes("text/html")
+							? await server.transformIndexHtml(url, body)
+							: body;
 					res.statusCode = answer.status;
+					const skipped = skippedHeaders(answer.headers);
 					for (const [name, value] of answer.headers) {
-						if (!SKIPPED_RESPONSE_HEADERS.includes(name)) res.setHeader(name, value);
+						if (!skipped.has(name)) res.setHeader(name, value);
 					}
 					const cookies = answer.headers.getSetCookie();
 					if (cookies.length > 0) res.setHeader("Set-Cookie", cookies);
