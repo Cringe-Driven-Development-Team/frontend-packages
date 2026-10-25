@@ -17,6 +17,7 @@ export {
 	useRef,
 	useState,
 	useSyncExternalStore,
+	useSyncExternalStoreWithSelector,
 } from "./hooks.ts";
 
 export { createContext } from "./context.ts";
