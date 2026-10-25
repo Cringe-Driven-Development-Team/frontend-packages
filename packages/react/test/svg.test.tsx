@@ -256,3 +256,32 @@ describe("svg types", () => {
 		expect([props, attributes, withKey, withRef]).toHaveLength(4);
 	});
 });
+
+describe("svg attribute names", () => {
+	test("атрибуты словаря проходят типы и пишутся в kebab-case", async () => {
+		const { container, root } = await mount(
+			<svg>
+				<path fillRule="evenodd" clipRule="evenodd" d="M0 0" />
+				<linearGradient>
+					<stop stopColor="#fff" stopOpacity={0.5} />
+				</linearGradient>
+			</svg>,
+		);
+		const path = query(container, "path");
+		const stop = query(container, "stop");
+
+		expect(path.getAttribute("clip-rule")).toBe("evenodd");
+		expect(stop.getAttribute("stop-color")).toBe("#fff");
+		expect(stop.getAttribute("stop-opacity")).toBe("0.5");
+		root.unmount();
+	});
+
+	test("tabIndex у svg пишется атрибутом tabindex", async () => {
+		const { container, root } = await mount(<svg tabIndex={0} />);
+		const svg = query(container, "svg");
+
+		expect(svg.getAttribute("tabindex")).toBe("0");
+		expect(svg.hasAttribute("tabIndex")).toBe(false);
+		root.unmount();
+	});
+});

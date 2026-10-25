@@ -1,7 +1,8 @@
 export const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 export const XLINK_NAMESPACE = "http://www.w3.org/1999/xlink";
 
-export const SVG_ATTRIBUTE_NAMES: Record<string, string> = {
+// Источник правды и для рантайма, и для типов SVGAttributes в types/jsx.ts.
+export const SVG_ATTRIBUTE_NAMES = {
 	alignmentBaseline: "alignment-baseline",
 	baselineShift: "baseline-shift",
 	clipPath: "clip-path",
@@ -36,14 +37,15 @@ export const SVG_ATTRIBUTE_NAMES: Record<string, string> = {
 	strokeMiterlimit: "stroke-miterlimit",
 	strokeOpacity: "stroke-opacity",
 	strokeWidth: "stroke-width",
+	tabIndex: "tabindex",
 	textAnchor: "text-anchor",
 	textDecoration: "text-decoration",
 	textRendering: "text-rendering",
 	transformOrigin: "transform-origin",
 	vectorEffect: "vector-effect",
 	wordSpacing: "word-spacing",
-};
+} as const;
 
 export function getSvgAttributeName(name: string): string {
-	return SVG_ATTRIBUTE_NAMES[name] ?? name;
+	return (SVG_ATTRIBUTE_NAMES as Record<string, string>)[name] ?? name;
 }

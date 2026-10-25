@@ -1,5 +1,6 @@
 import type { Key, ReactElement, ReactNode } from "./element.ts";
 import type { Ref } from "./hooks.ts";
+import type { SVG_ATTRIBUTE_NAMES } from "../svg.ts";
 
 export type MouseEvent<T extends globalThis.Element = globalThis.Element> =
 	globalThis.MouseEvent & {
@@ -316,9 +317,14 @@ export type AnchorHTMLAttributes<ElementType extends HTMLAnchorElement = HTMLAnc
 		download?: boolean | string;
 	};
 
+type SVGMappedAttributes = {
+	[Name in keyof typeof SVG_ATTRIBUTE_NAMES]?: string | number;
+};
+
 // SVGAttributes — атрибуты и события элемента, SVGProps добавляет key и ref.
+// Атрибуты с переводом в kebab-case выводятся из SVG_ATTRIBUTE_NAMES, ниже — только уточнения типов.
 export interface SVGAttributes<ElementType extends SVGElement = SVGElement>
-	extends DOMAttributes<ElementType>, AriaAttributes {
+	extends SVGMappedAttributes, DOMAttributes<ElementType>, AriaAttributes {
 	class?: string;
 	className?: string;
 	style?: CSSProperties;
