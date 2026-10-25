@@ -1,3 +1,4 @@
+import { isBlockedHtmlProp, isEventProp } from "./dom-policy.ts";
 import type { ElementProps, RuntimeProps } from "./types/props.ts";
 import { FiberTag, type Fiber } from "./types/fiber.ts";
 import type { Tag } from "./types/element.ts";
@@ -57,7 +58,7 @@ export function updateDom(dom: Node, prevProps: ElementProps, nextProps: Element
 	const next = nextProps as RuntimeProps;
 
 	Object.keys(prev)
-		.filter(isEvent)
+		.filter(isEventProp)
 		.filter((key) => !(key in next) || isNew(prev, next)(key))
 		.forEach((name) => removeEventListener(dom, name, prev[name]));
 
@@ -72,7 +73,7 @@ export function updateDom(dom: Node, prevProps: ElementProps, nextProps: Element
 		.forEach((name) => setDomProperty(dom, name, next[name], prev[name]));
 
 	Object.keys(next)
-		.filter(isEvent)
+		.filter(isEventProp)
 		.filter(isNew(prev, next))
 		.forEach((name) => addEventListener(dom, name, next[name]));
 }
@@ -81,13 +82,12 @@ export function cleanupDom(dom: Node, props: ElementProps): void {
 	const runtimeProps = props as RuntimeProps;
 
 	Object.keys(runtimeProps)
-		.filter(isEvent)
+		.filter(isEventProp)
 		.forEach((name) => removeEventListener(dom, name, runtimeProps[name]));
 }
 
-const isEvent = (key: string): boolean => key.startsWith("on");
 const isProperty = (key: string): boolean =>
-	key !== "children" && key !== "key" && key !== "ref" && !isEvent(key);
+	key !== "children" && key !== "key" && key !== "ref" && !isEventProp(key);
 const isNew =
 	(prev: RuntimeProps, next: RuntimeProps) =>
 	(key: string): boolean =>
@@ -135,6 +135,10 @@ function removeEventListener(dom: Node, name: string, listener: unknown): void {
 }
 
 function setDomProperty(dom: Node, name: string, value: unknown, prevValue?: unknown): void {
+	if (isBlockedHtmlProp(name)) {
+		return;
+	}
+
 	if (name === "style" && dom instanceof Element) {
 		setStyleProperty(dom, value, prevValue);
 		return;
@@ -170,6 +174,10 @@ function setDomProperty(dom: Node, name: string, value: unknown, prevValue?: unk
 }
 
 function removeDomProperty(dom: Node, name: string): void {
+	if (isBlockedHtmlProp(name)) {
+		return;
+	}
+
 	if (name === "style" && dom instanceof Element) {
 		setStyleProperty(dom, null, undefined);
 		return;
