@@ -222,7 +222,7 @@ export function useSyncExternalStore<Snapshot>(
 	useLayoutEffect(() => {
 		// oxlint-disable-next-line react/immutability
 		committed.current = { getSnapshot, snapshot };
-		if (!Object.is(getSnapshot(), snapshot)) {
+		if (didSnapshotChange(committed.current)) {
 			forceUpdate((value) => value + 1);
 		}
 	});
