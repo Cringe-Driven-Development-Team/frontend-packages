@@ -78,6 +78,22 @@ if (container) {
 
 Публичные экспорты собраны в [`src/index.ts`](https://github.com/Cringe-Driven-Development-Team/frontend-packages/blob/main/packages/react/src/index.ts). Проект развивается как учебная реализация; набор поддерживаемых API определяется этим репозиторием.
 
+## Безопасность
+
+Рендерер закрывает четыре пути к XSS через props и элементы:
+
+- **`javascript:`-URL.** В `href`, `src`, `action`, `formAction`, `xlink:href` и `xlinkHref` (имя без учёта регистра) URL с протоколом `javascript:` не записывается ни в property, ни в attribute, а атрибут удаляется. Проверка учитывает регистр протокола, начальные символы с кодами 0–32 и tab/CR/LF внутри протокола. Значение приводится к строке один раз, и записывается именно проверенная строка.
+- **Сырой HTML через props.** `innerHTML`, `outerHTML` и `srcdoc` (без учёта регистра) игнорируются при установке, обновлении и удалении. Запрет `srcDoc` — собственная политика библиотеки. Текстовые children остаются текстом.
+- **Поддельные элементы.** Объект без `$$typeof === Symbol.for("react.element")`, например распарсенный JSON, отклоняется с `TypeError` в `h`, JSX, `createElement`, `Children.toArray`, результате компонента и `root.render()`. Отклонённый `root.render()` не меняет DOM и не отменяет уже запланированный рендер.
+- **Строковые обработчики.** Props с префиксом `on` в любом регистре считаются событиями. Значение, которое не является функцией, не попадает ни в DOM, ни в `addEventListener`.
+
+Ограничения:
+
+- Поведение не обещает полного совпадения с официальным React.
+- Spread произвольного объекта в props не становится безопасным: защищены только перечисленные пути.
+- Это не защита от всех XSS. Проверка `$$typeof` не является песочницей для недоверенного JavaScript.
+- Допустимые ресурсы определяет приложение: URL allowlist, санитайзер HTML и CSS, CSP, Trusted Types и проверка `data:`-URL в библиотеку не входят.
+
 ## Разработка
 
 Пакет живёт в монорепозитории [`frontend-packages`](https://github.com/Cringe-Driven-Development-Team/frontend-packages). Нужен **Bun 1.4.2**; версия указана в [`.bvmrc`](https://github.com/Cringe-Driven-Development-Team/frontend-packages/blob/main/.bvmrc).
