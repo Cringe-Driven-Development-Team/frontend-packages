@@ -161,7 +161,7 @@ function setDomProperty(dom: Node, name: string, value: unknown, prevValue?: unk
 	}
 
 	if (dom instanceof Element) {
-		if (value === null || value === undefined || value === false) {
+		if (isRemovedAttributeValue(name, value)) {
 			dom.removeAttribute(name);
 		} else {
 			dom.setAttribute(name, String(value));
@@ -195,8 +195,13 @@ function removeDomProperty(dom: Node, name: string): void {
 	}
 }
 
+// Для aria-* false — конкретное состояние, поэтому пишется строкой, а не удаляет атрибут.
+function isRemovedAttributeValue(name: string, value: unknown): boolean {
+	return value === null || value === undefined || (value === false && !name.startsWith("aria-"));
+}
+
 function setSvgAttribute(dom: SVGElement, name: string, value: unknown): void {
-	if (value === null || value === undefined || value === false) {
+	if (isRemovedAttributeValue(name, value)) {
 		removeSvgAttribute(dom, name);
 		return;
 	}
