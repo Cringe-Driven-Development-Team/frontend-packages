@@ -316,7 +316,7 @@ export type AnchorHTMLAttributes<ElementType extends HTMLAnchorElement = HTMLAnc
 		download?: boolean | string;
 	};
 
-// Как в React: SVGAttributes — атрибуты и события элемента, SVGProps добавляет key и ref.
+// SVGAttributes — атрибуты и события элемента, SVGProps добавляет key и ref.
 export interface SVGAttributes<ElementType extends SVGElement = SVGElement>
 	extends DOMAttributes<ElementType>, AriaAttributes {
 	class?: string;
