@@ -73,6 +73,7 @@ if (container) {
 | Состояние и эффекты | `useState`, `useEffect`, `useLayoutEffect` |
 | Мемоизация | `memo`, `useMemo`, `useCallback` |
 | Контекст | `createContext`, `useContext` |
+| Внешние сторы | `useSyncExternalStore`, `useSyncExternalStoreWithSelector` |
 | JSX | automatic runtime: `jsx-runtime` и `jsx-dev-runtime` |
 
 Публичные экспорты собраны в [`src/index.ts`](https://github.com/Cringe-Driven-Development-Team/frontend-packages/blob/main/packages/react/src/index.ts). Проект развивается как учебная реализация; набор поддерживаемых API определяется этим репозиторием.
