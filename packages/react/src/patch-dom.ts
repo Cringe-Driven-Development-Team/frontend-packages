@@ -1,7 +1,7 @@
 import type { ElementProps, RuntimeProps } from "./types/props.ts";
 import { FiberTag, type Fiber } from "./types/fiber.ts";
 import type { Tag } from "./types/element.ts";
-import { SVG_NAMESPACE } from "./constants/svg.ts";
+import { getSvgAttributeName, SVG_NAMESPACE, XLINK_NAMESPACE } from "./constants/svg.ts";
 import { countProfilerEvent } from "./profiler.ts";
 
 export function createDom(fiber: Fiber): Node {
@@ -146,6 +146,11 @@ function setDomProperty(dom: Node, name: string, value: unknown, prevValue?: unk
 		return;
 	}
 
+	if (dom instanceof SVGElement) {
+		setSvgAttribute(dom, name, value);
+		return;
+	}
+
 	if (name in dom) {
 		(dom as unknown as Record<string, unknown>)[name] = value;
 		return;
@@ -171,6 +176,11 @@ function removeDomProperty(dom: Node, name: string): void {
 		return;
 	}
 
+	if (dom instanceof SVGElement) {
+		removeSvgAttribute(dom, name);
+		return;
+	}
+
 	if (dom instanceof Element) {
 		dom.removeAttribute(name);
 	}
@@ -179,6 +189,30 @@ function removeDomProperty(dom: Node, name: string): void {
 	if (name in dom && typeof domProperties[name] === "boolean") {
 		(dom as unknown as Record<string, boolean>)[name] = false;
 	}
+}
+
+// У SVGElement свойства вроде viewBox и d только для чтения, поэтому всё пишется атрибутами.
+function setSvgAttribute(dom: SVGElement, name: string, value: unknown): void {
+	if (value === null || value === undefined || value === false) {
+		removeSvgAttribute(dom, name);
+		return;
+	}
+
+	if (name === "xlinkHref") {
+		dom.setAttributeNS(XLINK_NAMESPACE, "xlink:href", String(value));
+		return;
+	}
+
+	dom.setAttribute(getSvgAttributeName(name), String(value));
+}
+
+function removeSvgAttribute(dom: SVGElement, name: string): void {
+	if (name === "xlinkHref") {
+		dom.removeAttributeNS(XLINK_NAMESPACE, "href");
+		return;
+	}
+
+	dom.removeAttribute(getSvgAttributeName(name));
 }
 
 const OVERLOADED_BOOLEAN_ATTRIBUTES = new Set(["download"]);

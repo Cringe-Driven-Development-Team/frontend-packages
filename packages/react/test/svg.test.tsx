@@ -145,3 +145,100 @@ describe("svg namespace", () => {
 		root.unmount();
 	});
 });
+
+const XLINK = "http://www.w3.org/1999/xlink";
+
+describe("svg attributes", () => {
+	test("camelCase переводится в kebab-case, viewBox как есть", async () => {
+		const { container, root } = await mount(
+			<svg viewBox="0 0 24 24" width="24">
+				<path strokeWidth="2" strokeLinecap="round" fillRule="evenodd" d="M0 0" />
+			</svg>,
+		);
+		const svg = query(container, "svg");
+		const path = query(container, "path");
+
+		expect(svg.getAttribute("viewBox")).toBe("0 0 24 24");
+		expect(svg.getAttribute("width")).toBe("24");
+		expect(path.getAttribute("stroke-width")).toBe("2");
+		expect(path.getAttribute("stroke-linecap")).toBe("round");
+		expect(path.getAttribute("fill-rule")).toBe("evenodd");
+		expect(path.getAttribute("d")).toBe("M0 0");
+		expect(path.hasAttribute("strokeWidth")).toBe(false);
+		root.unmount();
+	});
+
+	test("className у svg становится атрибутом class", async () => {
+		const { container, root } = await mount(<svg className="icon" />);
+
+		expect(query(container, "svg").getAttribute("class")).toBe("icon");
+		root.unmount();
+	});
+
+	test("xlinkHref пишется в пространстве имён xlink", async () => {
+		const { container, root } = await mount(
+			<svg>
+				<use xlinkHref="#a" />
+			</svg>,
+		);
+		const use = query(container, "use");
+
+		expect(use.getAttributeNS(XLINK, "href")).toBe("#a");
+		expect(use.getAttribute("xlink:href")).toBe("#a");
+		root.unmount();
+	});
+
+	test("перерендер обновляет и удаляет атрибуты", async () => {
+		const { container, root, rerender } = await mount(
+			<svg className="icon">
+				<path strokeWidth="2" d="M0 0" />
+				<use xlinkHref="#a" />
+			</svg>,
+		);
+
+		await rerender(
+			<svg>
+				<path strokeWidth="3" />
+				<use />
+			</svg>,
+		);
+		const path = query(container, "path");
+
+		expect(path.getAttribute("stroke-width")).toBe("3");
+		expect(path.hasAttribute("d")).toBe(false);
+		expect(query(container, "use").hasAttributeNS(XLINK, "href")).toBe(false);
+		expect(query(container, "svg").hasAttribute("class")).toBe(false);
+		root.unmount();
+	});
+
+	test("события и style на SVG работают", async () => {
+		let clicks = 0;
+		const { container, root } = await mount(
+			<svg>
+				<circle onClick={() => (clicks += 1)} style={{ opacity: 0.5 }} />
+			</svg>,
+		);
+		const circle = query(container, "circle") as SVGCircleElement;
+
+		circle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+		expect(clicks).toBe(1);
+		expect(circle.style.opacity).toBe("0.5");
+		root.unmount();
+	});
+
+	test("HTML внутри foreignObject получает свойства как раньше", async () => {
+		const { container, root } = await mount(
+			<svg>
+				<foreignObject>
+					<input value="x" className="f" />
+				</foreignObject>
+			</svg>,
+		);
+		const input = query(container, "input") as HTMLInputElement;
+
+		expect(input.value).toBe("x");
+		expect(input.getAttribute("class")).toBe("f");
+		root.unmount();
+	});
+});
