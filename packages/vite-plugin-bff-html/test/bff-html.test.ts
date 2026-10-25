@@ -13,6 +13,12 @@ const bff = Bun.serve({
 	fetch(req) {
 		const url = new URL(req.url);
 		seen.push({ url: url.pathname + url.search, headers: req.headers });
+		if (url.pathname === "/private") {
+			const redirect = new Headers({ Location: "/login" });
+			redirect.append("Set-Cookie", "__Host-session=; Path=/; Max-Age=0");
+			redirect.append("Set-Cookie", "flash=login; Path=/");
+			return new Response(null, { status: 302, headers: redirect });
+		}
 		if (url.pathname.startsWith("/api/") || url.pathname === "/data") {
 			return Response.json({ path: url.pathname });
 		}
@@ -155,4 +161,25 @@ test("заголовки соединения BFF в ответ не перен�
 	const res = await page("/");
 	expect(res.status).toBe(200);
 	expect(res.headers.get("keep-alive") ?? "").not.toContain("timeout=99");
+});
+
+test("редирект BFF доходит до браузера как есть: статус, Location, оба Set-Cookie", async () => {
+	const before = seen.length;
+	const res = await page("/private", { redirect: "manual" });
+	expect(res.status).toBe(302);
+	expect(res.headers.get("location")).toBe("/login");
+	expect(res.headers.getSetCookie()).toEqual([
+		"__Host-session=; Path=/; Max-Age=0",
+		"flash=login; Path=/",
+	]);
+	expect(await res.text()).not.toContain("/@vite/client");
+	// плагин сам за редиректом не ходил: в BFF ушёл один запрос, /login не запрашивался
+	expect(seen.slice(before).map((r) => r.url)).toEqual(["/private"]);
+});
+
+test("HEAD с редиректом BFF — тот же 302 без тела", async () => {
+	const res = await page("/private", { method: "HEAD", redirect: "manual" });
+	expect(res.status).toBe(302);
+	expect(res.headers.get("location")).toBe("/login");
+	expect(await res.text()).toBe("");
 });

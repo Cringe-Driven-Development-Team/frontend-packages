@@ -37,9 +37,11 @@ API BFF плагин не проксирует: его пути задаются
 
 1. уходит в BFF по тому же пути и query, с заголовками `Accept`, `Cookie`, `Sec-Fetch-Site`,
    `User-Agent` и `X-Request-Id`; остальные заголовки браузера в BFF не передаются;
-2. HTML ответа проходит через `server.transformIndexHtml`; ответ не в HTML (`Content-Type` без
+2. редирект BFF (`3xx`, например гостя на `/login`) плагин не открывает сам (`redirect: 'manual'`):
+   браузер получает исходные статус, `Location` и `Set-Cookie`, без тела и без `transformIndexHtml`;
+3. HTML ответа проходит через `server.transformIndexHtml`; ответ не в HTML (`Content-Type` без
    `text/html`) отдаётся как есть;
-3. браузер получает статус и заголовки BFF, кроме `Content-Length` и `Content-Encoding` (их задаёт
+4. браузер получает статус и заголовки BFF, кроме `Content-Length` и `Content-Encoding` (их задаёт
    преобразованный HTML) и заголовков соединения (`Connection`, `Keep-Alive`, `Transfer-Encoding` и
    других: в HTTP/2 они запрещены), а каждый `Set-Cookie` — отдельным заголовком; на `HEAD` — без тела.
 
