@@ -1,4 +1,8 @@
-import { createRoot, useSyncExternalStore } from "../../src/index.ts";
+import {
+	createRoot,
+	useSyncExternalStore,
+	useSyncExternalStoreWithSelector,
+} from "../../src/index.ts";
 
 const container = document.createElement("div");
 document.body.appendChild(container);
@@ -18,8 +22,18 @@ const getSnapshot = (): string => {
 	throw new Error("first render read");
 };
 
+const selectThrowing = (): string => {
+	reads += 1;
+	throw new Error("first render read");
+};
+
 function Reader() {
 	const value = useSyncExternalStore(subscribe, getSnapshot);
+	return <span>{value}</span>;
+}
+
+function SelectorReader() {
+	const value = useSyncExternalStoreWithSelector(subscribe, () => "snapshot", selectThrowing);
 	return <span>{value}</span>;
 }
 
@@ -27,7 +41,7 @@ process.on("uncaughtException", (error) => {
 	caught ??= error;
 });
 
-root.render(<Reader />);
+root.render(process.argv[2] === "selector" ? <SelectorReader /> : <Reader />);
 const deadline = performance.now() + 2000;
 while (caught === null && performance.now() < deadline) {
 	await new Promise((resolve) => setTimeout(resolve, 5));

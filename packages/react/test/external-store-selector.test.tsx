@@ -789,4 +789,65 @@ describe("useSyncExternalStoreWithSelector: гонки и жизненный ц�
 			error.restore();
 		}
 	});
+
+	test("бросающий селектор при перепроверке после layout-мутации планирует обновление", async () => {
+		const store = createListStore();
+		const events: string[] = [];
+		function RemoveInLayout() {
+			useLayoutEffect(() => {
+				events.push(`layout:${store.listenerCount}`);
+				store.setState(remaining, false);
+			}, []);
+			return null;
+		}
+		function Item(props: { id: string }) {
+			const item = useSyncExternalStoreWithSelector(store.subscribe, store.getState, (snapshot) => {
+				const value = snapshot.items[props.id];
+				if (value === undefined) throw new Error(`missing ${props.id}`);
+				return value;
+			});
+			events.push(`render:${item}`);
+			return (
+				<li>
+					{item}
+					{props.id === "two" ? <RemoveInLayout /> : null}
+				</li>
+			);
+		}
+		function List() {
+			const snapshot = useSyncExternalStore(store.subscribe, store.getState);
+			return (
+				<ul>
+					{snapshot.ids.map((id) => (
+						<Item key={id} id={id} />
+					))}
+				</ul>
+			);
+		}
+		const error = captureThrow();
+		const { container, root } = mount(<List />);
+		try {
+			await waitFor(() => container.innerHTML === "<ul><li>one</li></ul>" || error.get() !== null);
+			expect(events.slice(0, 3)).toEqual(["render:one", "render:two", "layout:1"]);
+			expect(error.get()).toBeNull();
+			expect(container.innerHTML).toBe("<ul><li>one</li></ul>");
+			expect(store.listenerCount).toBe(2);
+			root.unmount();
+			expect(container.innerHTML).toBe("");
+			expect(store.listenerCount).toBe(0);
+		} finally {
+			root.unmount();
+			error.restore();
+		}
+	});
+
+	test("ошибка селектора при первом чтении в render доходит до вызывающего кода", async () => {
+		expect(await runFirstReadProbe("selector")).toEqual({
+			error: "first render read",
+			html: "",
+			subscriptions: 0,
+			reads: 1,
+			subscriptionsAfterUnmount: 0,
+		});
+	});
 });
