@@ -2,7 +2,6 @@ export function isEventProp(name: string): boolean {
 	return name.slice(0, 2).toLowerCase() === "on";
 }
 
-// protocol у ссылки меняет схему уже записанного href и превращает безопасный URL в javascript:.
 export function isBlockedHtmlProp(name: string): boolean {
 	const normalizedName = name.toLowerCase();
 	return (

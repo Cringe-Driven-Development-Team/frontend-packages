@@ -145,7 +145,6 @@ function setDomProperty(dom: Node, name: string, value: unknown, prevValue?: unk
 			return;
 		}
 
-		// Строка получается один раз: проверяется и записывается одно и то же значение.
 		const url = String(value);
 		if (isUnsafeJavaScriptUrl(url)) {
 			removeDomProperty(dom, name);
@@ -189,10 +188,6 @@ function setDomProperty(dom: Node, name: string, value: unknown, prevValue?: unk
 }
 
 function removeDomProperty(dom: Node, name: string): void {
-	if (isBlockedHtmlProp(name)) {
-		return;
-	}
-
 	if (name === "style" && dom instanceof Element) {
 		setStyleProperty(dom, null, undefined);
 		return;
