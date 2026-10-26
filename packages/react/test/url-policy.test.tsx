@@ -167,6 +167,23 @@ describe("javascript:-URL", () => {
 		root.unmount();
 	});
 
+	test("protocol не превращает безопасный href в javascript:", async () => {
+		for (const props of [
+			{ href: "x:alert(1)", protocol: "javascript:" },
+			{ protocol: "javascript:", href: "x:alert(1)" },
+			{ href: "x:alert(1)", PROTOCOL: "javascript:" },
+		]) {
+			const writes = record();
+			const { container, root } = await mount(<a {...(props as Record<string, unknown>)} />);
+
+			expect(query(container, "a").getAttribute("href")).toBe("x:alert(1)");
+			expect(writes.filter((write) => write.name.toLowerCase() === "protocol")).toEqual([]);
+			root.unmount();
+			recorder?.restore();
+			recorder = null;
+		}
+	});
+
 	for (const value of ["https://x.test/", "mailto:a@b.test", "/rel", "rel/path", "#frag"]) {
 		test(`безопасный URL записывается: ${value}`, async () => {
 			const { container, root } = await mount(<a href={value} />);
