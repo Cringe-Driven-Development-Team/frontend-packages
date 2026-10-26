@@ -1,19 +1,19 @@
 {
 	"profile": {
 		"name": "mallory",
-		"website": "javascript:dispatchEvent(new CustomEvent('xss',{detail:'profile'}))"
+		"website": "javascript:window.dispatchEvent(new CustomEvent('xss',{detail:'profile'}))"
 	},
 	"widget": {
 		"title": "Виджет погоды",
 		"props": {
 			"class": "feed-widget",
-			"innerHTML": "<img src=\"x\" onerror=\"dispatchEvent(new CustomEvent('xss',{detail:'widget'}))\">"
+			"innerHTML": "<img src=\"x\" onerror=\"window.dispatchEvent(new CustomEvent('xss',{detail:'widget'}))\">"
 		}
 	},
 	"banner": {
 		"src": "x",
 		"alt": "Баннер",
-		"ONERROR": "dispatchEvent(new CustomEvent('xss',{detail:'banner'}))"
+		"ONERROR": "window.dispatchEvent(new CustomEvent('xss',{detail:'banner'}))"
 	},
 	"message": {
 		"type": "img",
@@ -21,12 +21,12 @@
 		"props": {
 			"src": "x",
 			"alt": "Вложение",
-			"ONERROR": "dispatchEvent(new CustomEvent('xss',{detail:'message'}))",
+			"ONERROR": "window.dispatchEvent(new CustomEvent('xss',{detail:'message'}))",
 			"children": []
 		}
 	},
 	"promo": {
-		"href": "x:dispatchEvent(new CustomEvent('xss',{detail:'promo'}))",
+		"href": "x:window.dispatchEvent(new CustomEvent('xss',{detail:'promo'}))",
 		"protocol": "javascript:"
 	}
 }
