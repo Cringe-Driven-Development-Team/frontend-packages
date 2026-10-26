@@ -437,3 +437,18 @@ h1 {
 
 .external-store-demo { padding: 1rem; border: 1px solid #718096; border-radius: .5rem; margin-block: 1rem; }
 .external-store-demo button { margin-right: .5rem; }
+
+.xss-probes { padding: 1rem; border: 1px solid #718096; border-radius: .5rem; margin-block: 1rem; }
+.xss-build { padding: .5rem .75rem; border-radius: .375rem; font-weight: 600; }
+.xss-build-safe { background: #dcfce7; color: #166534; }
+.xss-build-unsafe { background: #fee2e2; color: #991b1b; }
+.xss-response { display: grid; gap: .25rem; font-size: .9rem; }
+.xss-response textarea { font-family: ui-monospace, monospace; font-size: .8rem; }
+.xss-actions { display: flex; gap: .5rem; margin-block: .75rem; }
+.xss-rejected { color: #166534; font-size: .85rem; }
+.xss-log { margin-top: .75rem; padding: .5rem .75rem; border-radius: .375rem; background: #dcfce7; color: #166534; }
+.xss-log-hit { background: #dc2626; color: #ffffff; }
+.feed { display: grid; gap: .5rem; }
+.feed-card { padding: .5rem .75rem; border: 1px solid #d8dee9; border-radius: .375rem; }
+.feed-card h3 { margin: 0 0 .25rem; font-size: 1rem; }
+.feed-card img { width: 1px; height: 1px; }
