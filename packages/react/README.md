@@ -80,7 +80,7 @@ if (container) {
 
 ## Разработка
 
-Пакет живёт в монорепозитории [`frontend-packages`](https://github.com/Cringe-Driven-Development-Team/frontend-packages). Нужен **Bun 1.4.2**; версия указана в [`.bvmrc`](https://github.com/Cringe-Driven-Development-Team/frontend-packages/blob/main/.bvmrc).
+Пакет живёт в монорепозитории [`frontend-packages`](https://github.com/Cringe-Driven-Development-Team/frontend-packages). Нужен **Bun 1.4.4**; версия указана в [`.bvmrc`](https://github.com/Cringe-Driven-Development-Team/frontend-packages/blob/main/.bvmrc).
 
 ```sh
 git clone https://github.com/Cringe-Driven-Development-Team/frontend-packages.git
