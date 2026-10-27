@@ -290,6 +290,15 @@ describe("навигация", () => {
 		expect(history.location.pathname).toBe("/app");
 	});
 
+	test("адрес вне basepath не сопоставляется с маршрутами и сохраняет свой href", async () => {
+		const { router } = setup("/login?x=1", { basepath: "/app" });
+		await router.load();
+
+		expect(routeIds(router)).toEqual(["__root__"]);
+		expect(router.state.matches[0]?.globalNotFound).toBe(true);
+		expect(router.state.location.href).toBe("/login?x=1");
+	});
+
 	test("subscribe сообщает об изменениях состояния до отписки", async () => {
 		const { router } = setup("/");
 		let calls = 0;

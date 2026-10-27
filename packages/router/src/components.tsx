@@ -157,7 +157,9 @@ export const Link = <TTo extends NavigateTo = ".">(props: LinkProps<TTo>) => {
 		}
 
 		// Клики с модификаторами и ссылки в новую вкладку оставляем браузеру
-		const opensElsewhere = anchorProps.target !== undefined && anchorProps.target !== "_self";
+		// target мог прийти из activeProps или inactiveProps: проверяем тот, что попал в <a>
+		const linkTarget = "target" in stateProps ? stateProps.target : anchorProps.target;
+		const opensElsewhere = linkTarget !== undefined && linkTarget !== "_self";
 		const hasModifier = event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
 		if (event.defaultPrevented || event.button !== 0 || hasModifier || opensElsewhere) return;
 

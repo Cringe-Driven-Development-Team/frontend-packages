@@ -517,13 +517,18 @@ export class Router<TRouteTree extends AnyRoute = AnyRoute> {
 		leaf: LeafMatch;
 	} {
 		const hasBasepath = pathname === this.basepath || pathname.startsWith(`${this.basepath}/`);
-		const leaf = this.matchLeaf(hasBasepath ? pathname.slice(this.basepath.length) : pathname);
+		// Адрес вне basepath не принадлежит приложению: ни один маршрут ему не подходит
+		const leaf = hasBasepath
+			? this.matchLeaf(pathname.slice(this.basepath.length))
+			: { route: undefined, params: {}, pathname: normalizePath(pathname) };
 		const location = this.createLocation(
 			leaf.pathname,
 			parseSearch(search),
 			hash.replace(/^#/, ""),
 			state,
 		);
+		// href собран с basepath, а такого адреса нет: оставляем настоящий
+		if (!hasBasepath) location.href = location.href.slice(this.basepath.length);
 
 		return { location, leaf };
 	}

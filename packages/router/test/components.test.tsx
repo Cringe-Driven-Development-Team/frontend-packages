@@ -225,6 +225,31 @@ describe("Link", () => {
 		expect(history.location.pathname).toBe("/");
 	});
 
+	test("target из activeProps и inactiveProps тоже оставляет клик браузеру", async () => {
+		const { router, history } = withLinks(() => (
+			<div>
+				<Link to="/" target="_self" activeProps={{ target: "_blank" }}>
+					Активная
+				</Link>
+				<Link
+					to="/notebooks/$notebookId"
+					params={{ notebookId: 1 }}
+					inactiveProps={{ target: "_blank" }}
+				>
+					Неактивная
+				</Link>
+			</div>
+		));
+		const { container } = await render(<RouterProvider router={router} />);
+		const [active, inactive] = container.querySelectorAll("a");
+
+		expect(active!.getAttribute("target")).toBe("_blank");
+		expect(click(active!).defaultPrevented).toBe(false);
+		expect(click(inactive!).defaultPrevented).toBe(false);
+		await flush();
+		expect(history.location.pathname).toBe("/");
+	});
+
 	test("disabled-ссылка не переходит и не получает href", async () => {
 		const { router, history } = withLinks(() => (
 			<Link to="/notebooks/$notebookId" params={{ notebookId: 1 }} disabled>
