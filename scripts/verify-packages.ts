@@ -1,4 +1,4 @@
-import { cp, mkdir, mkdtemp, readFile, readdir, rm, stat } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, relative, resolve } from "node:path";
 
@@ -16,10 +16,14 @@ export type PackageName =
 	| "zustand"
 	| "openapi"
 	| "oxlint-plugin-jsdoc"
-	| "vite-plugin-bff-html";
+	| "vite-plugin-bff-html"
+	| "clsx"
+	| "router";
 export const packageNames: PackageName[] = [
 	"react",
 	"zustand",
+	"clsx",
+	"router",
 	"openapi",
 	"oxlint-plugin-jsdoc",
 	"vite-plugin-bff-html",
@@ -132,12 +136,16 @@ async function inspectArchive(
 		}
 	}
 
-	if (name === "zustand") {
+	const external: Partial<Record<PackageName, string[]>> = {
+		zustand: ["@cdd-team/react"],
+		router: ["@cdd-team/react", "@cdd-team/clsx"],
+	};
+	if (external[name]) {
 		const entry = await readFile(join(root, "dist/index.mjs"), "utf8");
-		if (!entry.includes('"@cdd-team/react"')) {
-			violations.push(
-				"zustand: dist/index.mjs не импортирует @cdd-team/react (React мог быть вшит)",
-			);
+		for (const dep of external[name]) {
+			if (!entry.includes(`"${dep}"`)) {
+				violations.push(`${name}: dist/index.mjs не импортирует ${dep} (он мог быть вшит)`);
+			}
 		}
 	}
 
@@ -151,9 +159,20 @@ async function scenario(
 	workDir: string,
 	checks: string[][],
 	expectedVersions: Record<string, string>,
+	pinned: Record<string, string> = {},
 ): Promise<void> {
 	const dir = join(workDir, `scenario-${name}`);
 	await cp(join(import.meta.dir, "fixtures", fixture), dir, { recursive: true });
+	if (Object.keys(pinned).length > 0) {
+		// Обычную зависимость пакета (clsx у Router) Bun ищет в registry, даже если её архив
+		// передан в той же команде. overrides закрепляет её за локальным архивом.
+		const manifestPath = join(dir, "package.json");
+		const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as Manifest;
+		manifest.overrides = Object.fromEntries(
+			Object.entries(pinned).map(([dep, archive]) => [dep, `file:${archive}`]),
+		);
+		await writeFile(manifestPath, `${JSON.stringify(manifest, null, "\t")}\n`);
+	}
 	for (const file of await readdir(dir)) {
 		if (file.endsWith(".check.ts") || file.endsWith(".check.tsx")) {
 			await cp(join(dir, file), join(dir, file.replace(".check.", ".test.")));
@@ -195,6 +214,8 @@ export async function verify(): Promise<void> {
 		const versions = {
 			react: await localVersion(root, "react"),
 			zustand: await localVersion(root, "zustand"),
+			clsx: await localVersion(root, "clsx"),
+			router: await localVersion(root, "router"),
 		};
 		await scenario(
 			"consumer",
@@ -206,7 +227,21 @@ export async function verify(): Promise<void> {
 				["bun", "build", "main.tsx", "--outdir", "out", "--target", "browser"],
 				["bun", "test", "--preload", "./setup-dom.ts"],
 			],
-			versions,
+			{ react: versions.react, zustand: versions.zustand },
+		);
+
+		await scenario(
+			"router",
+			"router",
+			[archives.react, archives.clsx, archives.router],
+			workDir,
+			[
+				["bun", "x", "tsc", "--noEmit"],
+				["bun", "build", "main.tsx", "--outdir", "out", "--target", "browser"],
+				["bun", "test", "--preload", "./setup-dom.ts"],
+			],
+			{ react: versions.react, clsx: versions.clsx, router: versions.router },
+			{ "@cdd-team/clsx": archives.clsx },
 		);
 
 		await scenario(
@@ -226,7 +261,7 @@ export async function verify(): Promise<void> {
 		}
 
 		console.log(
-			"OK: архивы react, zustand, openapi, oxlint-plugin-jsdoc, vite-plugin-bff-html и сценарии consumer/vanilla прошли проверку",
+			"OK: архивы react, zustand, clsx, router, openapi, oxlint-plugin-jsdoc, vite-plugin-bff-html и сценарии consumer/vanilla/router прошли проверку",
 		);
 	} finally {
 		await rm(workDir, { recursive: true, force: true });

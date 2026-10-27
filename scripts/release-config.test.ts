@@ -14,6 +14,8 @@ const expected = {
 	"packages/openapi": { component: "openapi" },
 	"packages/oxlint-plugin-jsdoc": { component: "oxlint-plugin-jsdoc" },
 	"packages/vite-plugin-bff-html": { component: "vite-plugin-bff-html" },
+	"packages/clsx": { component: "clsx" },
+	"packages/router": { component: "router" },
 };
 
 describe("release-please manifest", () => {
@@ -73,5 +75,24 @@ describe("диапазон React в Zustand", () => {
 		expect(peer).toMatch(/^\^\d+\.\d+\.\d+$/);
 		expect(dev).toBe(peer);
 		expect(zustand.peerDependenciesMeta["@cdd-team/react"]).toEqual({ optional: true });
+	});
+});
+
+describe("зависимости Router", () => {
+	test("React — обязательный peer с тем же caret-диапазоном в dev", () => {
+		const router = readJson("packages/router/package.json");
+		const peer = router.peerDependencies["@cdd-team/react"];
+
+		expect(peer).toMatch(/^\^\d+\.\d+\.\d+$/);
+		expect(router.devDependencies["@cdd-team/react"]).toBe(peer);
+		expect(router.peerDependenciesMeta?.["@cdd-team/react"]).toBeUndefined();
+		expect(router.dependencies?.["@cdd-team/react"]).toBeUndefined();
+	});
+
+	test("clsx — обычная зависимость с caret-диапазоном на текущую версию", () => {
+		const router = readJson("packages/router/package.json");
+		const clsx = readJson("packages/clsx/package.json");
+
+		expect(router.dependencies["@cdd-team/clsx"]).toBe(`^${clsx.version}`);
 	});
 });

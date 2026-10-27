@@ -111,6 +111,26 @@ Optional peer и экспорт `./vanilla` в Zustand должны сохран
 6. Trusted Publisher для пакета на npmjs.com (Settings → Trusted Publisher → GitHub Actions): Organization `Cringe-Driven-Development-Team`, Repository `frontend-packages`, Workflow filename `release.yml`, Environment пустой, **Allow npm publish**. Статус будет Pending validation до первого успешного выпуска из workflow (в пределах 48 часов).
 7. Для подтверждения Trusted Publisher нужен небольшой `fix:` в `packages/oxlint-plugin-jsdoc` после bootstrap: release PR выпустит `0.1.2` по OIDC. Затем переводится потребитель (`frontend`) на `@cdd-team/oxlint-plugin-jsdoc`.
 
+### `@cdd-team/clsx` и `@cdd-team/router`
+
+Пакеты выпускаются вместе, стартовая версия обоих — `0.1.0`. Router зависит от clsx (`dependencies`) и от React
+(peer), поэтому clsx публикуется **раньше** Router:
+
+```sh
+cd packages/clsx   && npm publish --access public
+cd ../router       && npm publish --access public
+npm view @cdd-team/clsx version     # 0.1.0
+npm view @cdd-team/router version   # 0.1.0
+```
+
+Дальше — шаги 4–6 выше для каждого пакета: теги `clsx-v0.1.0` и `router-v0.1.0` на том же коммите, Trusted Publisher
+для обоих имён. Проверка из registry: в пустом каталоге вне монорепозитория `bun add @cdd-team/router @cdd-team/react`,
+затем импорт `Link`, `createRouter` и `clsx` из публичных имён и `tsc --noEmit`.
+
+Одного `fix:` в `packages/clsx` достаточно, чтобы подтвердить Trusted Publisher у обоих пакетов: `node-workspace`
+поднимет диапазон `@cdd-team/clsx` в Router, и release PR выпустит `clsx` и `router` `0.1.1` по OIDC. После этого
+клиент `frontend` переводится на опубликованные пакеты.
+
 ## 7. Уведомления о выпуске
 
 После каждого выпуска (`releases_created == 'true'`) job `notify` workflow Release отправляет **одну** итоговую карточку в тред **Frontend / Releases** командного Telegram-чата. Release PR и запуск без релизов карточки не дают. Сбой самого шага release-please карточку тоже не даёт: неизвестно, какие пакеты выпускались.
