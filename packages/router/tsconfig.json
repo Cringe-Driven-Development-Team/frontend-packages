@@ -1,0 +1,9 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"jsxImportSource": "@cdd-team/react"
+	},
+	"include": ["src", "test", "tsdown.config.ts"],
+	"exclude": ["test/register"]
+}

@@ -5,7 +5,9 @@
     "": {
       "name": "frontend-packages",
       "devDependencies": {
+        "@cdd-team/clsx": "workspace:*",
         "@cdd-team/react": "workspace:*",
+        "@cdd-team/router": "workspace:*",
         "@cdd-team/zustand": "workspace:*",
         "@happy-dom/global-registrator": "^20.14.5",
         "@types/bun": "1.4.2",
@@ -14,6 +16,10 @@
         "tsdown": "0.23.0",
         "typescript": "7.0.2",
       },
+    },
+    "packages/clsx": {
+      "name": "@cdd-team/clsx",
+      "version": "0.1.0",
     },
     "packages/openapi": {
       "name": "@cdd-team/openapi",
@@ -35,11 +41,25 @@
     },
     "packages/react": {
       "name": "@cdd-team/react",
-      "version": "1.5.0",
+      "version": "1.7.0",
+    },
+    "packages/router": {
+      "name": "@cdd-team/router",
+      "version": "0.1.0",
+      "dependencies": {
+        "@cdd-team/clsx": "^0.1.0",
+      },
+      "devDependencies": {
+        "@cdd-team/react": "^1.7.0",
+        "@happy-dom/global-registrator": "^20.14.5",
+      },
+      "peerDependencies": {
+        "@cdd-team/react": "^1.7.0",
+      },
     },
     "packages/vite-plugin-bff-html": {
       "name": "@cdd-team/vite-plugin-bff-html",
-      "version": "0.1.0",
+      "version": "0.2.1",
       "devDependencies": {
         "@types/node": "24.10.1",
         "vite": "^8.3.5",
@@ -50,13 +70,13 @@
     },
     "packages/zustand": {
       "name": "@cdd-team/zustand",
-      "version": "1.0.4",
+      "version": "1.0.6",
       "devDependencies": {
-        "@cdd-team/react": "^1.5.0",
+        "@cdd-team/react": "^1.7.0",
         "@happy-dom/global-registrator": "^20.14.5",
       },
       "peerDependencies": {
-        "@cdd-team/react": "^1.5.0",
+        "@cdd-team/react": "^1.7.0",
       },
       "optionalPeers": [
         "@cdd-team/react",
@@ -64,11 +84,15 @@
     },
   },
   "packages": {
+    "@cdd-team/clsx": ["@cdd-team/clsx@workspace:packages/clsx"],
+
     "@cdd-team/openapi": ["@cdd-team/openapi@workspace:packages/openapi"],
 
     "@cdd-team/oxlint-plugin-jsdoc": ["@cdd-team/oxlint-plugin-jsdoc@workspace:packages/oxlint-plugin-jsdoc"],
 
     "@cdd-team/react": ["@cdd-team/react@workspace:packages/react"],
+
+    "@cdd-team/router": ["@cdd-team/router@workspace:packages/router"],
 
     "@cdd-team/vite-plugin-bff-html": ["@cdd-team/vite-plugin-bff-html@workspace:packages/vite-plugin-bff-html"],
 
