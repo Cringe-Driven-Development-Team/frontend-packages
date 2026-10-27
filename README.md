@@ -32,7 +32,7 @@ docs/release-runbook.md
 
 ## Разработка
 
-Нужен Bun 1.4.2 (`.bvmrc`).
+Нужен Bun 1.4.4 (`.bvmrc`).
 
 ```sh
 bun install
