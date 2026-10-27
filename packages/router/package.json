@@ -1,6 +1,6 @@
 {
 	"name": "@cdd-team/router",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Роутер для @cdd-team/react с API по образцу TanStack Router",
 	"license": "MIT",
 	"repository": {
@@ -37,7 +37,7 @@
 		"build": "tsdown"
 	},
 	"dependencies": {
-		"@cdd-team/clsx": "^0.1.0"
+		"@cdd-team/clsx": "^0.2.0"
 	},
 	"peerDependencies": {
 		"@cdd-team/react": "^1.7.0"
