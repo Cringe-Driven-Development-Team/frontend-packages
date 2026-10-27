@@ -1,8 +1,9 @@
 import { resolve } from "node:path";
 import type { ErrorKind, PackageResult } from "./release-report.ts";
 
-// Пакеты, которые должны публиковаться раньше остальных: Zustand зависит от React.
-const publishFirst = ["packages/react", "packages/zustand"];
+// Пакеты, которые должны публиковаться раньше остальных: Zustand и Router зависят от React,
+// Router ещё и от clsx.
+const publishFirst = ["packages/react", "packages/clsx", "packages/zustand", "packages/router"];
 
 export type Run = (cmd: string[], cwd: string) => Promise<{ code: number; stderr: string }>;
 

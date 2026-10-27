@@ -2,11 +2,13 @@ import { describe, expect, test } from "bun:test";
 import { checkManifest, packageNames } from "./verify-packages.ts";
 
 describe("packageNames", () => {
-	test("проверяются все пять пакетов, включая плагины jsdoc и bff-html", () => {
+	test("проверяются все семь пакетов, включая плагины, clsx и router", () => {
 		expect([...packageNames].sort()).toEqual([
+			"clsx",
 			"openapi",
 			"oxlint-plugin-jsdoc",
 			"react",
+			"router",
 			"vite-plugin-bff-html",
 			"zustand",
 		]);

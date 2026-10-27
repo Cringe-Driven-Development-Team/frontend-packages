@@ -37,6 +37,16 @@
 			"release-type": "node",
 			"component": "vite-plugin-bff-html",
 			"changelog-path": "CHANGELOG.md"
+		},
+		"packages/clsx": {
+			"release-type": "node",
+			"component": "clsx",
+			"changelog-path": "CHANGELOG.md"
+		},
+		"packages/router": {
+			"release-type": "node",
+			"component": "router",
+			"changelog-path": "CHANGELOG.md"
 		}
 	}
 }

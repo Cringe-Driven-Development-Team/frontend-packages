@@ -27,6 +27,12 @@ describe("orderForPublish", () => {
 		).toEqual(["packages/react", "packages/zustand", "packages/oxlint-plugin-jsdoc"]);
 	});
 
+	test("clsx и React публикуются раньше Router", () => {
+		expect(
+			orderForPublish(["packages/router", "packages/openapi", "packages/clsx", "packages/react"]),
+		).toEqual(["packages/react", "packages/clsx", "packages/router", "packages/openapi"]);
+	});
+
 	test("порядок остальных пакетов сохраняется", () => {
 		expect(orderForPublish(["packages/b", "packages/a"])).toEqual(["packages/b", "packages/a"]);
 	});

@@ -3,5 +3,7 @@
 	"packages/zustand": "1.0.6",
 	"packages/openapi": "0.2.1",
 	"packages/oxlint-plugin-jsdoc": "0.1.2",
-	"packages/vite-plugin-bff-html": "0.2.1"
+	"packages/vite-plugin-bff-html": "0.2.1",
+	"packages/clsx": "0.1.0",
+	"packages/router": "0.1.0"
 }
