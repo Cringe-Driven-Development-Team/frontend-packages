@@ -221,6 +221,31 @@ describe("beforeLoad, loader и редиректы", () => {
 		expect(router.state.matches.at(-1)?.routeId).toBe("/fast");
 	});
 
+	test("таймер pending отменённой загрузки не возвращает её маршруты", async () => {
+		const rootRoute = createRootRoute();
+		const slowRoute = createRoute({
+			getParentRoute: () => rootRoute,
+			path: "slow",
+			// Не завершается: `finally` отменённой загрузки не наступит
+			loader: () => new Promise<never>(() => {}),
+		});
+		const fastRoute = createRoute({ getParentRoute: () => rootRoute, path: "fast" });
+		const router = createRouter({
+			routeTree: rootRoute.addChildren([slowRoute, fastRoute]),
+			history: createMemoryHistory(),
+			defaultPendingMs: 15,
+		});
+		await router.load();
+
+		void router.navigate({ to: "/slow" });
+		await Bun.sleep(1);
+		await router.navigate({ to: "/fast" });
+		await Bun.sleep(30);
+
+		expect(router.state.location.pathname).toBe("/fast");
+		expect(router.state.matches.at(-1)?.routeId).toBe("/fast");
+	});
+
 	test("isRedirect и isNotFound распознают брошенные значения", () => {
 		expect(isRedirect(redirect({ to: "/login" }))).toBe(true);
 		expect(isNotFound(notFound())).toBe(true);

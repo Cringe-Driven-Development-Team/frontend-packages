@@ -364,6 +364,8 @@ export class Router<TRouteTree extends AnyRoute = AnyRoute> {
 		// Пока идёт загрузка, на экране остаются прежние маршруты. Если она затянулась —
 		// показываем новые вместе с их `pendingComponent`
 		const pendingTimer = setTimeout(() => {
+			// Отменённая загрузка может не дойти до `finally`, где таймер снимается
+			if (isStale()) return;
 			isPendingVisible = true;
 			this.setState({ matches });
 		}, this.options.defaultPendingMs ?? DEFAULT_PENDING_MS);
