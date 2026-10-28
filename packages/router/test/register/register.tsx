@@ -9,7 +9,9 @@ import {
 	getRouteApi,
 	redirect,
 	useLoaderData,
+	useMatch,
 	useParams,
+	useRouterState,
 	type RouteIds,
 	type RoutePaths,
 } from "../../src/index.ts";
@@ -68,6 +70,22 @@ export function TypedChecks() {
 	assert<Equal<ReturnType<typeof api.useLoaderData>, { id: number }>>();
 	// @ts-expect-error: неизвестный id маршрута
 	getRouteApi("/missing");
+	assert<Equal<ReturnType<typeof api.useParams>, { notebookId: string }>>();
+	const match = useMatch({ from: "/notebooks/$notebookId" });
+	assert<Equal<typeof match.loaderData, { id: number }>>();
+
+	const pathname = useRouterState({ select: (state) => state.location.pathname });
+	assert<Equal<typeof pathname, string>>();
+	const selected = useRouterState({
+		select: (state) => ({ count: state.matches.length }),
+		isEqual: (previous, next) => previous.count === next.count,
+	});
+	assert<Equal<typeof selected, { count: number }>>();
+	useRouterState({
+		// @ts-expect-error: isEqual сравнивает значения того же типа, что вернул select
+		select: (state) => state.status,
+		isEqual: (previous: number, next: number) => previous === next,
+	});
 
 	return (
 		<>

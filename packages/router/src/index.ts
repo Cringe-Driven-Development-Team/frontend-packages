@@ -17,6 +17,7 @@ export {
 	useRouteContext,
 	useRouter,
 	useRouterState,
+	type RouterStateSelector,
 	useSearch,
 } from "./hooks";
 export {

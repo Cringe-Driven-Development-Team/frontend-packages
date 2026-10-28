@@ -1,4 +1,4 @@
-import { useContext, useLayoutEffect, useState } from "@cdd-team/react";
+import { useCallback, useContext, useSyncExternalStoreWithSelector } from "@cdd-team/react";
 
 import { MatchContext, RouterContext } from "./context";
 import type { AnyRoute } from "./route";
@@ -35,40 +35,38 @@ export function useRouter(): RegisteredRouter {
 	return router as RegisteredRouter;
 }
 
+/** Настройки {@link useRouterState}: какую часть состояния выбрать и как сравнивать выборки. */
+export interface RouterStateSelector<TSelected> {
+	/** Выбирает часть состояния. Повторно для того же `router.state` не вызывается */
+	select: (state: RouterState) => TSelected;
+	/**
+	 * Сравнивает прежнюю и новую выборку. При равенстве хук вернёт прежнюю ссылку и не
+	 * перерисует компонент. По умолчанию `Object.is`
+	 */
+	isEqual?: (previous: TSelected, next: TSelected) => boolean;
+}
+
 /**
  * Состояние роутера. С `select` — его часть: компонент перерисовывается, только когда она меняется.
  * @returns состояние роутера
  */
 export function useRouterState(): RouterState;
-export function useRouterState<TSelected>(options: {
-	select: (state: RouterState) => TSelected;
-}): TSelected;
-export function useRouterState(options?: { select: (state: RouterState) => unknown }): unknown {
+export function useRouterState<TSelected>(options: RouterStateSelector<TSelected>): TSelected;
+export function useRouterState(options?: RouterStateSelector<unknown>): unknown {
 	const router = useRouter();
-	const [, setVersion] = useState(0);
-	const select = options?.select ?? selectState;
-	const state = router.state;
-	const selected = select(state);
+	// `router.state` заменяется целиком при каждом изменении, поэтому годится как snapshot
+	const getState = useCallback(() => router.state, [router]);
 
-	// Перерисовываемся, только если изменилось выбранное значение, а не состояние целиком
-	useLayoutEffect(
-		() =>
-			router.subscribe(() => {
-				if (Object.is(select(router.state), selected)) return;
-				setVersion((version) => version + 1);
-			}),
-		[router, select, selected],
+	return useSyncExternalStoreWithSelector(
+		router.subscribe,
+		getState,
+		options?.select ?? selectState,
+		options?.isEqual,
 	);
-	// Состояние могло смениться между рендером и подпиской — тогда перерисовываемся
-	useLayoutEffect(() => {
-		if (router.state !== state) setVersion((version) => version + 1);
-	}, [router, state]);
-
-	return selected;
 }
 
 // Селекторы объявлены на уровне модуля: стрелочная функция в теле хука менялась бы на каждом
-// рендере и заставляла бы эффект в useRouterState переподписываться
+// рендере и сбрасывала бы кеш выборки
 function selectState(state: RouterState): RouterState {
 	return state;
 }
@@ -79,6 +77,26 @@ function selectLocation(state: RouterState): ParsedLocation {
 
 function selectMatches(state: RouterState): RouteMatch[] {
 	return state.matches;
+}
+
+function selectMatch(match: RouteMatch): RouteMatch {
+	return match;
+}
+
+function selectParams(match: RouteMatch): unknown {
+	return match.params;
+}
+
+function selectSearch(match: RouteMatch): unknown {
+	return match.search;
+}
+
+function selectLoaderData(match: RouteMatch): unknown {
+	return match.loaderData;
+}
+
+function selectContext(match: RouteMatch): unknown {
+	return match.context;
 }
 
 /**
@@ -106,17 +124,31 @@ export function useMatches(): RouteMatch[] {
 }
 
 /**
- * Совпадение маршрута `from`, а без него — ближайшего к компоненту.
- * @param [from] `id` маршрута
- * @returns совпадение маршрута
+ * Часть совпадения маршрута `from`, а без него — ближайшего к компоненту. Подписка идёт на
+ * выбранное значение: обновления других совпадений компонент не перерисовывают.
+ * @param from `id` маршрута
+ * @param select что взять из совпадения; должен быть стабильным между рендерами
+ * @returns выбранное значение
  */
-export function useRouteMatch(from?: string): RouteMatch {
+function useMatchSelection<TSelected>(
+	from: string | undefined,
+	select: (match: RouteMatch) => TSelected,
+): TSelected {
 	const nearestRouteId = useContext(MatchContext);
 	const routeId = from ?? nearestRouteId;
-	const match = useMatches().find((candidate) => candidate.routeId === routeId);
-	if (!match) throw new Error(`Маршрут "${routeId}" сейчас не отрисован`);
+	const selectFromState = useCallback(
+		(state: RouterState) => {
+			const match = state.matches.find((candidate) => candidate.routeId === routeId);
+			// Бросаем и из повторного чтения после уведомления: React перерисует дерево, и
+			// родитель, из которого маршрут ушёл, отбросит этот компонент
+			if (!match) throw new Error(`Маршрут "${routeId}" сейчас не отрисован`);
 
-	return match;
+			return select(match);
+		},
+		[routeId, select],
+	);
+
+	return useRouterState({ select: selectFromState });
 }
 
 /**
@@ -129,7 +161,7 @@ export function useMatch<TFrom extends RouteIds>(
 ): MatchOf<RouteById<TFrom>>;
 export function useMatch(): RouteMatch;
 export function useMatch(options?: FromOptions<string>): RouteMatch {
-	return useRouteMatch(options?.from);
+	return useMatchSelection(options?.from, selectMatch);
 }
 
 /**
@@ -142,7 +174,7 @@ export function useParams<TFrom extends RouteIds>(
 ): RouteTypes<TFrom>["params"];
 export function useParams(): Record<string, string>;
 export function useParams(options?: FromOptions<string>): unknown {
-	return useRouteMatch(options?.from).params;
+	return useMatchSelection(options?.from, selectParams);
 }
 
 /**
@@ -155,7 +187,7 @@ export function useSearch<TFrom extends RouteIds>(
 ): RouteTypes<TFrom>["search"];
 export function useSearch(): Record<string, unknown>;
 export function useSearch(options?: FromOptions<string>): unknown {
-	return useRouteMatch(options?.from).search;
+	return useMatchSelection(options?.from, selectSearch);
 }
 
 /**
@@ -168,7 +200,7 @@ export function useLoaderData<TFrom extends RouteIds>(
 ): RouteTypes<TFrom>["loaderData"];
 export function useLoaderData(): unknown;
 export function useLoaderData(options?: FromOptions<string>): unknown {
-	return useRouteMatch(options?.from).loaderData;
+	return useMatchSelection(options?.from, selectLoaderData);
 }
 
 /**
@@ -181,7 +213,7 @@ export function useRouteContext<TFrom extends RouteIds>(
 ): RouteTypes<TFrom>["context"];
 export function useRouteContext(): unknown;
 export function useRouteContext(options?: FromOptions<string>): unknown {
-	return useRouteMatch(options?.from).context;
+	return useMatchSelection(options?.from, selectContext);
 }
 
 /**
@@ -195,7 +227,7 @@ export function createMatchHook<TSelected>(
 	select: (match: RouteMatch) => TSelected,
 ): () => TSelected {
 	return function useRouteData() {
-		return select(useRouteMatch(route.id));
+		return useMatchSelection(route.id, select);
 	};
 }
 
