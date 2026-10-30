@@ -28,7 +28,6 @@ function createElement(type: Tag, svg: boolean): Element {
 	return type.toLowerCase() === "script" ? createInertScript() : document.createElement(type);
 }
 
-// Скрипт, созданный HTML-парсером, браузер не исполняет при вставке. В парсер идёт только литерал.
 function createInertScript(): HTMLScriptElement {
 	const container = document.createElement("div");
 	container.innerHTML = "<script></script>";
