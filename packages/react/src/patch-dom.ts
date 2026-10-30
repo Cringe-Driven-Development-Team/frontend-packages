@@ -25,7 +25,14 @@ function createElement(type: Tag, svg: boolean): Element {
 		return document.createElementNS(SVG_NAMESPACE, type);
 	}
 
-	return document.createElement(type);
+	return type.toLowerCase() === "script" ? createInertScript() : document.createElement(type);
+}
+
+// Скрипт, созданный HTML-парсером, браузер не исполняет при вставке. В парсер идёт только литерал.
+function createInertScript(): HTMLScriptElement {
+	const container = document.createElement("div");
+	container.innerHTML = "<script></script>";
+	return container.removeChild(container.firstChild as HTMLScriptElement);
 }
 
 // `svg` открывает SVG, `foreignObject` возвращает его детей в HTML, портал и корень — HTML.
