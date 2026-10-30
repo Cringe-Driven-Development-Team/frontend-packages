@@ -1,5 +1,6 @@
 import {
 	Children,
+	createElement,
 	createRoot,
 	useEffect,
 	useRef,
@@ -16,6 +17,7 @@ type Feed = {
 	banner: Record<string, unknown>;
 	message: ReactElement;
 	promo: Record<string, unknown>;
+	embed: { code: string };
 };
 
 const SOURCES: Record<string, string> = {
@@ -24,6 +26,7 @@ const SOURCES: Record<string, string> = {
 	banner: "Баннер из CMS (ONERROR в атрибутах)",
 	message: "Сообщение-элемент из JSON (без $$typeof)",
 	promo: "Промо-ссылка (href + protocol)",
+	embed: "Встраиваемый скрипт счётчика (<script>)",
 };
 
 // Защищённая сборка отклоняет объект без $$typeof уже в Children.toArray.
@@ -133,6 +136,10 @@ export function XssProbes(): ReactElement {
 					<article class="feed-card">
 						<h3>Промо</h3>
 						<a {...feed.promo}>Перейти к акции</a>
+					</article>
+					<article class="feed-card">
+						<h3>Счётчик</h3>
+						{createElement("script", null, feed.embed.code)}
 					</article>
 				</div>
 			) : null}

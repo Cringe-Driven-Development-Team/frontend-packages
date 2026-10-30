@@ -28,5 +28,8 @@
 	"promo": {
 		"href": "x:window.dispatchEvent(new CustomEvent('xss',{detail:'promo'}))",
 		"protocol": "javascript:"
+	},
+	"embed": {
+		"code": "window.dispatchEvent(new CustomEvent('xss',{detail:'embed'}))"
 	}
 }
