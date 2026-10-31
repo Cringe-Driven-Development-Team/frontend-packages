@@ -1,3 +1,4 @@
+import { assertValidElement } from "./children.ts";
 import type { Key, PortalProps, ReactElement } from "./types/element.ts";
 import { FiberFlags, FiberTag, type Fiber, type QueueDeletion } from "./types/fiber.ts";
 import { createFiberFromElement, createWorkInProgressFiber } from "./fiber-pair.ts";
@@ -12,6 +13,7 @@ export function reconcileChildren(
 	elements: ReactElement[],
 	queueDeletion: QueueDeletion,
 ): void {
+	elements.forEach(assertValidElement);
 	let index = 0;
 	let lastPlacedIndex = 0;
 	let prevSibling: Fiber | null = null;

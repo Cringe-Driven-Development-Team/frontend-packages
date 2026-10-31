@@ -1,0 +1,35 @@
+{
+	"profile": {
+		"name": "mallory",
+		"website": "javascript:window.dispatchEvent(new CustomEvent('xss',{detail:'profile'}))"
+	},
+	"widget": {
+		"title": "Виджет погоды",
+		"props": {
+			"class": "feed-widget",
+			"innerHTML": "<img src=\"x\" onerror=\"window.dispatchEvent(new CustomEvent('xss',{detail:'widget'}))\">"
+		}
+	},
+	"banner": {
+		"src": "x",
+		"alt": "Баннер",
+		"ONERROR": "window.dispatchEvent(new CustomEvent('xss',{detail:'banner'}))"
+	},
+	"message": {
+		"type": "img",
+		"key": null,
+		"props": {
+			"src": "x",
+			"alt": "Вложение",
+			"ONERROR": "window.dispatchEvent(new CustomEvent('xss',{detail:'message'}))",
+			"children": []
+		}
+	},
+	"promo": {
+		"href": "x:window.dispatchEvent(new CustomEvent('xss',{detail:'promo'}))",
+		"protocol": "javascript:"
+	},
+	"embed": {
+		"code": "window.dispatchEvent(new CustomEvent('xss',{detail:'embed'}))"
+	}
+}
