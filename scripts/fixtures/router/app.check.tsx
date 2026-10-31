@@ -9,7 +9,7 @@ async function flush(): Promise<void> {
 	}
 }
 
-test("опубликованные архивы: Link с ref и Link в портале переходят по маршрутам", async () => {
+test("опубликованные архивы: Link с ref и в портале переходят, селекторы роутера обновляют UI", async () => {
 	const history = createMemoryHistory();
 	const router = makeRouter(history);
 	const container = document.createElement("div");
@@ -25,6 +25,7 @@ test("опубликованные архивы: Link с ref и Link в порт
 	expect(homeLinkRef.current?.getAttribute("href")).toBe("/");
 	expect(homeLinkRef.current?.getAttribute("aria-current")).toBe("page");
 	expect(container.querySelector("main")?.getAttribute("class")).toBe("app app--ready");
+	expect(container.querySelector("main")?.getAttribute("data-path")).toBe("/");
 
 	const portalLink = modalRoot.querySelector("a")!;
 	expect(container.contains(portalLink)).toBe(false);
@@ -35,6 +36,8 @@ test("опубликованные архивы: Link с ref и Link в порт
 
 	expect(history.location.pathname).toBe("/notebooks/7");
 	expect(container.textContent).toContain("Блокнот 7");
+	expect(container.querySelector("main")?.getAttribute("data-path")).toBe("/notebooks/7");
+	expect(container.querySelector("h1")?.getAttribute("data-id")).toBe("7");
 	expect(portalLink.getAttribute("aria-current")).toBe("page");
 	expect(homeLinkRef.current?.getAttribute("aria-current")).toBeNull();
 

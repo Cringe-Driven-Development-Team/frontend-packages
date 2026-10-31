@@ -153,7 +153,28 @@ const { page } = notebookRoute.useSearch();
 теми же хуками и глобальные `useParams({ from })`, `useSearch({ from })`, `useLoaderData({ from })`,
 `useRouteContext({ from })`, `useMatch({ from })`. Без `from` они читают ближайший к компоненту маршрут.
 
-Остальные: `useRouter()`, `useRouterState({ select })`, `useLocation()`, `useNavigate()`, `useMatches()`.
+Хуки маршрута подписаны только на своё поле своего совпадения: компонент с `useLoaderData()` не
+перерисуется, пока меняются другие маршруты или их данные. Если совпадение ушло из состояния, хук бросает
+`Маршрут "<id>" сейчас не отрисован`; при навигации родитель сразу отбрасывает такой маршрут, и ошибка до
+экрана не доходит.
+
+Остальные: `useRouter()`, `useRouterState({ select, isEqual })`, `useLocation()`, `useNavigate()`,
+`useMatches()`.
+
+`useRouterState` построен на `useSyncExternalStoreWithSelector` из `@cdd-team/react`: прерванный рендер
+не зафиксирует устаревшее состояние. `select` вызывается один раз на каждое новое `router.state`, а
+компонент перерисовывается, только когда выборка изменилась по `isEqual` (по умолчанию `Object.is`).
+Селектор, который каждый раз собирает новый объект, без `isEqual` перерисует компонент на любом
+изменении роутера; с `isEqual` равная выборка сохранит прежнюю ссылку:
+
+```tsx
+const { pathname, status } = useRouterState({
+	select: (state) => ({ pathname: state.location.pathname, status: state.status }),
+	isEqual: (a, b) => a.pathname === b.pathname && a.status === b.status,
+});
+```
+
+Тип настроек — `RouterStateSelector<T>`.
 
 ## Отличия от TanStack Router
 
