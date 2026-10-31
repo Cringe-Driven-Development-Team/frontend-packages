@@ -1,6 +1,6 @@
 {
 	"name": "@cdd-team/clsx",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Сборка строки CSS-классов из строк, массивов и объектов-условий",
 	"license": "MIT",
 	"repository": {

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.1](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/react-v1.7.0...react-v1.7.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* HTML-скрипты создаются инертными ([dd3241f](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/dd3241f88155133a87c181e9cdb2517643bed937))
+* prop protocol не превращает безопасный href в javascript: ([f975b74](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/f975b74493fee7e6d34887484f0a397a13840fdb))
+
 ## [1.7.0](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/react-v1.6.0...react-v1.7.0) (2026-10-25)
 
 
