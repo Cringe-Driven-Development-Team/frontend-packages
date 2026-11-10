@@ -11,6 +11,9 @@
 | `@cdd-team/vite-plugin-bff-html` | `packages/vite-plugin-bff-html` | плагин dev-сервера Vite: HTML страниц от BFF с клиентом HMR |
 | `@cdd-team/clsx` | `packages/clsx` | сборка строки CSS-классов из строк, массивов и объектов-условий |
 | `@cdd-team/router` | `packages/router` | роутер для `@cdd-team/react` по образцу TanStack Router; `@cdd-team/react` — обязательный peer, `@cdd-team/clsx` — зависимость |
+| `@cdd-team/workbox` | `packages/workbox` | runtime service worker: precache, офлайн-fallback навигации, регистрация |
+| `@cdd-team/workbox-build` | `packages/workbox-build` | генератор самостоятельного `sw.js`, без Vite; `@cdd-team/workbox` — зависимость |
+| `@cdd-team/vite-plugin-pwa` | `packages/vite-plugin-pwa` | плагин Vite: манифест PWA и `sw.js`; `@cdd-team/workbox-build` — зависимость, Vite — peer |
 
 ## Структура
 
@@ -23,6 +26,9 @@ packages/
   vite-plugin-bff-html/ # тесты поднимают dev-сервер Vite против подставного BFF
   clsx/
   router/       # test/register — проверка типов Register отдельным tsconfig
+  workbox/      # без тестов в репозитории: проверка архивов и ручной прогон в браузере
+  workbox-build/
+  vite-plugin-pwa/
 scripts/        # проверка архивов и публикация (verify-packages, publish-released) и их тесты
 tests/integration/  # runtime-интеграция React + Zustand и vanilla без React
 docs/release-runbook.md
@@ -46,7 +52,7 @@ bun run test:scripts      # тесты скриптов и конфигурац�
 bun run verify:packages   # собрать npm-архивы и поставить их в чистый проект вне workspace
 ```
 
-В каждом пакете одинаковый набор скриптов: `lint`, `fmt:check`, `typecheck`, `test`, `build`. Корневые скрипты запускают их по всем пакетам.
+В каждом пакете одинаковый набор скриптов: `lint`, `fmt:check`, `typecheck`, `test`, `build`; у пакетов Workbox и PWA скрипта `test` нет. Корневые скрипты запускают их по всем пакетам.
 
 Playground React не входит в `workspaces`, CI и релизы. На Windows не добавляйте его в `workspaces`: зависимость на собственный пакет порождает рекурсивные цепочки `node_modules`.
 
@@ -54,7 +60,7 @@ Playground React не входит в `workspaces`, CI и релизы. На Win
 
 - **Bun** — установка зависимостей, тулинг, тесты и сборка. `bunfig.toml` содержит `[run] bun = true`: утилиты с `#!/usr/bin/env node` (tsdown, oxlint, oxfmt) запускаются в рантайме Bun, а не в Node, поэтому версия Node на сборку не влияет.
 - **Node и npm CLI** — только публикация по OIDC (Node 22.14.0+, npm 11.5.1+ ставятся лишь в publish job) (`npm publish` в [release.yml](.github/workflows/release.yml)).
-- **release-please** — версии, `CHANGELOG.md`, теги и release PR. Режим manifest: у каждого пакета своя версия, свой changelog и свой тег (`react-v1.2.0`, `zustand-v1.0.0`, `openapi-v0.2.0`, `oxlint-plugin-jsdoc-v0.1.1`, `vite-plugin-bff-html-v0.1.0`, `clsx-v0.1.0`, `router-v0.1.0`). Плагин `node-workspace` с `updatePeerDependencies` при выпуске React поднимает диапазон `@cdd-team/react` в Zustand и Router (peer и dev), а при выпуске clsx — диапазон `@cdd-team/clsx` в Router. Зависимый пакет получает patch-релиз и запись в changelog, даже если его исходники не менялись.
+- **release-please** — версии, `CHANGELOG.md`, теги и release PR. Режим manifest: у каждого пакета своя версия, свой changelog и свой тег (`react-v1.2.0`, `zustand-v1.0.0`, `openapi-v0.2.0`, `oxlint-plugin-jsdoc-v0.1.1`, `vite-plugin-bff-html-v0.1.0`, `clsx-v0.1.0`, `router-v0.1.0`, `workbox-v0.1.0`, `workbox-build-v0.1.0`, `vite-plugin-pwa-v0.1.0`). Плагин `node-workspace` с `updatePeerDependencies` при выпуске React поднимает диапазон `@cdd-team/react` в Zustand и Router (peer и dev), а при выпуске clsx — диапазон `@cdd-team/clsx` в Router. Зависимый пакет получает patch-релиз и запись в changelog, даже если его исходники не менялись.
 
 ## Коммиты и релизы
 
@@ -73,7 +79,7 @@ PR вливаются merge-коммитом. Тип коммита опреде
 
 1. В `main` вливается PR с `feat:`/`fix:`. Workflow [Release](.github/workflows/release.yml) создаёт или обновляет общий release PR (одним PR — независимые изменения нескольких пакетов).
 2. CI проходит на release PR: формат, линт, типы, тесты, сборка и установка собранных архивов в чистый проект.
-3. После merge release PR release-please создаёт теги и GitHub Releases. Затем workflow собирает пакеты, повторно проверяет архивы, прогоняет интеграционные тесты и публикует **только пути из `paths_released`** по порядку зависимостей: React, clsx, Zustand, Router. Ошибка останавливает следующие публикации. GitHub Release ещё не значит, что пакет в npm: проверяйте `npm view`.
+3. После merge release PR release-please создаёт теги и GitHub Releases. Затем workflow собирает пакеты, повторно проверяет архивы, прогоняет интеграционные тесты и публикует **только пути из `paths_released`** по порядку зависимостей: React, clsx, Zustand, Router, Workbox, генератор SW, Vite-плагин PWA. Ошибка останавливает следующие публикации. GitHub Release ещё не значит, что пакет в npm: проверяйте `npm view`.
 4. Job `notify` отправляет одну итоговую карточку выпуска в Telegram (тред Frontend / Releases): версии, изменения, миграция, совместимость, результат публикации.
 
 Токен npm для этого не нужен (Trusted Publishing через OIDC). Секреты: `RELEASE_PLEASE_TOKEN` для release-please и Telegram-настройки для уведомлений. Первичная настройка, bootstrap, восстановление частичного выпуска и уведомления описаны в [docs/release-runbook.md](docs/release-runbook.md).

@@ -1,0 +1,47 @@
+{
+	"name": "@cdd-team/workbox",
+	"version": "0.1.0",
+	"description": "Учебный runtime service worker: precache, офлайн-fallback навигации и регистрация",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Cringe-Driven-Development-Team/frontend-packages.git",
+		"directory": "packages/workbox"
+	},
+	"keywords": [
+		"service-worker",
+		"pwa",
+		"precache",
+		"offline"
+	],
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		"./precaching": {
+			"types": "./dist/precaching.d.mts",
+			"import": "./dist/precaching.mjs"
+		},
+		"./navigation": {
+			"types": "./dist/navigation.d.mts",
+			"import": "./dist/navigation.mjs"
+		},
+		"./window": {
+			"types": "./dist/window.d.mts",
+			"import": "./dist/window.mjs"
+		},
+		"./sw-runtime.js": "./dist/sw-runtime.iife.js",
+		"./package.json": "./package.json"
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"lint": "oxlint -c ../../oxlint.config.ts src",
+		"fmt:check": "oxfmt -c ../../oxfmt.config.ts --check src",
+		"typecheck": "tsc --noEmit",
+		"build": "rm -rf dist && tsdown"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

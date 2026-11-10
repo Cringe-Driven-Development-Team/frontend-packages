@@ -18,7 +18,10 @@ export type PackageName =
 	| "oxlint-plugin-jsdoc"
 	| "vite-plugin-bff-html"
 	| "clsx"
-	| "router";
+	| "router"
+	| "workbox"
+	| "workbox-build"
+	| "vite-plugin-pwa";
 export const packageNames: PackageName[] = [
 	"react",
 	"zustand",
@@ -27,6 +30,9 @@ export const packageNames: PackageName[] = [
 	"openapi",
 	"oxlint-plugin-jsdoc",
 	"vite-plugin-bff-html",
+	"workbox",
+	"workbox-build",
+	"vite-plugin-pwa",
 ];
 
 type Manifest = Record<string, unknown>;
@@ -136,15 +142,23 @@ async function inspectArchive(
 		}
 	}
 
-	const external: Partial<Record<PackageName, string[]>> = {
-		zustand: ["@cdd-team/react"],
-		router: ["@cdd-team/react", "@cdd-team/clsx"],
-	};
-	if (external[name]) {
-		const entry = await readFile(join(root, "dist/index.mjs"), "utf8");
-		for (const dep of external[name]) {
-			if (!entry.includes(`"${dep}"`)) {
-				violations.push(`${name}: dist/index.mjs не импортирует ${dep} (он мог быть вшит)`);
+	// Пакеты @cdd-team ставит потребитель: в dist они остаются импортами (строкой и с подпутём), а не
+	// вшитой копией
+	const external = Object.keys({
+		...(pkg.dependencies as Record<string, string> | undefined),
+		...(pkg.peerDependencies as Record<string, string> | undefined),
+	}).filter((dep) => dep.startsWith("@cdd-team/"));
+	if (external.length > 0) {
+		const entry = (
+			await Promise.all(
+				exportTargets(pkg.exports)
+					.filter((file) => file.endsWith(".mjs"))
+					.map((file) => readFile(join(root, file), "utf8")),
+			)
+		).join("\n");
+		for (const dep of external) {
+			if (!entry.includes(`"${dep}`)) {
+				violations.push(`${name}: dist не ссылается на ${dep} (он мог быть вшит)`);
 			}
 		}
 	}
@@ -261,7 +275,7 @@ export async function verify(): Promise<void> {
 		}
 
 		console.log(
-			"OK: архивы react, zustand, clsx, router, openapi, oxlint-plugin-jsdoc, vite-plugin-bff-html и сценарии consumer/vanilla/router прошли проверку",
+			`OK: архивы ${packageNames.join(", ")} и сценарии consumer/vanilla/router прошли проверку`,
 		);
 	} finally {
 		await rm(workDir, { recursive: true, force: true });
