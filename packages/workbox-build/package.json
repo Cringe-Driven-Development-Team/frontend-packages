@@ -32,9 +32,10 @@
 		"node": "^20.19.0 || >=22.12.0"
 	},
 	"scripts": {
-		"lint": "oxlint -c ../../oxlint.config.ts src",
-		"fmt:check": "oxfmt -c ../../oxfmt.config.ts --check src",
+		"lint": "oxlint -c ../../oxlint.config.ts src test",
+		"fmt:check": "oxfmt -c ../../oxfmt.config.ts --check src test",
 		"typecheck": "tsc --noEmit",
+		"test": "bun test test",
 		"build": "tsdown"
 	},
 	"dependencies": {

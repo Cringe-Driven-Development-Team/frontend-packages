@@ -1,6 +1,6 @@
 /** Комплект ресурсов, который service worker кладёт в собственный кеш при установке. */
 export interface PrecacheOptions {
-	/** Префикс имён всех версий комплекта: старые версии с ним удаляет {@link Precache.cleanup}. */
+	/** Непустой префикс имён всех версий комплекта: старые версии с ним удаляет {@link Precache.cleanup}. */
 	cachePrefix: string;
 	/** Версия комплекта; имя кеша — `cachePrefix + version`. */
 	version: string;
@@ -29,9 +29,11 @@ export interface Precache {
  * Описывает комплект precache. Сам по себе ничего не загружает и обработчиков не ставит.
  * @param options префикс и версия кеша, URL ресурсов
  * @returns операции установки, поиска и очистки
+ * @throws если `cachePrefix` пуст: иначе {@link Precache.cleanup} удалил бы все кеши origin
  */
 export function createPrecache(options: PrecacheOptions): Precache {
 	const { cachePrefix } = options;
+	if (!cachePrefix) throw new Error("precache: cachePrefix не может быть пустым");
 	const cacheName = cachePrefix + options.version;
 	const urls = options.urls.map((url) => new URL(url, location.href).href);
 	const known = new Set(urls);
