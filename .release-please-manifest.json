@@ -5,5 +5,8 @@
 	"packages/oxlint-plugin-jsdoc": "0.1.2",
 	"packages/vite-plugin-bff-html": "0.2.1",
 	"packages/clsx": "0.1.1",
-	"packages/router": "0.2.0"
+	"packages/router": "0.2.0",
+	"packages/workbox": "0.1.0",
+	"packages/workbox-build": "0.1.0",
+	"packages/vite-plugin-pwa": "0.1.0"
 }

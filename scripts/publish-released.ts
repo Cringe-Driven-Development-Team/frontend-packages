@@ -2,8 +2,16 @@ import { resolve } from "node:path";
 import type { ErrorKind, PackageResult } from "./release-report.ts";
 
 // Пакеты, которые должны публиковаться раньше остальных: Zustand и Router зависят от React,
-// Router ещё и от clsx.
-const publishFirst = ["packages/react", "packages/clsx", "packages/zustand", "packages/router"];
+// Router ещё и от clsx; генератор SW — от runtime Workbox, Vite-плагин PWA — от генератора.
+const publishFirst = [
+	"packages/react",
+	"packages/clsx",
+	"packages/zustand",
+	"packages/router",
+	"packages/workbox",
+	"packages/workbox-build",
+	"packages/vite-plugin-pwa",
+];
 
 export type Run = (cmd: string[], cwd: string) => Promise<{ code: number; stderr: string }>;
 

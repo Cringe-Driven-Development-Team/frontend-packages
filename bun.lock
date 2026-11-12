@@ -19,7 +19,7 @@
     },
     "packages/clsx": {
       "name": "@cdd-team/clsx",
-      "version": "0.1.0",
+      "version": "0.1.1",
     },
     "packages/openapi": {
       "name": "@cdd-team/openapi",
@@ -41,20 +41,20 @@
     },
     "packages/react": {
       "name": "@cdd-team/react",
-      "version": "1.7.0",
+      "version": "1.7.1",
     },
     "packages/router": {
       "name": "@cdd-team/router",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
-        "@cdd-team/clsx": "^0.1.0",
+        "@cdd-team/clsx": "^0.1.1",
       },
       "devDependencies": {
-        "@cdd-team/react": "^1.7.0",
+        "@cdd-team/react": "^1.7.1",
         "@happy-dom/global-registrator": "^20.14.5",
       },
       "peerDependencies": {
-        "@cdd-team/react": "^1.7.0",
+        "@cdd-team/react": "^1.7.1",
       },
     },
     "packages/vite-plugin-bff-html": {
@@ -68,15 +68,43 @@
         "vite": "^8.3.3",
       },
     },
+    "packages/vite-plugin-pwa": {
+      "name": "@cdd-team/vite-plugin-pwa",
+      "version": "0.1.0",
+      "dependencies": {
+        "@cdd-team/workbox-build": "^0.1.0",
+      },
+      "devDependencies": {
+        "@types/node": "24.10.1",
+        "vite": "^8.3.5",
+      },
+      "peerDependencies": {
+        "vite": "^8.3.3",
+      },
+    },
+    "packages/workbox": {
+      "name": "@cdd-team/workbox",
+      "version": "0.1.0",
+    },
+    "packages/workbox-build": {
+      "name": "@cdd-team/workbox-build",
+      "version": "0.1.0",
+      "dependencies": {
+        "@cdd-team/workbox": "^0.1.0",
+      },
+      "devDependencies": {
+        "@types/node": "24.10.1",
+      },
+    },
     "packages/zustand": {
       "name": "@cdd-team/zustand",
-      "version": "1.0.6",
+      "version": "1.0.7",
       "devDependencies": {
-        "@cdd-team/react": "^1.7.0",
+        "@cdd-team/react": "^1.7.1",
         "@happy-dom/global-registrator": "^20.14.5",
       },
       "peerDependencies": {
-        "@cdd-team/react": "^1.7.0",
+        "@cdd-team/react": "^1.7.1",
       },
       "optionalPeers": [
         "@cdd-team/react",
@@ -95,6 +123,12 @@
     "@cdd-team/router": ["@cdd-team/router@workspace:packages/router"],
 
     "@cdd-team/vite-plugin-bff-html": ["@cdd-team/vite-plugin-bff-html@workspace:packages/vite-plugin-bff-html"],
+
+    "@cdd-team/vite-plugin-pwa": ["@cdd-team/vite-plugin-pwa@workspace:packages/vite-plugin-pwa"],
+
+    "@cdd-team/workbox": ["@cdd-team/workbox@workspace:packages/workbox"],
+
+    "@cdd-team/workbox-build": ["@cdd-team/workbox-build@workspace:packages/workbox-build"],
 
     "@cdd-team/zustand": ["@cdd-team/zustand@workspace:packages/zustand"],
 

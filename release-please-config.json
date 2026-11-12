@@ -47,6 +47,21 @@
 			"release-type": "node",
 			"component": "router",
 			"changelog-path": "CHANGELOG.md"
+		},
+		"packages/workbox": {
+			"release-type": "node",
+			"component": "workbox",
+			"changelog-path": "CHANGELOG.md"
+		},
+		"packages/workbox-build": {
+			"release-type": "node",
+			"component": "workbox-build",
+			"changelog-path": "CHANGELOG.md"
+		},
+		"packages/vite-plugin-pwa": {
+			"release-type": "node",
+			"component": "vite-plugin-pwa",
+			"changelog-path": "CHANGELOG.md"
 		}
 	}
 }
