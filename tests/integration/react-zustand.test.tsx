@@ -16,11 +16,32 @@ function mount(element: ReactElement) {
 	return { container, root };
 }
 
-function blockFor(ms: number): void {
-	const until = performance.now() + ms;
-	while (performance.now() < until) {
-		continue;
-	}
+function createCounter() {
+	let count = 0;
+	return {
+		hit: (): void => {
+			count += 1;
+		},
+		get count(): number {
+			return count;
+		},
+	};
+}
+
+// Первый вызов в render планирует обновление стора и блокирует поток, чтобы work loop отдал управление.
+function createInterrupter(store: { setState: (partial: { count: number }) => void }) {
+	let done = false;
+	return (): void => {
+		if (done) {
+			return;
+		}
+		done = true;
+		queueMicrotask(() => store.setState({ count: 1 }));
+		const until = performance.now() + 8;
+		while (performance.now() < until) {
+			continue;
+		}
+	};
 }
 
 describe("@cdd-team/react + @cdd-team/zustand", () => {
@@ -68,7 +89,7 @@ describe("@cdd-team/react + @cdd-team/zustand", () => {
 	test("обновление во время прерванного render не фиксирует смешанный DOM", async () => {
 		const store = createStore<{ count: number }>()(() => ({ count: 0 }));
 		const committed: string[] = [];
-		let paused = false;
+		const interrupt = createInterrupter(store);
 		const container = document.createElement("div");
 		document.body.appendChild(container);
 		const root = createRoot(container);
@@ -77,11 +98,7 @@ describe("@cdd-team/react + @cdd-team/zustand", () => {
 			useLayoutEffect(() => {
 				committed.push(container.textContent ?? "");
 			});
-			if (!paused) {
-				paused = true;
-				queueMicrotask(() => store.setState({ count: 1 }));
-				blockFor(8);
-			}
+			interrupt();
 			return <span>{count}</span>;
 		}
 		function B() {
@@ -120,14 +137,10 @@ describe("@cdd-team/react + @cdd-team/zustand", () => {
 				unsubscribe();
 			};
 		};
-		let paused = false;
+		const interrupt = createInterrupter(store);
 		function Reader() {
 			const count = useStore(store, (state) => state.count);
-			if (!paused) {
-				paused = true;
-				queueMicrotask(() => store.setState({ count: 1 }));
-				blockFor(8);
-			}
+			interrupt();
 			return <p>{count}</p>;
 		}
 		const { container, root } = mount(
@@ -147,22 +160,22 @@ describe("@cdd-team/react + @cdd-team/zustand", () => {
 
 	test("изменение выбранного и невыбранного поля", async () => {
 		const useCounter = create<{ count: number; step: number }>()(() => ({ count: 0, step: 1 }));
-		let renders = 0;
+		const renders = createCounter();
 		function CountOnly() {
-			renders += 1;
+			renders.hit();
 			return <p>{useCounter((state) => state.count)}</p>;
 		}
 		const { container, root } = mount(<CountOnly />);
 		await flush();
-		expect(renders).toBe(1);
+		expect(renders.count).toBe(1);
 
 		useCounter.setState({ step: 2 });
 		await flush();
-		expect(renders).toBe(1);
+		expect(renders.count).toBe(1);
 
 		useCounter.setState({ count: 3 });
 		await flush();
-		expect(renders).toBe(2);
+		expect(renders.count).toBe(2);
 		expect(container.textContent).toBe("3");
 
 		root.unmount();
@@ -170,19 +183,19 @@ describe("@cdd-team/react + @cdd-team/zustand", () => {
 
 	test("нестабильный объектный селектор не зацикливает render", async () => {
 		const useCounter = create<{ count: number }>()(() => ({ count: 0 }));
-		let renders = 0;
+		const renders = createCounter();
 		function Broken() {
-			renders += 1;
+			renders.hit();
 			const { count } = useCounter((state) => ({ count: state.count }));
 			return <p>{count}</p>;
 		}
 		const { container, root } = mount(<Broken />);
 		await flush();
-		expect(renders).toBe(1);
+		expect(renders.count).toBe(1);
 
 		useCounter.setState({ count: 1 });
 		await flush();
-		expect(renders).toBe(2);
+		expect(renders.count).toBe(2);
 		expect(container.textContent).toBe("1");
 
 		root.unmount();
@@ -193,23 +206,23 @@ describe("@cdd-team/react + @cdd-team/zustand", () => {
 			name: "Ерофей",
 			age: 19,
 		}));
-		let renders = 0;
+		const renders = createCounter();
 		function Name() {
-			renders += 1;
+			renders.hit();
 			const { name } = useProfile(useShallow((state) => ({ name: state.name })));
 			return <p>{name}</p>;
 		}
 		const { container, root } = mount(<Name />);
 		await flush();
-		expect(renders).toBe(1);
+		expect(renders.count).toBe(1);
 
 		useProfile.setState({ age: 20 });
 		await flush();
-		expect(renders).toBe(1);
+		expect(renders.count).toBe(1);
 
 		useProfile.setState({ name: "Денис" });
 		await flush();
-		expect(renders).toBe(2);
+		expect(renders.count).toBe(2);
 		expect(container.textContent).toBe("Денис");
 
 		root.unmount();
