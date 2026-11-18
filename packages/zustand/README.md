@@ -76,7 +76,9 @@ unsubscribe();
 
 ## Отличия от Zustand
 
-- Хуки построены на `useSyncExternalStoreWithSelector` из `@cdd-team/react`, а не на пакете `use-sync-external-store`.
+- Хуки построены на `useSyncExternalStoreWithSelector` из `@cdd-team/react`: результат селектора кешируется для одного
+  снимка стора. Поэтому селектор, возвращающий новый объект, не зацикливает render (в Zustand 5 он падает с
+  «Maximum update depth exceeded»), но перерисовывает компонент при любом изменении стора — используйте `useShallow`.
 - Нет middleware (`persist`, `devtools`, `immer`) и сторов через Context.
 
 ## Разработка
