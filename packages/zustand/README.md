@@ -76,7 +76,7 @@ unsubscribe();
 
 ## Отличия от Zustand
 
-- Хуки построены на `useState` + `useLayoutEffect`, без `useSyncExternalStore`. В конкурентном режиме теоретически возможен «tearing».
+- Хуки построены на `useSyncExternalStoreWithSelector` из `@cdd-team/react`, а не на пакете `use-sync-external-store`.
 - Нет middleware (`persist`, `devtools`, `immer`) и сторов через Context.
 
 ## Разработка
