@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { useLayoutEffect } from "@cdd-team/react";
+import { useLayoutEffect, useState } from "@cdd-team/react";
 import { create, createStore, useShallow, useStore } from "../../src/react/index.ts";
-import { flush, mount } from "./utils.ts";
+import { countSubscriptions, createInterrupter, flush, mount } from "./utils.ts";
 
 type CounterState = {
 	count: number;
@@ -124,16 +124,7 @@ describe("useStore", () => {
 
 	test("после размонтирования подписчиков нет", async () => {
 		const store = createStore<{ count: number }>()(() => ({ count: 0 }));
-		let active = 0;
-		const subscribe = store.subscribe;
-		store.subscribe = (listener) => {
-			active += 1;
-			const unsubscribe = subscribe(listener);
-			return () => {
-				active -= 1;
-				unsubscribe();
-			};
-		};
+		const subscriptions = countSubscriptions(store);
 		function Count() {
 			const count = useStore(store, (state) => state.count);
 			return <p>{count}</p>;
@@ -145,10 +136,10 @@ describe("useStore", () => {
 				<Count />
 			</div>,
 		);
-		expect(active).toBe(2);
+		expect(subscriptions.active).toBe(2);
 
 		await unmount();
-		expect(active).toBe(0);
+		expect(subscriptions.active).toBe(0);
 	});
 
 	test("селектор с новым объектом не падает", async () => {
@@ -169,5 +160,129 @@ describe("useStore", () => {
 		expect(container.textContent).toBe("1");
 
 		await unmount();
+	});
+
+	test("смена стора переподписывает компонент", async () => {
+		const a = createStore<{ count: number }>()(() => ({ count: 1 }));
+		const b = createStore<{ count: number }>()(() => ({ count: 10 }));
+		const subscriptionsA = countSubscriptions(a);
+		const subscriptionsB = countSubscriptions(b);
+		let swap = (): void => {};
+		function Count() {
+			const [store, setStore] = useState(a);
+			swap = () => setStore(b);
+			const count = useStore(store, (state) => state.count);
+			return <p>{count}</p>;
+		}
+
+		const { container, unmount } = await mount(<Count />);
+		expect(container.textContent).toBe("1");
+
+		swap();
+		await flush();
+		expect(container.textContent).toBe("10");
+		expect(subscriptionsA.active).toBe(0);
+		expect(subscriptionsB.active).toBe(1);
+
+		a.setState({ count: 2 });
+		await flush();
+		expect(container.textContent).toBe("10");
+		b.setState({ count: 11 });
+		await flush();
+		expect(container.textContent).toBe("11");
+
+		await unmount();
+		expect(subscriptionsB.active).toBe(0);
+	});
+
+	test("смена селектора показывает значение нового селектора", async () => {
+		const useCounter = createCounter();
+		useCounter.setState({ count: 5, step: 7 });
+		let pick = (): void => {};
+		function Field() {
+			const [field, setField] = useState<"count" | "step">("count");
+			pick = () => setField("step");
+			const value = useCounter((state) => state[field]);
+			return <p>{value}</p>;
+		}
+
+		const { container, unmount } = await mount(<Field />);
+		expect(container.textContent).toBe("5");
+
+		pick();
+		await flush();
+		expect(container.textContent).toBe("7");
+
+		await unmount();
+	});
+
+	test("объектный селектор не зацикливает render при том же snapshot", async () => {
+		const useCounter = createCounter();
+		let renders = 0;
+		let bump = (): void => {};
+		function Parent() {
+			const [, setTick] = useState(0);
+			bump = () => setTick((tick) => tick + 1);
+			renders += 1;
+			const { count } = useCounter((state) => ({ count: state.count }));
+			return <p>{count}</p>;
+		}
+
+		const { unmount } = await mount(<Parent />);
+		const before = renders;
+
+		bump();
+		await flush();
+		expect(renders).toBe(before + 1);
+
+		await unmount();
+	});
+
+	test("useShallow удерживает результат при обновлении невыбранного поля", async () => {
+		const useProfile = create<{ name: string; age: number }>()(() => ({ name: "Ерофей", age: 19 }));
+		const seen: object[] = [];
+		function Name() {
+			const picked = useProfile(useShallow((state) => ({ name: state.name })));
+			seen.push(picked);
+			return <p>{picked.name}</p>;
+		}
+
+		const { unmount } = await mount(<Name />);
+		useProfile.setState({ age: 20 });
+		await flush();
+
+		expect(new Set(seen).size).toBe(1);
+		await unmount();
+	});
+
+	test("прерванный render не фиксирует смешанный DOM и не оставляет подписок", async () => {
+		const store = createStore<{ count: number }>()(() => ({ count: 0 }));
+		const subscriptions = countSubscriptions(store);
+		const interrupt = createInterrupter(() => store.setState({ count: 1 }));
+		const committed: string[] = [];
+		function Reader(props: { pause: boolean }) {
+			const count = useStore(store, (state) => state.count);
+			if (props.pause) {
+				interrupt();
+			}
+			useLayoutEffect(() => {
+				committed.push(String(count));
+			});
+			return <p>{count}</p>;
+		}
+
+		const { container, unmount } = await mount(
+			<div>
+				<Reader pause />
+				<Reader pause={false} />
+			</div>,
+		);
+		// Первым коммитится уже обновлённое значение: render со старым снимком был отброшен.
+		expect(committed.slice(0, 2)).toEqual(["1", "1"]);
+		expect(container.textContent).toBe("11");
+		expect(subscriptions.active).toBe(2);
+
+		await unmount();
+		expect(subscriptions.active).toBe(0);
 	});
 });

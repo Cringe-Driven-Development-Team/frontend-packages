@@ -1,11 +1,47 @@
 import { describe, expect, test } from "bun:test";
-import { createRoot } from "@cdd-team/react";
-import { create } from "@cdd-team/zustand";
+import { createRoot, useLayoutEffect, type ReactElement } from "@cdd-team/react";
+import { create, createStore, useShallow, useStore } from "@cdd-team/zustand";
 
 async function flush(): Promise<void> {
 	for (let i = 0; i < 5; i += 1) {
 		await new Promise((resolve) => setTimeout(resolve, 0));
 	}
+}
+
+function mount(element: ReactElement) {
+	const container = document.createElement("div");
+	document.body.appendChild(container);
+	const root = createRoot(container);
+	root.render(element);
+	return { container, root };
+}
+
+function createRenderCounter() {
+	let count = 0;
+	return {
+		hit: (): void => {
+			count += 1;
+		},
+		get count(): number {
+			return count;
+		},
+	};
+}
+
+// Первый вызов в render планирует обновление стора и блокирует поток, чтобы work loop отдал управление.
+function createInterrupter(store: { setState: (partial: { count: number }) => void }) {
+	let done = false;
+	return (): void => {
+		if (done) {
+			return;
+		}
+		done = true;
+		queueMicrotask(() => store.setState({ count: 1 }));
+		const until = performance.now() + 8;
+		while (performance.now() < until) {
+			continue;
+		}
+	};
 }
 
 describe("@cdd-team/react + @cdd-team/zustand", () => {
@@ -15,17 +51,146 @@ describe("@cdd-team/react + @cdd-team/zustand", () => {
 			const count = useCounter((state) => state.count);
 			return <p>{count}</p>;
 		}
-		const container = document.createElement("div");
-		document.body.appendChild(container);
-		const root = createRoot(container);
-
-		root.render(<Counter />);
+		const { container, root } = mount(<Counter />);
 		await flush();
 		expect(container.textContent).toBe("0");
 
 		useCounter.setState({ count: 1 });
 		await flush();
 		expect(container.textContent).toBe("1");
+
+		root.unmount();
+	});
+
+	test("обновление между render и подпиской не теряется (bound hook)", async () => {
+		const useCounter = create<{ count: number }>()(() => ({ count: 0 }));
+		function Child() {
+			useLayoutEffect(() => {
+				useCounter.setState({ count: 42 });
+			}, []);
+			return null;
+		}
+		function Parent() {
+			const count = useCounter((state) => state.count);
+			return (
+				<div>
+					<p>{count}</p>
+					<Child />
+				</div>
+			);
+		}
+		const { container, root } = mount(<Parent />);
+		await flush();
+		expect(container.textContent).toBe("42");
+
+		root.unmount();
+	});
+
+	test("обновление во время прерванного render не фиксирует смешанный DOM", async () => {
+		const store = createStore<{ count: number }>()(() => ({ count: 0 }));
+		const committed: string[] = [];
+		const interrupt = createInterrupter(store);
+		const container = document.createElement("div");
+		document.body.appendChild(container);
+		const root = createRoot(container);
+		function A() {
+			const count = useStore(store, (state) => state.count);
+			useLayoutEffect(() => {
+				committed.push(container.textContent ?? "");
+			});
+			interrupt();
+			return <span>{count}</span>;
+		}
+		function B() {
+			const count = useStore(store, (state) => state.count);
+			useLayoutEffect(() => {
+				committed.push(container.textContent ?? "");
+			});
+			return <span>{count}</span>;
+		}
+		root.render(
+			<>
+				<A />
+				<B />
+			</>,
+		);
+		await flush();
+
+		expect(committed.length).toBeGreaterThan(0);
+		for (const text of committed) {
+			expect(text).toBe("11");
+		}
+		expect(container.textContent).toBe("11");
+
+		root.unmount();
+	});
+
+	test("изменение выбранного и невыбранного поля", async () => {
+		const useCounter = create<{ count: number; step: number }>()(() => ({ count: 0, step: 1 }));
+		const renders = createRenderCounter();
+		function CountOnly() {
+			renders.hit();
+			return <p>{useCounter((state) => state.count)}</p>;
+		}
+		const { container, root } = mount(<CountOnly />);
+		await flush();
+		expect(renders.count).toBe(1);
+
+		useCounter.setState({ step: 2 });
+		await flush();
+		expect(renders.count).toBe(1);
+
+		useCounter.setState({ count: 3 });
+		await flush();
+		expect(renders.count).toBe(2);
+		expect(container.textContent).toBe("3");
+
+		root.unmount();
+	});
+
+	test("нестабильный объектный селектор не зацикливает render", async () => {
+		const useCounter = create<{ count: number }>()(() => ({ count: 0 }));
+		const renders = createRenderCounter();
+		function Broken() {
+			renders.hit();
+			const { count } = useCounter((state) => ({ count: state.count }));
+			return <p>{count}</p>;
+		}
+		const { container, root } = mount(<Broken />);
+		await flush();
+		expect(renders.count).toBe(1);
+
+		useCounter.setState({ count: 1 });
+		await flush();
+		expect(renders.count).toBe(2);
+		expect(container.textContent).toBe("1");
+
+		root.unmount();
+	});
+
+	test("useShallow через bound hook перерисовывает только на выбранные поля", async () => {
+		const useProfile = create<{ name: string; age: number }>()(() => ({
+			name: "Ерофей",
+			age: 19,
+		}));
+		const renders = createRenderCounter();
+		function Name() {
+			renders.hit();
+			const { name } = useProfile(useShallow((state) => ({ name: state.name })));
+			return <p>{name}</p>;
+		}
+		const { container, root } = mount(<Name />);
+		await flush();
+		expect(renders.count).toBe(1);
+
+		useProfile.setState({ age: 20 });
+		await flush();
+		expect(renders.count).toBe(1);
+
+		useProfile.setState({ name: "Денис" });
+		await flush();
+		expect(renders.count).toBe(2);
+		expect(container.textContent).toBe("Денис");
 
 		root.unmount();
 	});
