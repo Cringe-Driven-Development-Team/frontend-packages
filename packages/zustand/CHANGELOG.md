@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/zustand-v1.0.7...zustand-v1.1.0) (2026-11-18)
+
+
+### Features
+
+* useStore в zustand читает стор через useSyncExternalStoreWithSelector ([f067f50](https://github.com/Cringe-Driven-Development-Team/frontend-packages/commit/f067f503c8ad476f2c16494762221c2a2eb01aeb))
+
 ## [1.0.7](https://github.com/Cringe-Driven-Development-Team/frontend-packages/compare/zustand-v1.0.6...zustand-v1.0.7) (2026-10-31)
 
 
