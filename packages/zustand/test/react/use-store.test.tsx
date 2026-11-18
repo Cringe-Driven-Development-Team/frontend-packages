@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { useLayoutEffect, useState } from "@cdd-team/react";
 import { create, createStore, useShallow, useStore } from "../../src/react/index.ts";
-import { flush, mount } from "./utils.ts";
+import { blockFor, flush, mount } from "./utils.ts";
 
 type CounterState = {
 	count: number;
@@ -271,5 +271,41 @@ describe("useStore", () => {
 
 		expect(new Set(seen).size).toBe(1);
 		await unmount();
+	});
+
+	test("прерванный render не оставляет подписок", async () => {
+		const store = createStore<{ count: number }>()(() => ({ count: 0 }));
+		let active = 0;
+		const subscribe = store.subscribe;
+		store.subscribe = (listener) => {
+			active += 1;
+			const unsubscribe = subscribe(listener);
+			return () => {
+				active -= 1;
+				unsubscribe();
+			};
+		};
+		let paused = false;
+		function Reader() {
+			const count = useStore(store, (state) => state.count);
+			if (!paused) {
+				paused = true;
+				queueMicrotask(() => store.setState({ count: 1 }));
+				blockFor(8);
+			}
+			return <p>{count}</p>;
+		}
+
+		const { container, unmount } = await mount(
+			<div>
+				<Reader />
+				<Reader />
+			</div>,
+		);
+		expect(container.textContent).toBe("11");
+		expect(active).toBe(2);
+
+		await unmount();
+		expect(active).toBe(0);
 	});
 });

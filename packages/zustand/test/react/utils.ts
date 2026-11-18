@@ -6,6 +6,13 @@ export async function flush(): Promise<void> {
 	}
 }
 
+export function blockFor(ms: number): void {
+	const until = performance.now() + ms;
+	while (performance.now() < until) {
+		continue;
+	}
+}
+
 export async function mount(element: ReactElement) {
 	const container = document.createElement("div");
 	document.body.appendChild(container);
