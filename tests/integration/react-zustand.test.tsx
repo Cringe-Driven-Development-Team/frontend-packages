@@ -16,7 +16,7 @@ function mount(element: ReactElement) {
 	return { container, root };
 }
 
-function createCounter() {
+function createRenderCounter() {
 	let count = 0;
 	return {
 		hit: (): void => {
@@ -125,42 +125,9 @@ describe("@cdd-team/react + @cdd-team/zustand", () => {
 		root.unmount();
 	});
 
-	test("прерванный render не оставляет подписок после unmount", async () => {
-		const store = createStore<{ count: number }>()(() => ({ count: 0 }));
-		let active = 0;
-		const subscribe = store.subscribe;
-		store.subscribe = (listener) => {
-			active += 1;
-			const unsubscribe = subscribe(listener);
-			return () => {
-				active -= 1;
-				unsubscribe();
-			};
-		};
-		const interrupt = createInterrupter(store);
-		function Reader() {
-			const count = useStore(store, (state) => state.count);
-			interrupt();
-			return <p>{count}</p>;
-		}
-		const { container, root } = mount(
-			<div>
-				<Reader />
-				<Reader />
-			</div>,
-		);
-		await flush();
-		expect(container.textContent).toBe("11");
-		expect(active).toBe(2);
-
-		root.unmount();
-		await flush();
-		expect(active).toBe(0);
-	});
-
 	test("изменение выбранного и невыбранного поля", async () => {
 		const useCounter = create<{ count: number; step: number }>()(() => ({ count: 0, step: 1 }));
-		const renders = createCounter();
+		const renders = createRenderCounter();
 		function CountOnly() {
 			renders.hit();
 			return <p>{useCounter((state) => state.count)}</p>;
@@ -183,7 +150,7 @@ describe("@cdd-team/react + @cdd-team/zustand", () => {
 
 	test("нестабильный объектный селектор не зацикливает render", async () => {
 		const useCounter = create<{ count: number }>()(() => ({ count: 0 }));
-		const renders = createCounter();
+		const renders = createRenderCounter();
 		function Broken() {
 			renders.hit();
 			const { count } = useCounter((state) => ({ count: state.count }));
@@ -206,7 +173,7 @@ describe("@cdd-team/react + @cdd-team/zustand", () => {
 			name: "Ерофей",
 			age: 19,
 		}));
-		const renders = createCounter();
+		const renders = createRenderCounter();
 		function Name() {
 			renders.hit();
 			const { name } = useProfile(useShallow((state) => ({ name: state.name })));

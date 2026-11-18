@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { useLayoutEffect, useState } from "@cdd-team/react";
 import { create, createStore, useShallow, useStore } from "../../src/react/index.ts";
-import { blockFor, flush, mount } from "./utils.ts";
+import { countSubscriptions, createInterrupter, flush, mount } from "./utils.ts";
 
 type CounterState = {
 	count: number;
@@ -124,16 +124,7 @@ describe("useStore", () => {
 
 	test("после размонтирования подписчиков нет", async () => {
 		const store = createStore<{ count: number }>()(() => ({ count: 0 }));
-		let active = 0;
-		const subscribe = store.subscribe;
-		store.subscribe = (listener) => {
-			active += 1;
-			const unsubscribe = subscribe(listener);
-			return () => {
-				active -= 1;
-				unsubscribe();
-			};
-		};
+		const subscriptions = countSubscriptions(store);
 		function Count() {
 			const count = useStore(store, (state) => state.count);
 			return <p>{count}</p>;
@@ -145,10 +136,10 @@ describe("useStore", () => {
 				<Count />
 			</div>,
 		);
-		expect(active).toBe(2);
+		expect(subscriptions.active).toBe(2);
 
 		await unmount();
-		expect(active).toBe(0);
+		expect(subscriptions.active).toBe(0);
 	});
 
 	test("селектор с новым объектом не падает", async () => {
@@ -174,18 +165,8 @@ describe("useStore", () => {
 	test("смена стора переподписывает компонент", async () => {
 		const a = createStore<{ count: number }>()(() => ({ count: 1 }));
 		const b = createStore<{ count: number }>()(() => ({ count: 10 }));
-		let active = 0;
-		for (const store of [a, b]) {
-			const subscribe = store.subscribe;
-			store.subscribe = (listener) => {
-				active += 1;
-				const unsubscribe = subscribe(listener);
-				return () => {
-					active -= 1;
-					unsubscribe();
-				};
-			};
-		}
+		const subscriptionsA = countSubscriptions(a);
+		const subscriptionsB = countSubscriptions(b);
 		let swap = (): void => {};
 		function Count() {
 			const [store, setStore] = useState(a);
@@ -200,7 +181,8 @@ describe("useStore", () => {
 		swap();
 		await flush();
 		expect(container.textContent).toBe("10");
-		expect(active).toBe(1);
+		expect(subscriptionsA.active).toBe(0);
+		expect(subscriptionsB.active).toBe(1);
 
 		a.setState({ count: 2 });
 		await flush();
@@ -210,7 +192,7 @@ describe("useStore", () => {
 		expect(container.textContent).toBe("11");
 
 		await unmount();
-		expect(active).toBe(0);
+		expect(subscriptionsB.active).toBe(0);
 	});
 
 	test("смена селектора показывает значение нового селектора", async () => {
@@ -273,39 +255,34 @@ describe("useStore", () => {
 		await unmount();
 	});
 
-	test("прерванный render не оставляет подписок", async () => {
+	test("прерванный render не фиксирует смешанный DOM и не оставляет подписок", async () => {
 		const store = createStore<{ count: number }>()(() => ({ count: 0 }));
-		let active = 0;
-		const subscribe = store.subscribe;
-		store.subscribe = (listener) => {
-			active += 1;
-			const unsubscribe = subscribe(listener);
-			return () => {
-				active -= 1;
-				unsubscribe();
-			};
-		};
-		let paused = false;
-		function Reader() {
+		const subscriptions = countSubscriptions(store);
+		const interrupt = createInterrupter(() => store.setState({ count: 1 }));
+		const committed: string[] = [];
+		function Reader(props: { pause: boolean }) {
 			const count = useStore(store, (state) => state.count);
-			if (!paused) {
-				paused = true;
-				queueMicrotask(() => store.setState({ count: 1 }));
-				blockFor(8);
+			if (props.pause) {
+				interrupt();
 			}
+			useLayoutEffect(() => {
+				committed.push(String(count));
+			});
 			return <p>{count}</p>;
 		}
 
 		const { container, unmount } = await mount(
 			<div>
-				<Reader />
-				<Reader />
+				<Reader pause />
+				<Reader pause={false} />
 			</div>,
 		);
+		// Первым коммитится уже обновлённое значение: render со старым снимком был отброшен.
+		expect(committed.slice(0, 2)).toEqual(["1", "1"]);
 		expect(container.textContent).toBe("11");
-		expect(active).toBe(2);
+		expect(subscriptions.active).toBe(2);
 
 		await unmount();
-		expect(active).toBe(0);
+		expect(subscriptions.active).toBe(0);
 	});
 });
