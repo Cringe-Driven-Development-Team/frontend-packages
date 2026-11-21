@@ -131,6 +131,28 @@ npm view @cdd-team/router version   # 0.1.0
 поднимет диапазон `@cdd-team/clsx` в Router, и release PR выпустит `clsx` и `router` `0.1.1` по OIDC. После этого
 клиент `frontend` переводится на опубликованные пакеты.
 
+### `@cdd-team/workbox`, `@cdd-team/workbox-build` и `@cdd-team/vite-plugin-pwa`
+
+Стартовая версия всех трёх — `0.1.0`. Генератор зависит от runtime, Vite-плагин — от генератора (`dependencies`),
+поэтому порядок публикации строгий:
+
+```sh
+cd packages/workbox         && npm publish --access public
+cd ../workbox-build         && npm publish --access public
+cd ../vite-plugin-pwa       && npm publish --access public
+npm view @cdd-team/workbox version          # 0.1.0
+npm view @cdd-team/workbox-build version    # 0.1.0
+npm view @cdd-team/vite-plugin-pwa version  # 0.1.0
+```
+
+Дальше — шаги 4–6 выше для каждого пакета: теги `workbox-v0.1.0`, `workbox-build-v0.1.0` и `vite-plugin-pwa-v0.1.0`
+на том же коммите, Trusted Publisher для трёх имён. Проверка из registry: в пустом каталоге вне монорепозитория
+`bun add @cdd-team/workbox @cdd-team/vite-plugin-pwa vite`, затем `vite build` с плагином и `sw.js` в каталоге сборки.
+
+Одного `fix:` в `packages/workbox` достаточно, чтобы подтвердить Trusted Publisher у всех трёх: `node-workspace`
+поднимет диапазоны в генераторе и плагине, и release PR выпустит три пакета `0.1.1` по OIDC. После этого
+`frontend` переводится на опубликованные пакеты.
+
 ## 7. Уведомления о выпуске
 
 После каждого выпуска (`releases_created == 'true'`) job `notify` workflow Release отправляет **одну** итоговую карточку в тред **Frontend / Releases** командного Telegram-чата. Release PR и запуск без релизов карточки не дают. Сбой самого шага release-please карточку тоже не даёт: неизвестно, какие пакеты выпускались.

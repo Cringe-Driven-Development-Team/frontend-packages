@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { checkManifest, packageNames } from "./verify-packages.ts";
 
 describe("packageNames", () => {
-	test("проверяются все семь пакетов, включая плагины, clsx и router", () => {
+	test("проверяются все пакеты монорепозитория", () => {
 		expect([...packageNames].sort()).toEqual([
 			"clsx",
 			"openapi",
@@ -10,6 +10,9 @@ describe("packageNames", () => {
 			"react",
 			"router",
 			"vite-plugin-bff-html",
+			"vite-plugin-pwa",
+			"workbox",
+			"workbox-build",
 			"zustand",
 		]);
 	});

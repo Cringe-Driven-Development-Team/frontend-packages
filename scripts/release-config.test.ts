@@ -16,6 +16,9 @@ const expected = {
 	"packages/vite-plugin-bff-html": { component: "vite-plugin-bff-html" },
 	"packages/clsx": { component: "clsx" },
 	"packages/router": { component: "router" },
+	"packages/workbox": { component: "workbox" },
+	"packages/workbox-build": { component: "workbox-build" },
+	"packages/vite-plugin-pwa": { component: "vite-plugin-pwa" },
 };
 
 describe("release-please manifest", () => {

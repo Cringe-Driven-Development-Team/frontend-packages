@@ -2,8 +2,8 @@
 
 Монорепозиторий учебных библиотек фронта Cringe-Driven-Development-Team: `@cdd-team/react`, `@cdd-team/zustand`,
 `@cdd-team/openapi`, `@cdd-team/oxlint-plugin-jsdoc`, `@cdd-team/vite-plugin-bff-html`, `@cdd-team/clsx`,
-`@cdd-team/router`. Обзор, структура и команды — `README.md`; выпуск, bootstrap и восстановление после сбоя —
-`docs/release-runbook.md`. Не копируй их сюда и не пересказывай: правь там.
+`@cdd-team/router`, `@cdd-team/workbox`, `@cdd-team/workbox-build`, `@cdd-team/vite-plugin-pwa`. Обзор, структура
+и команды — `README.md`; выпуск, bootstrap и восстановление после сбоя — `docs/release-runbook.md`. Не копируй их сюда и не пересказывай: правь там.
 
 Общепроектный контекст, действующая архитектура и планы развития проекта — в
 [Контекст проекта](https://docs.cellestial.ru/project-context).
@@ -32,7 +32,8 @@
 ## Что где лежит
 
 - `packages/react`, `packages/zustand`, `packages/openapi`, `packages/oxlint-plugin-jsdoc`,
-  `packages/vite-plugin-bff-html`, `packages/clsx`, `packages/router` — пакеты. У каждого свой `package.json`, `tsconfig.json`
+  `packages/vite-plugin-bff-html`, `packages/clsx`, `packages/router`, `packages/workbox`, `packages/workbox-build`,
+  `packages/vite-plugin-pwa` — пакеты. У каждого свой `package.json`, `tsconfig.json`
   (расширяет `tsconfig.base.json`) и одинаковый набор скриптов: `lint`, `fmt:check`, `typecheck`, `test`, `build`.
 - `scripts/` — проверка архивов (`verify-packages.ts`), публикация (`publish-released.ts`) и их тесты;
   `scripts/fixtures/` — чистые проекты для установки архивов (`*.check.ts(x)`, не `*.test.*`).
@@ -75,7 +76,9 @@ CI делает то же самое на каждом PR, включая releas
 - Класть `workspace:*` и ссылки на `@maninthecoat`/`@iredtea` в публикуемые манифесты. Диапазон зависимости Zustand
   от React — semver (`^1.2.0`), он же в `peerDependencies` (optional) и `devDependencies`; `./vanilla` должен
   работать без React. У Router React — обязательный peer с тем же диапазоном в `devDependencies`, а
-  `@cdd-team/clsx` — в `dependencies`; оба не вшиваются в `dist`.
+  `@cdd-team/clsx` — в `dependencies`; оба не вшиваются в `dist`. `@cdd-team/workbox-build` читает runtime из
+  установленного `@cdd-team/workbox/sw-runtime.js`, а `@cdd-team/vite-plugin-pwa` импортирует генератор: оба — semver
+  в `dependencies`, не вшиваются.
 - Возвращать постоянные npm-секреты (`NPM_TOKEN`, `NODE_AUTH_TOKEN`, токен в `.npmrc`).
   Секреты репозитория: `RELEASE_PLEASE_TOKEN` (для release-please, не для npm) и `TELEGRAM_RELEASES_TOPIC_ID`;
   `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` — секреты организации. Telegram-секреты передаются только в job
