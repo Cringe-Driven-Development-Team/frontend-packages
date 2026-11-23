@@ -17,6 +17,7 @@ export type PackageName =
 	| "openapi"
 	| "oxlint-plugin-jsdoc"
 	| "vite-plugin-bff-html"
+	| "vite-plugin-mkcert"
 	| "clsx"
 	| "router";
 export const packageNames: PackageName[] = [
@@ -27,6 +28,7 @@ export const packageNames: PackageName[] = [
 	"openapi",
 	"oxlint-plugin-jsdoc",
 	"vite-plugin-bff-html",
+	"vite-plugin-mkcert",
 ];
 
 type Manifest = Record<string, unknown>;
@@ -255,13 +257,25 @@ export async function verify(): Promise<void> {
 			],
 			{ zustand: versions.zustand },
 		);
+		await scenario(
+			"vite-mkcert",
+			"vite-mkcert",
+			[archives["vite-plugin-mkcert"]],
+			workDir,
+			[
+				["bun", "x", "tsc", "--noEmit"],
+				["bun", "test"],
+			],
+			{ "vite-plugin-mkcert": await localVersion(root, "vite-plugin-mkcert") },
+		);
+
 		const vanillaModules = join(workDir, "scenario-vanilla", "node_modules", "@cdd-team");
 		if (await exists(join(vanillaModules, "react"))) {
 			throw new Error("vanilla-сценарий: @cdd-team/react установился, хотя это optional peer");
 		}
 
 		console.log(
-			"OK: архивы react, zustand, clsx, router, openapi, oxlint-plugin-jsdoc, vite-plugin-bff-html и сценарии consumer/vanilla/router прошли проверку",
+			"OK: архивы react, zustand, clsx, router, openapi, oxlint-plugin-jsdoc, vite-plugin-bff-html, vite-plugin-mkcert и сценарии consumer/vanilla/router/vite-mkcert прошли проверку",
 		);
 	} finally {
 		await rm(workDir, { recursive: true, force: true });

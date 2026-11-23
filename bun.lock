@@ -8,6 +8,7 @@
         "@cdd-team/clsx": "workspace:*",
         "@cdd-team/react": "workspace:*",
         "@cdd-team/router": "workspace:*",
+        "@cdd-team/vite-plugin-mkcert": "workspace:*",
         "@cdd-team/zustand": "workspace:*",
         "@happy-dom/global-registrator": "^20.14.5",
         "@types/bun": "1.4.4",
@@ -15,11 +16,12 @@
         "oxlint": "^1.86.0",
         "tsdown": "0.23.0",
         "typescript": "7.0.2",
+        "vite": "^8.3.5",
       },
     },
     "packages/clsx": {
       "name": "@cdd-team/clsx",
-      "version": "0.1.0",
+      "version": "0.1.1",
     },
     "packages/openapi": {
       "name": "@cdd-team/openapi",
@@ -41,20 +43,20 @@
     },
     "packages/react": {
       "name": "@cdd-team/react",
-      "version": "1.7.0",
+      "version": "1.7.1",
     },
     "packages/router": {
       "name": "@cdd-team/router",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
-        "@cdd-team/clsx": "^0.1.0",
+        "@cdd-team/clsx": "^0.1.1",
       },
       "devDependencies": {
-        "@cdd-team/react": "^1.7.0",
+        "@cdd-team/react": "^1.7.1",
         "@happy-dom/global-registrator": "^20.14.5",
       },
       "peerDependencies": {
-        "@cdd-team/react": "^1.7.0",
+        "@cdd-team/react": "^1.7.1",
       },
     },
     "packages/vite-plugin-bff-html": {
@@ -68,15 +70,26 @@
         "vite": "^8.3.3",
       },
     },
+    "packages/vite-plugin-mkcert": {
+      "name": "@cdd-team/vite-plugin-mkcert",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@types/node": "24.10.1",
+        "vite": "^8.3.5",
+      },
+      "peerDependencies": {
+        "vite": "^8.3.3",
+      },
+    },
     "packages/zustand": {
       "name": "@cdd-team/zustand",
-      "version": "1.0.6",
+      "version": "1.1.0",
       "devDependencies": {
-        "@cdd-team/react": "^1.7.0",
+        "@cdd-team/react": "^1.7.1",
         "@happy-dom/global-registrator": "^20.14.5",
       },
       "peerDependencies": {
-        "@cdd-team/react": "^1.7.0",
+        "@cdd-team/react": "^1.7.1",
       },
       "optionalPeers": [
         "@cdd-team/react",
@@ -95,6 +108,8 @@
     "@cdd-team/router": ["@cdd-team/router@workspace:packages/router"],
 
     "@cdd-team/vite-plugin-bff-html": ["@cdd-team/vite-plugin-bff-html@workspace:packages/vite-plugin-bff-html"],
+
+    "@cdd-team/vite-plugin-mkcert": ["@cdd-team/vite-plugin-mkcert@workspace:packages/vite-plugin-mkcert"],
 
     "@cdd-team/zustand": ["@cdd-team/zustand@workspace:packages/zustand"],
 
