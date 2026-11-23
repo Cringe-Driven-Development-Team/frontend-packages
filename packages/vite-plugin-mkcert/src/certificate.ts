@@ -36,7 +36,7 @@ async function cached(hosts: string[], certFile: string, keyFile: string, caFile
 		const ok =
 			names.size === wanted.size &&
 			[...wanted].every((host) => names.has(host)) &&
-			leaf.validToDate.getTime() - Date.now() > MIN_VALIDITY_MS &&
+			Date.parse(leaf.validTo) - Date.now() > MIN_VALIDITY_MS &&
 			leaf.checkIssued(root) &&
 			leaf.verify(root.publicKey);
 		return ok ? { cert: cert!, key: key! } : null;
