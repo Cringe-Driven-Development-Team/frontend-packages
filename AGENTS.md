@@ -2,8 +2,8 @@
 
 Монорепозиторий учебных библиотек фронта Cringe-Driven-Development-Team: `@cdd-team/react`, `@cdd-team/zustand`,
 `@cdd-team/http-client`, `@cdd-team/serialize-javascript`, `@cdd-team/oxlint-plugin-jsdoc`,
-`@cdd-team/vite-plugin-bff-html`, `@cdd-team/clsx`, `@cdd-team/router`. Обзор, структура и команды — `README.md`; выпуск, bootstrap и восстановление после сбоя —
-`docs/release-runbook.md`. Не копируй их сюда и не пересказывай: правь там.
+`@cdd-team/vite-plugin-bff-html`, `@cdd-team/clsx`, `@cdd-team/router`. Обзор, структура и команды — `README.md`;
+выпуск, bootstrap и восстановление после сбоя — `docs/release-runbook.md`. Не копируй их сюда и не пересказывай: правь там.
 
 Общепроектный контекст, действующая архитектура и планы развития проекта — в
 [Контекст проекта](https://docs.cellestial.ru/project-context).

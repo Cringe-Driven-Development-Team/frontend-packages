@@ -4,7 +4,7 @@
 
 ## 1. Разовый bootstrap
 
-> `packages/openapi` удалён в [#67](https://github.com/Cringe-Driven-Development-Team/frontend-packages/issues/67); опубликованные версии `@cdd-team/openapi` остаются в npm. Ниже — история первого выпуска.
+> `packages/openapi` удалён в [#67](https://github.com/Cringe-Driven-Development-Team/frontend-packages/issues/67); опубликованные версии `@cdd-team/openapi` остаются в npm. Шаги этого раздела — история первого выпуска.
 
 Новые имена `@cdd-team/*` в npm не существуют, поэтому первую публикацию делает человек с правами на организацию `cdd-team` (owner или участник с правом публикации). Дальше публикует только workflow. Делать с проверенного коммита `main`, где CI зелёный.
 
