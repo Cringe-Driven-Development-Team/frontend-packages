@@ -27,13 +27,6 @@
       "name": "@cdd-team/http-client",
       "version": "0.1.0",
     },
-    "packages/openapi": {
-      "name": "@cdd-team/openapi",
-      "version": "0.2.1",
-      "bin": {
-        "openapi-cdd": "./dist/bin.js",
-      },
-    },
     "packages/oxlint-plugin-jsdoc": {
       "name": "@cdd-team/oxlint-plugin-jsdoc",
       "version": "0.1.2",
@@ -97,8 +90,6 @@
     "@cdd-team/clsx": ["@cdd-team/clsx@workspace:packages/clsx"],
 
     "@cdd-team/http-client": ["@cdd-team/http-client@workspace:packages/http-client"],
-
-    "@cdd-team/openapi": ["@cdd-team/openapi@workspace:packages/openapi"],
 
     "@cdd-team/oxlint-plugin-jsdoc": ["@cdd-team/oxlint-plugin-jsdoc@workspace:packages/oxlint-plugin-jsdoc"],
 
