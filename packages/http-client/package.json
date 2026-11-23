@@ -1,6 +1,6 @@
 {
 	"name": "@cdd-team/http-client",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Типизированный HTTP-клиент по карте операций поверх транспорта Promise<Response>",
 	"license": "MIT",
 	"repository": {
