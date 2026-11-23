@@ -1,16 +1,11 @@
 import { expect, test } from "bun:test";
-import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { delimiter, dirname, join } from "node:path";
 import { BINARIES, resolveMkcert } from "../src/binary.ts";
-import { fakeDeps } from "./helpers.ts";
+import { fakeDeps, GOOD } from "./helpers.ts";
 
-// подменяем закреплённый хэш: настоящий бинарник mkcert тесты не скачивают
-const GOOD = new TextEncoder().encode("official mkcert");
 const linux = BINARIES["linux-x64"]!;
 const windows = BINARIES["win32-x64"]!;
-const goodHash = createHash("sha256").update(GOOD).digest("hex");
-for (const binary of Object.values(BINARIES)) binary.sha256 = goodHash;
 
 /**
  * Каталог PATH с файлом команды.

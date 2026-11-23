@@ -1,7 +1,27 @@
-import { mkdtemp } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { BINARIES } from "../src/binary.ts";
 import type { Deps } from "../src/deps.ts";
+
+/** Содержимое «официального» mkcert в тестах: закреплённые хэши подменяются на его SHA-256. */
+export const GOOD = new TextEncoder().encode("official mkcert");
+const goodHash = createHash("sha256").update(GOOD).digest("hex");
+for (const binary of Object.values(BINARIES)) binary.sha256 = goodHash;
+
+export const fixture = (name: string) => Bun.file(join(import.meta.dir, "fixtures", name)).text();
+
+/**
+ * Кладёт в каталог deps скачанный ранее mkcert, чтобы поиск не шёл дальше кэша.
+ * @returns путь к бинарнику
+ */
+export async function cachedMkcert(deps: Deps): Promise<string> {
+	await mkdir(deps.dir, { recursive: true });
+	const path = join(deps.dir, "mkcert");
+	await writeFile(path, GOOD);
+	return path;
+}
 
 export interface FakeDeps extends Deps {
 	runs: Array<[string, string[]]>;
