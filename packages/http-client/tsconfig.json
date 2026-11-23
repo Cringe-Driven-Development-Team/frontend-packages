@@ -1,0 +1,6 @@
+{
+	// Fetch API без Bun и Node; DOM — ради Request/Response/FormData
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": { "lib": ["ESNext", "DOM"], "types": [] },
+	"include": ["src"]
+}
