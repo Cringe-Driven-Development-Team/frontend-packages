@@ -95,7 +95,7 @@ type RawOptions = {
  * @throws {TypeError} если для `{name}` из шаблона нет значения
  */
 function toPath(template: string, params: RawOptions["params"]): string {
-	const path = template.replace(/\{(\w+)\}/g, (_, name: string) => {
+	const path = template.replace(/\{([^{}]+)\}/g, (_, name: string) => {
 		const value = params?.path?.[name];
 		if (value === undefined) throw new TypeError(`Нет path-параметра ${name}`);
 		return encodeURIComponent(String(value));
