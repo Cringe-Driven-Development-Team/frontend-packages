@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { copyFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { build, createServer } from "vite";
-import { mkcert } from "../src/index.ts";
+import { createPlugin as mkcert } from "../src/plugin.ts";
 import { cachedMkcert, fakeDeps, fixture } from "./helpers.ts";
 
 const fixtures = join(import.meta.dir, "fixtures");

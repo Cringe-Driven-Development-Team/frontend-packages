@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { chmod, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { delimiter, join } from "node:path";
 import type { Deps } from "./deps.ts";
@@ -37,7 +37,7 @@ const sha256 = (data: Uint8Array) => createHash("sha256").update(data).digest("h
 /**
  * Путь к пригодному mkcert. Порядок: скачанный ранее бинарник с закреплённым хэшем, затем каждый
  * `mkcert` из PATH, который отвечает на `-CAROOT` (одноимённые чужие команды пропускаются),
- * затем загрузка официального бинарника с проверкой SHA-256 до первого запуска. PATH процесса не
+ * затем загрузка официального бинарника (только для поддерживаемых платформ) с проверкой SHA-256 до первого запуска. PATH процесса не
  * меняется: выбранный mkcert запускается по абсолютному пути.
  * @param deps побочные эффекты
  * @returns абсолютный путь к mkcert
@@ -45,14 +45,9 @@ const sha256 = (data: Uint8Array) => createHash("sha256").update(data).digest("h
 export async function resolveMkcert(deps: Deps): Promise<string> {
 	const key = `${deps.platform}-${deps.arch}`;
 	const binary = BINARIES[key];
-	if (!binary) {
-		throw new Error(
-			`платформа ${key} не поддерживается: нужны Windows x64, Linux x64 (WSL) или macOS x64/arm64`,
-		);
-	}
 	const name = deps.platform === "win32" ? "mkcert.exe" : "mkcert";
 	const cached = join(deps.dir, name);
-	if (existsSync(cached) && sha256(await readFile(cached)) === binary.sha256) return cached;
+	if (existsSync(cached) && sha256(await readFile(cached)) === binary?.sha256) return cached;
 
 	for (const dir of deps.path.split(delimiter).filter(Boolean)) {
 		const candidate = join(dir, name);
@@ -65,6 +60,11 @@ export async function resolveMkcert(deps: Deps): Promise<string> {
 		}
 	}
 
+	if (!binary) {
+		throw new Error(
+			`нет mkcert в PATH, а скачать его для ${key} нельзя: поддерживаются Windows x64, Linux x64 (WSL) и macOS x64/arm64`,
+		);
+	}
 	deps.log(`скачиваю mkcert ${VERSION}: ${binary.url}`);
 	const data = await deps.download(binary.url);
 	const actual = sha256(data);
@@ -75,7 +75,6 @@ export async function resolveMkcert(deps: Deps): Promise<string> {
 	const temporary = `${cached}.download`;
 	try {
 		await writeFile(temporary, data, { mode: 0o755 });
-		await chmod(temporary, 0o755);
 		await rename(temporary, cached);
 	} finally {
 		await rm(temporary, { force: true });

@@ -40,7 +40,8 @@ export default defineConfig({
 Любая ошибка — неподдерживаемая платформа, сбой загрузки, неверный хэш, отказ mkcert — останавливает
 запуск dev-сервера с сообщением `vite-plugin-mkcert: …`. На HTTP плагин молча не переходит.
 
-Поддерживаются Windows x64, Linux x64 (в том числе WSL Ubuntu) и macOS x64/arm64.
+Скачивание поддерживается для Windows x64, Linux x64 (в том числе WSL Ubuntu) и macOS x64/arm64; на
+других платформах нужен установленный mkcert в PATH.
 
 ## Каталог `~/.vite-plugin-mkcert`
 

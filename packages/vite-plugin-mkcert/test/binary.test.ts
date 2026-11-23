@@ -92,9 +92,17 @@ test("ошибка загрузки видна с адресом", async () => {
 	await expect(resolveMkcert(deps)).rejects.toThrow(/HTTP 404/);
 });
 
-test("неподдерживаемая платформа — понятная ошибка до поиска", async () => {
+test("неподдерживаемая платформа без mkcert в PATH — понятная ошибка без загрузки", async () => {
 	const deps = await fakeDeps({ arch: "arm64" });
 
-	await expect(resolveMkcert(deps)).rejects.toThrow(/linux-arm64 не поддерживается/);
+	await expect(resolveMkcert(deps)).rejects.toThrow(/скачать его для linux-arm64 нельзя/);
 	expect(deps.downloads).toEqual([]);
+});
+
+test("на неподдерживаемой платформе используется рабочий mkcert из PATH", async () => {
+	const deps = await fakeDeps({ arch: "arm64" });
+	const good = await command(join(dirname(deps.dir), "bin"), "mkcert");
+	deps.path = dirname(good);
+
+	expect(await resolveMkcert(deps)).toBe(good);
 });

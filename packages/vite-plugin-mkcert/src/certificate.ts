@@ -16,28 +16,32 @@ const canonical = (host: string) =>
 const MIN_VALIDITY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Подходит ли сертификат из кэша: имена в SAN совпадают с hosts, срок не истекает, подписан
+ * Сертификат из кэша, если он подходит: имена в SAN совпадают с hosts, срок не истекает, подписан
  * текущим CA из каталога.
- * @returns `true`, если сертификат можно отдать dev-серверу
+ * @returns PEM сертификата и ключа или `null`, если нужен перевыпуск
  */
-async function usable(hosts: string[], certFile: string, keyFile: string, caFile: string) {
+async function cached(hosts: string[], certFile: string, keyFile: string, caFile: string) {
 	try {
-		const [cert, ca] = await Promise.all([certFile, caFile].map((f) => readFile(f, "utf8")));
-		await readFile(keyFile);
+		const [cert, key, ca] = await Promise.all(
+			[certFile, keyFile, caFile].map((f) => readFile(f, "utf8")),
+		);
 		const leaf = new X509Certificate(cert!);
 		const root = new X509Certificate(ca!);
-		const names = (leaf.subjectAltName ?? "")
-			.split(", ")
-			.map((n) => canonical(n.replace(/^(DNS|IP Address):/, "")));
-		return (
-			names.length === new Set(hosts).size &&
-			hosts.every((host) => names.includes(canonical(host))) &&
+		const names = new Set(
+			(leaf.subjectAltName ?? "")
+				.split(", ")
+				.map((n) => canonical(n.replace(/^(DNS|IP Address):/, ""))),
+		);
+		const wanted = new Set(hosts.map(canonical));
+		const ok =
+			names.size === wanted.size &&
+			[...wanted].every((host) => names.has(host)) &&
 			leaf.validToDate.getTime() - Date.now() > MIN_VALIDITY_MS &&
 			leaf.checkIssued(root) &&
-			leaf.verify(root.publicKey)
-		);
+			leaf.verify(root.publicKey);
+		return ok ? { cert: cert!, key: key! } : null;
 	} catch {
-		return false;
+		return null;
 	}
 }
 
@@ -57,18 +61,16 @@ export async function ensureCertificate(
 	const keyFile = join(deps.dir, "key.pem");
 	const caFile = join(deps.dir, "rootCA.pem");
 	try {
-		if (!(await usable(hosts, certFile, keyFile, caFile))) {
-			const mkcert = await resolveMkcert(deps);
-			await mkdir(deps.dir, { recursive: true });
-			deps.log(`CA в ${deps.dir}, выпускаю сертификат для ${hosts.join(", ")}`);
-			await deps.run(mkcert, ["-install"]);
-			await deps.run(mkcert, ["-cert-file", certFile, "-key-file", keyFile, ...hosts]);
-			if (!(await usable(hosts, certFile, keyFile, caFile))) {
-				throw new Error(`${mkcert} выпустил сертификат не для ${hosts.join(", ")}`);
-			}
-		}
-		const [cert, key] = await Promise.all([readFile(certFile, "utf8"), readFile(keyFile, "utf8")]);
-		return { cert, key };
+		const reused = await cached(hosts, certFile, keyFile, caFile);
+		if (reused) return reused;
+		const mkcert = await resolveMkcert(deps);
+		await mkdir(deps.dir, { recursive: true });
+		deps.log(`CA в ${deps.dir}, выпускаю сертификат для ${hosts.join(", ")}`);
+		await deps.run(mkcert, ["-install"]);
+		await deps.run(mkcert, ["-cert-file", certFile, "-key-file", keyFile, ...hosts]);
+		const issued = await cached(hosts, certFile, keyFile, caFile);
+		if (!issued) throw new Error(`${mkcert} выпустил сертификат не для ${hosts.join(", ")}`);
+		return issued;
 	} catch (error) {
 		throw new Error(
 			`vite-plugin-mkcert: ${error instanceof Error ? error.message : String(error)}`,
