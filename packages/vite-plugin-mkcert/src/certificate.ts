@@ -1,8 +1,16 @@
 import { X509Certificate } from "node:crypto";
+import { isIPv6 } from "node:net";
 import { mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { resolveMkcert } from "./binary.ts";
 import type { Deps } from "./deps.ts";
+
+/**
+ * Имя в виде для сравнения: IPv6 в SAN Node печатает развёрнутым (`0:0:0:0:0:0:0:1`), в hosts он
+ * обычно сжат (`::1`).
+ */
+const canonical = (host: string) =>
+	isIPv6(host) ? new URL(`http://[${host}]`).hostname : host.toLowerCase();
 
 // перевыпуск заранее, а не в день, когда сертификат уже отвергнет браузер
 const MIN_VALIDITY_MS = 24 * 60 * 60 * 1000;
@@ -20,10 +28,10 @@ async function usable(hosts: string[], certFile: string, keyFile: string, caFile
 		const root = new X509Certificate(ca!);
 		const names = (leaf.subjectAltName ?? "")
 			.split(", ")
-			.map((n) => n.replace(/^(DNS|IP Address):/, ""));
+			.map((n) => canonical(n.replace(/^(DNS|IP Address):/, "")));
 		return (
 			names.length === new Set(hosts).size &&
-			hosts.every((host) => names.includes(host)) &&
+			hosts.every((host) => names.includes(canonical(host))) &&
 			leaf.validToDate.getTime() - Date.now() > MIN_VALIDITY_MS &&
 			leaf.checkIssued(root) &&
 			leaf.verify(root.publicKey)

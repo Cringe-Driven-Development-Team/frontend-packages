@@ -70,7 +70,8 @@ test("без кандидатов скачивается официальный 
 	expect(path).toBe(join(deps.dir, "mkcert"));
 	expect(deps.downloads).toEqual([linux.url]);
 	expect(await readFile(path)).toEqual(Buffer.from(GOOD));
-	expect((await stat(path)).mode & 0o100).toBe(0o100);
+	// в Windows бита исполнения нет: libuv отдаёт 0o666 для любого файла
+	if (process.platform !== "win32") expect((await stat(path)).mode & 0o100).toBe(0o100);
 });
 
 test("бинарник с чужим хэшем не сохраняется и не запускается", async () => {

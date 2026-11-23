@@ -58,6 +58,16 @@ test("повторный запуск с пригодным кэшем ниче�
 	expect(https.cert).toBe(await fixture("both.pem"));
 });
 
+test("IPv6 в hosts совпадает с развёрнутой записью SAN, сертификат переиспользуется", async () => {
+	const { deps } = await setup("ipv6");
+	await ensureCertificate(["localhost", "::1"], deps);
+	deps.runs.length = 0;
+
+	await ensureCertificate(["::1", "localhost"], deps);
+
+	expect(deps.runs).toEqual([]);
+});
+
 test("при изменении hosts сертификат перевыпускается", async () => {
 	const { deps } = await setup("localhost");
 	await ensureCertificate(["localhost"], deps);
