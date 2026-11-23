@@ -29,6 +29,8 @@ await client.request("POST", "/items", { contentType: "application/json", body: 
 await client.request("POST", "/items", { contentType: "application/json", body: { name: 1 } });
 await client.request("PUT", "/items", { contentType: "application/json", body: { name: "a" } });
 await client.request("PUT", "/items");
+// @ts-expect-error необязательное тело тоже проверяется по карте
+await client.request("PUT", "/items", { contentType: "application/json", body: { name: 1 } });
 // @ts-expect-error у GET с обязательными path-параметрами options не опускается
 await client.request("GET", "/items/{id}");
 
