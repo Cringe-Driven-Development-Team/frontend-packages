@@ -10,6 +10,7 @@
 | `@cdd-team/serialize-javascript` | `packages/serialize-javascript` | JSON для безопасной вставки в тело `<script>` в HTML |
 | `@cdd-team/oxlint-plugin-jsdoc` | `packages/oxlint-plugin-jsdoc` | правила oxlint про JSDoc: `cdd/require-jsdoc` и `cdd/check-param-names` |
 | `@cdd-team/vite-plugin-bff-html` | `packages/vite-plugin-bff-html` | плагин dev-сервера Vite: HTML страниц от BFF с клиентом HMR |
+| `@cdd-team/vite-plugin-mkcert` | `packages/vite-plugin-mkcert` | плагин dev-сервера Vite: локальный HTTPS сертификатом mkcert, чужой `mkcert` из PATH не мешает |
 | `@cdd-team/clsx` | `packages/clsx` | сборка строки CSS-классов из строк, массивов и объектов-условий |
 | `@cdd-team/router` | `packages/router` | роутер для `@cdd-team/react` по образцу TanStack Router; `@cdd-team/react` — обязательный peer, `@cdd-team/clsx` — зависимость |
 
@@ -23,6 +24,7 @@ packages/
   serialize-javascript/
   oxlint-plugin-jsdoc/  # тесты собирают dist и ходят в CLI oxlint, а не в RuleTester
   vite-plugin-bff-html/ # тесты поднимают dev-сервер Vite против подставного BFF
+  vite-plugin-mkcert/   # тесты подменяют загрузку и команды mkcert, сертификаты — фикстуры
   clsx/
   router/       # test/register — проверка типов Register отдельным tsconfig
 scripts/        # проверка архивов и публикация (verify-packages, publish-released) и их тесты
@@ -56,7 +58,7 @@ Playground React не входит в `workspaces`, CI и релизы. На Win
 
 - **Bun** — установка зависимостей, тулинг, тесты и сборка. `bunfig.toml` содержит `[run] bun = true`: утилиты с `#!/usr/bin/env node` (tsdown, oxlint, oxfmt) запускаются в рантайме Bun, а не в Node, поэтому версия Node на сборку не влияет.
 - **Node и npm CLI** — только публикация по OIDC (Node 22.14.0+, npm 11.5.1+ ставятся лишь в publish job) (`npm publish` в [release.yml](.github/workflows/release.yml)).
-- **release-please** — версии, `CHANGELOG.md`, теги и release PR. Режим manifest: у каждого пакета своя версия, свой changelog и свой тег (`react-v1.2.0`, `zustand-v1.0.0`, `http-client-v0.1.0`, `serialize-javascript-v0.1.0`, `oxlint-plugin-jsdoc-v0.1.1`, `vite-plugin-bff-html-v0.1.0`, `clsx-v0.1.0`, `router-v0.1.0`). Плагин `node-workspace` с `updatePeerDependencies` при выпуске React поднимает диапазон `@cdd-team/react` в Zustand и Router (peer и dev), а при выпуске clsx — диапазон `@cdd-team/clsx` в Router. Зависимый пакет получает patch-релиз и запись в changelog, даже если его исходники не менялись.
+- **release-please** — версии, `CHANGELOG.md`, теги и release PR. Режим manifest: у каждого пакета своя версия, свой changelog и свой тег (`react-v1.2.0`, `zustand-v1.0.0`, `http-client-v0.1.0`, `serialize-javascript-v0.1.0`, `oxlint-plugin-jsdoc-v0.1.1`, `vite-plugin-bff-html-v0.1.0`, `vite-plugin-mkcert-v0.1.0`, `clsx-v0.1.0`, `router-v0.1.0`). Плагин `node-workspace` с `updatePeerDependencies` при выпуске React поднимает диапазон `@cdd-team/react` в Zustand и Router (peer и dev), а при выпуске clsx — диапазон `@cdd-team/clsx` в Router. Зависимый пакет получает patch-релиз и запись в changelog, даже если его исходники не менялись.
 
 ## Коммиты и релизы
 

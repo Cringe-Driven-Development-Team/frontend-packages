@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { checkManifest, packageNames } from "./verify-packages.ts";
 
 describe("packageNames", () => {
-	test("проверяются все восемь пакетов, включая плагины, клиент и сериализатор", () => {
+	test("проверяются все девять пакетов, включая плагины, клиент и сериализатор", () => {
 		expect([...packageNames].sort()).toEqual([
 			"clsx",
 			"http-client",
@@ -11,6 +11,7 @@ describe("packageNames", () => {
 			"router",
 			"serialize-javascript",
 			"vite-plugin-bff-html",
+			"vite-plugin-mkcert",
 			"zustand",
 		]);
 	});

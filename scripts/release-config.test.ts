@@ -15,6 +15,7 @@ const expected = {
 	"packages/serialize-javascript": { component: "serialize-javascript" },
 	"packages/oxlint-plugin-jsdoc": { component: "oxlint-plugin-jsdoc" },
 	"packages/vite-plugin-bff-html": { component: "vite-plugin-bff-html" },
+	"packages/vite-plugin-mkcert": { component: "vite-plugin-mkcert" },
 	"packages/clsx": { component: "clsx" },
 	"packages/router": { component: "router" },
 };

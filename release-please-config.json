@@ -43,6 +43,11 @@
 			"component": "vite-plugin-bff-html",
 			"changelog-path": "CHANGELOG.md"
 		},
+		"packages/vite-plugin-mkcert": {
+			"release-type": "node",
+			"component": "vite-plugin-mkcert",
+			"changelog-path": "CHANGELOG.md"
+		},
 		"packages/clsx": {
 			"release-type": "node",
 			"component": "clsx",

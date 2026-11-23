@@ -2,8 +2,9 @@
 
 Монорепозиторий учебных библиотек фронта Cringe-Driven-Development-Team: `@cdd-team/react`, `@cdd-team/zustand`,
 `@cdd-team/http-client`, `@cdd-team/serialize-javascript`, `@cdd-team/oxlint-plugin-jsdoc`,
-`@cdd-team/vite-plugin-bff-html`, `@cdd-team/clsx`, `@cdd-team/router`. Обзор, структура и команды — `README.md`;
-выпуск, bootstrap и восстановление после сбоя — `docs/release-runbook.md`. Не копируй их сюда и не пересказывай: правь там.
+`@cdd-team/vite-plugin-bff-html`, `@cdd-team/vite-plugin-mkcert`, `@cdd-team/clsx`, `@cdd-team/router`. Обзор,
+структура и команды — `README.md`; выпуск, bootstrap и восстановление после сбоя — `docs/release-runbook.md`. Не копируй
+их сюда и не пересказывай: правь там.
 
 Общепроектный контекст, действующая архитектура и планы развития проекта — в
 [Контекст проекта](https://docs.cellestial.ru/project-context).
@@ -32,10 +33,11 @@
 ## Что где лежит
 
 - `packages/react`, `packages/zustand`, `packages/http-client`, `packages/serialize-javascript`,
-  `packages/oxlint-plugin-jsdoc`, `packages/vite-plugin-bff-html`, `packages/clsx`, `packages/router` — пакеты. У каждого
-  свой `package.json`, `tsconfig.json` (расширяет `tsconfig.base.json`) и одинаковый набор скриптов: `lint`, `fmt:check`,
-  `typecheck`, `test`, `build`. У `http-client` и `serialize-javascript` тестов и скрипта `test` нет: их проверяет
-  сценарий `http` в `verify:packages` (типы и браузерная сборка из архивов, без `*.check.ts`).
+  `packages/oxlint-plugin-jsdoc`, `packages/vite-plugin-bff-html`, `packages/vite-plugin-mkcert`, `packages/clsx`,
+  `packages/router` — пакеты. У каждого свой `package.json`, `tsconfig.json` (расширяет `tsconfig.base.json`) и
+  одинаковый набор скриптов: `lint`, `fmt:check`, `typecheck`, `test`, `build`. У `http-client` и
+  `serialize-javascript` тестов и скрипта `test` нет: их проверяет сценарий `http` в `verify:packages` (типы и
+  браузерная сборка из архивов, без `*.check.ts`).
 - `scripts/` — проверка архивов (`verify-packages.ts`), публикация (`publish-released.ts`) и их тесты;
   `scripts/fixtures/` — чистые проекты для установки архивов (`*.check.ts(x)`, не `*.test.*`).
 - `tests/integration/` — React + Zustand в happy-dom и vanilla Zustand без React.
