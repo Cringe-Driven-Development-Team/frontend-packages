@@ -1,8 +1,8 @@
 # AGENTS.md
 
 Монорепозиторий учебных библиотек фронта Cringe-Driven-Development-Team: `@cdd-team/react`, `@cdd-team/zustand`,
-`@cdd-team/openapi`, `@cdd-team/oxlint-plugin-jsdoc`, `@cdd-team/vite-plugin-bff-html`, `@cdd-team/clsx`,
-`@cdd-team/router`. Обзор, структура и команды — `README.md`; выпуск, bootstrap и восстановление после сбоя —
+`@cdd-team/http-client`, `@cdd-team/serialize-javascript`, `@cdd-team/oxlint-plugin-jsdoc`,
+`@cdd-team/vite-plugin-bff-html`, `@cdd-team/clsx`, `@cdd-team/router`. Обзор, структура и команды — `README.md`; выпуск, bootstrap и восстановление после сбоя —
 `docs/release-runbook.md`. Не копируй их сюда и не пересказывай: правь там.
 
 Общепроектный контекст, действующая архитектура и планы развития проекта — в
@@ -31,9 +31,11 @@
 
 ## Что где лежит
 
-- `packages/react`, `packages/zustand`, `packages/openapi`, `packages/oxlint-plugin-jsdoc`,
-  `packages/vite-plugin-bff-html`, `packages/clsx`, `packages/router` — пакеты. У каждого свой `package.json`, `tsconfig.json`
-  (расширяет `tsconfig.base.json`) и одинаковый набор скриптов: `lint`, `fmt:check`, `typecheck`, `test`, `build`.
+- `packages/react`, `packages/zustand`, `packages/http-client`, `packages/serialize-javascript`,
+  `packages/oxlint-plugin-jsdoc`, `packages/vite-plugin-bff-html`, `packages/clsx`, `packages/router` — пакеты. У каждого
+  свой `package.json`, `tsconfig.json` (расширяет `tsconfig.base.json`) и одинаковый набор скриптов: `lint`, `fmt:check`,
+  `typecheck`, `test`, `build`. У `http-client` и `serialize-javascript` тестов и скрипта `test` нет: их проверяет
+  сценарий `http` в `verify:packages` (типы и браузерная сборка из архивов, без `*.check.ts`).
 - `scripts/` — проверка архивов (`verify-packages.ts`), публикация (`publish-released.ts`) и их тесты;
   `scripts/fixtures/` — чистые проекты для установки архивов (`*.check.ts(x)`, не `*.test.*`).
 - `tests/integration/` — React + Zustand в happy-dom и vanilla Zustand без React.
@@ -43,7 +45,7 @@
   `test/helpers/lint-cases.ts` пишет кейсы во временные файлы и один раз запускает `oxlint --format json` с плагином.
   `RuleTester` из oxlint не используй: он не работает под Bun. Если в системе есть Node, oxlint исполняет в нём JS-плагины (нужен ≥ 20.19 или ≥ 22.12); в CI он предустановлен.
 - Конфиги в корне: `oxlint.config.ts`, `oxfmt.config.ts`, `release-please-config.json`,
-  `.release-please-manifest.json`. `packages/openapi/src/api/schema.ts` сгенерирован и исключён из oxfmt.
+  `.release-please-manifest.json`.
 
 ## Перед коммитом
 

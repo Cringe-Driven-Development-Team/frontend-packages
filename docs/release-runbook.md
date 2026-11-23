@@ -4,6 +4,8 @@
 
 ## 1. Разовый bootstrap
 
+> `packages/openapi` удалён в [#67](https://github.com/Cringe-Driven-Development-Team/frontend-packages/issues/67); опубликованные версии `@cdd-team/openapi` остаются в npm. Ниже — история первого выпуска.
+
 Новые имена `@cdd-team/*` в npm не существуют, поэтому первую публикацию делает человек с правами на организацию `cdd-team` (owner или участник с правом публикации). Дальше публикует только workflow. Делать с проверенного коммита `main`, где CI зелёный.
 
 1. Войти в npm и проверить, кто вы: `npm login`, `npm whoami`. Если на аккаунте включена 2FA (`auth-and-writes`), npm попросит одноразовый код при каждой публикации.
@@ -130,6 +132,24 @@ npm view @cdd-team/router version   # 0.1.0
 Одного `fix:` в `packages/clsx` достаточно, чтобы подтвердить Trusted Publisher у обоих пакетов: `node-workspace`
 поднимет диапазон `@cdd-team/clsx` в Router, и release PR выпустит `clsx` и `router` `0.1.1` по OIDC. После этого
 клиент `frontend` переводится на опубликованные пакеты.
+
+### `@cdd-team/http-client` и `@cdd-team/serialize-javascript`
+
+Пакеты перенесены из `frontend` и выпускаются вместе, стартовая версия обоих — `0.1.0`. Зависимостей между ними нет,
+порядок публикации любой:
+
+```sh
+cd packages/http-client          && npm publish --access public
+cd ../serialize-javascript       && npm publish --access public
+npm view @cdd-team/http-client version          # 0.1.0
+npm view @cdd-team/serialize-javascript version # 0.1.0
+```
+
+Дальше — шаги 4–6 выше для каждого пакета: теги `http-client-v0.1.0` и `serialize-javascript-v0.1.0` на том же коммите,
+Trusted Publisher для обоих имён. Проверка из registry: в пустом каталоге вне монорепозитория
+`bun add @cdd-team/http-client @cdd-team/serialize-javascript`, затем импорт `createClient` и `serializeJsonForHtml`
+и `tsc --noEmit`. Trusted Publisher подтверждается небольшим `fix:` в каждом из двух пакетов: release PR выпустит
+`0.1.1` по OIDC. После этого `frontend` переключается на опубликованные версии (финальный PR frontend#210).
 
 ## 7. Уведомления о выпуске
 
