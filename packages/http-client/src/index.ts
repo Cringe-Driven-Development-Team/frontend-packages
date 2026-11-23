@@ -39,10 +39,17 @@ type ParamsOption<O> = O extends { params: infer P }
 		: { params: P }
 	: Pick<O, "params" & keyof O>;
 
-/** `contentType` и `body` — пара из тел операции; у операции без тела их передать нельзя. */
+/** Пара `contentType` и `body` из тел операции. */
+type BodyPair<B> = { [K in keyof B]: { contentType: K; body: B[K] } }[keyof B];
+
+type NoBody = { contentType?: never; body?: never };
+
+/** Тело обязательно, если оно обязательно в операции; необязательное можно опустить; без тела — нельзя. */
 type BodyOption<O> = O extends { body: infer B }
-	? { [K in keyof B]: { contentType: K; body: B[K] } }[keyof B]
-	: { contentType?: never; body?: never };
+	? BodyPair<B>
+	: "body" extends keyof O
+		? BodyPair<NonNullable<O["body"]>> | NoBody
+		: NoBody;
 
 /** Опции вызова операции: типизированные параметры, тело с content type и прочий `init`. */
 export type RequestOptions<O> = ParamsOption<O> &
