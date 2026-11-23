@@ -1,4 +1,4 @@
-import { X509Certificate } from "node:crypto";
+import { X509Certificate, createPrivateKey } from "node:crypto";
 import { isIPv6 } from "node:net";
 import { mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -37,6 +37,7 @@ async function cached(hosts: string[], certFile: string, keyFile: string, caFile
 			names.size === wanted.size &&
 			[...wanted].every((host) => names.has(host)) &&
 			Date.parse(leaf.validTo) - Date.now() > MIN_VALIDITY_MS &&
+			leaf.checkPrivateKey(createPrivateKey(key!)) &&
 			leaf.checkIssued(root) &&
 			leaf.verify(root.publicKey);
 		return ok ? { cert: cert!, key: key! } : null;

@@ -89,6 +89,18 @@ test("сертификат, выпущенный другим CA, перевып
 	expect(deps.runs.map(([, args]) => args[0])).toEqual(["-install", "-cert-file"]);
 });
 
+test("ключ от другого выпуска не отдаётся Vite: сертификат перевыпускается", async () => {
+	const { deps } = await setup();
+	await ensureCertificate(["localhost", "127.0.0.1"], deps);
+	await copyFile(join(fixtures, "localhost-key.pem"), join(deps.dir, "key.pem"));
+	deps.runs.length = 0;
+
+	const https = await ensureCertificate(["localhost", "127.0.0.1"], deps);
+
+	expect(deps.runs.map(([, args]) => args[0])).toEqual(["-install", "-cert-file"]);
+	expect(https.key).toBe(await fixture("both-key.pem"));
+});
+
 test("выпущенный сертификат не подходит под hosts — ошибка, а не HTTPS с чужими именами", async () => {
 	const { deps } = await setup("localhost");
 
