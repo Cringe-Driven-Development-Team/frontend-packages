@@ -18,8 +18,10 @@
 	},
 	"devDependencies": {
 		"@cdd-team/clsx": "workspace:*",
+		"@cdd-team/http-client": "workspace:*",
 		"@cdd-team/react": "workspace:*",
 		"@cdd-team/router": "workspace:*",
+		"@cdd-team/serialize-javascript": "workspace:*",
 		"@cdd-team/zustand": "workspace:*",
 		"@happy-dom/global-registrator": "^20.14.5",
 		"@types/bun": "1.4.4",

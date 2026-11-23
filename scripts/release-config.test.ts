@@ -11,7 +11,8 @@ const manifest = readJson(".release-please-manifest.json");
 const expected = {
 	"packages/react": { component: "react" },
 	"packages/zustand": { component: "zustand" },
-	"packages/openapi": { component: "openapi" },
+	"packages/http-client": { component: "http-client" },
+	"packages/serialize-javascript": { component: "serialize-javascript" },
 	"packages/oxlint-plugin-jsdoc": { component: "oxlint-plugin-jsdoc" },
 	"packages/vite-plugin-bff-html": { component: "vite-plugin-bff-html" },
 	"packages/clsx": { component: "clsx" },
