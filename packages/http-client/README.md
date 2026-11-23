@@ -57,6 +57,13 @@ await client.request("PATCH", "/notebooks/{id}", {
 
 Пакет заменяет `@cdd-team/openapi`: генератора и CLI нет, типы карты пишутся вручную.
 
+## Выпуск
+
+Версию, `CHANGELOG.md` и тег `http-client-v<версия>` ведёт release-please; в npm пакет публикует workflow
+`release.yml` по OIDC (Trusted Publisher), без npm-токена. Перед выпуском `bun run verify:packages` проверяет архив
+пакета и сценарий `http` (типы и браузерная сборка из архива). Первая публикация, настройка доверия и восстановление после сбоя —
+[runbook выпуска](https://github.com/Cringe-Driven-Development-Team/frontend-packages/blob/main/docs/release-runbook.md).
+
 Пакет живёт в монорепозитории
 [`frontend-packages`](https://github.com/Cringe-Driven-Development-Team/frontend-packages); команды
 разработки — в его README.

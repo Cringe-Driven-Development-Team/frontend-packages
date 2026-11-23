@@ -61,3 +61,10 @@ export default defineConfig({
 `rootCA.pem` из этого каталога.
 
 Других опций стороннего `vite-plugin-mkcert` (proxy, свой источник бинарника, автообновление) нет.
+
+## Выпуск
+
+Версию, `CHANGELOG.md` и тег `vite-plugin-mkcert-v<версия>` ведёт release-please; в npm пакет публикует workflow
+`release.yml` по OIDC (Trusted Publisher), без npm-токена. Перед выпуском `bun run verify:packages` проверяет архив
+пакета и сценарий `vite-mkcert`. Первая публикация, настройка доверия и восстановление после сбоя —
+[runbook выпуска](https://github.com/Cringe-Driven-Development-Team/frontend-packages/blob/main/docs/release-runbook.md).
