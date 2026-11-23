@@ -148,8 +148,9 @@ npm view @cdd-team/serialize-javascript version # 0.1.0
 Дальше — шаги 4–6 выше для каждого пакета: теги `http-client-v0.1.0` и `serialize-javascript-v0.1.0` на том же коммите,
 Trusted Publisher для обоих имён. Проверка из registry: в пустом каталоге вне монорепозитория
 `bun add @cdd-team/http-client @cdd-team/serialize-javascript`, затем импорт `createClient` и `serializeJsonForHtml`
-и `tsc --noEmit`. Trusted Publisher подтверждается небольшим `fix:` в каждом из двух пакетов: release PR выпустит
-`0.1.1` по OIDC. После этого `frontend` переключается на опубликованные версии (финальный PR frontend#210).
+и `tsc --noEmit`. Trusted Publisher подтверждается контрольным выпуском: в каталоге каждого пакета коммит
+`docs: описать выпуск <пакета>` с footer `Release-As: 0.1.1`, затем release PR выпускает `0.1.1` по OIDC. Фиктивный
+`fix:` для этого не нужен. После этого `frontend` переключается на опубликованные версии (финальный PR frontend#210).
 
 ## 7. Уведомления о выпуске
 
