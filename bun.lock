@@ -6,8 +6,10 @@
       "name": "frontend-packages",
       "devDependencies": {
         "@cdd-team/clsx": "workspace:*",
+        "@cdd-team/http-client": "workspace:*",
         "@cdd-team/react": "workspace:*",
         "@cdd-team/router": "workspace:*",
+        "@cdd-team/serialize-javascript": "workspace:*",
         "@cdd-team/vite-plugin-mkcert": "workspace:*",
         "@cdd-team/zustand": "workspace:*",
         "@happy-dom/global-registrator": "^20.14.5",
@@ -23,12 +25,9 @@
       "name": "@cdd-team/clsx",
       "version": "0.1.1",
     },
-    "packages/openapi": {
-      "name": "@cdd-team/openapi",
-      "version": "0.2.1",
-      "bin": {
-        "openapi-cdd": "./dist/bin.js",
-      },
+    "packages/http-client": {
+      "name": "@cdd-team/http-client",
+      "version": "0.1.0",
     },
     "packages/oxlint-plugin-jsdoc": {
       "name": "@cdd-team/oxlint-plugin-jsdoc",
@@ -58,6 +57,10 @@
       "peerDependencies": {
         "@cdd-team/react": "^1.7.1",
       },
+    },
+    "packages/serialize-javascript": {
+      "name": "@cdd-team/serialize-javascript",
+      "version": "0.1.0",
     },
     "packages/vite-plugin-bff-html": {
       "name": "@cdd-team/vite-plugin-bff-html",
@@ -99,13 +102,15 @@
   "packages": {
     "@cdd-team/clsx": ["@cdd-team/clsx@workspace:packages/clsx"],
 
-    "@cdd-team/openapi": ["@cdd-team/openapi@workspace:packages/openapi"],
+    "@cdd-team/http-client": ["@cdd-team/http-client@workspace:packages/http-client"],
 
     "@cdd-team/oxlint-plugin-jsdoc": ["@cdd-team/oxlint-plugin-jsdoc@workspace:packages/oxlint-plugin-jsdoc"],
 
     "@cdd-team/react": ["@cdd-team/react@workspace:packages/react"],
 
     "@cdd-team/router": ["@cdd-team/router@workspace:packages/router"],
+
+    "@cdd-team/serialize-javascript": ["@cdd-team/serialize-javascript@workspace:packages/serialize-javascript"],
 
     "@cdd-team/vite-plugin-bff-html": ["@cdd-team/vite-plugin-bff-html@workspace:packages/vite-plugin-bff-html"],
 

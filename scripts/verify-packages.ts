@@ -14,7 +14,8 @@ const oldScopes = ["@maninthecoat", "@iredtea"];
 export type PackageName =
 	| "react"
 	| "zustand"
-	| "openapi"
+	| "http-client"
+	| "serialize-javascript"
 	| "oxlint-plugin-jsdoc"
 	| "vite-plugin-bff-html"
 	| "vite-plugin-mkcert"
@@ -25,7 +26,8 @@ export const packageNames: PackageName[] = [
 	"zustand",
 	"clsx",
 	"router",
-	"openapi",
+	"http-client",
+	"serialize-javascript",
 	"oxlint-plugin-jsdoc",
 	"vite-plugin-bff-html",
 	"vite-plugin-mkcert",
@@ -218,6 +220,8 @@ export async function verify(): Promise<void> {
 			zustand: await localVersion(root, "zustand"),
 			clsx: await localVersion(root, "clsx"),
 			router: await localVersion(root, "router"),
+			httpClient: await localVersion(root, "http-client"),
+			serializeJavascript: await localVersion(root, "serialize-javascript"),
 		};
 		await scenario(
 			"consumer",
@@ -274,8 +278,24 @@ export async function verify(): Promise<void> {
 			throw new Error("vanilla-сценарий: @cdd-team/react установился, хотя это optional peer");
 		}
 
+		await scenario(
+			"http",
+			"http",
+			[archives["http-client"], archives["serialize-javascript"]],
+			workDir,
+			[
+				["bun", "x", "tsc", "--noEmit"],
+				["bun", "build", "main.ts", "--outdir", "out", "--target", "browser"],
+			],
+			{ "http-client": versions.httpClient, "serialize-javascript": versions.serializeJavascript },
+		);
+		const httpBundle = await readFile(join(workDir, "scenario-http", "out", "main.js"), "utf8");
+		if (/["']node:|from\s*["']bun["']|\bBun\./.test(httpBundle)) {
+			throw new Error("http-сценарий: в браузерную сборку попал код Bun или Node");
+		}
+
 		console.log(
-			"OK: архивы react, zustand, clsx, router, openapi, oxlint-plugin-jsdoc, vite-plugin-bff-html, vite-plugin-mkcert и сценарии consumer/vanilla/router/vite-mkcert прошли проверку",
+			"OK: архивы react, zustand, clsx, router, http-client, serialize-javascript, oxlint-plugin-jsdoc, vite-plugin-bff-html, vite-plugin-mkcert и сценарии consumer/vanilla/router/http/vite-mkcert прошли проверку",
 		);
 	} finally {
 		await rm(workDir, { recursive: true, force: true });

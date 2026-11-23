@@ -1,7 +1,8 @@
 {
 	"packages/react": "1.7.1",
 	"packages/zustand": "1.1.0",
-	"packages/openapi": "0.2.1",
+	"packages/http-client": "0.1.0",
+	"packages/serialize-javascript": "0.1.0",
 	"packages/oxlint-plugin-jsdoc": "0.1.2",
 	"packages/vite-plugin-bff-html": "0.2.1",
 	"packages/vite-plugin-mkcert": "0.1.0",

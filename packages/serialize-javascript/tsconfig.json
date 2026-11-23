@@ -1,0 +1,6 @@
+{
+	// без DOM, Bun и Node
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": { "lib": ["ESNext"], "types": [] },
+	"include": ["src"]
+}

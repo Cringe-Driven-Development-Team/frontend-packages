@@ -14,11 +14,9 @@ function recorder(failOn?: string) {
 
 describe("orderForPublish", () => {
 	test("React публикуется раньше Zustand, остальные идут после", () => {
-		expect(orderForPublish(["packages/zustand", "packages/openapi", "packages/react"])).toEqual([
-			"packages/react",
-			"packages/zustand",
-			"packages/openapi",
-		]);
+		expect(orderForPublish(["packages/zustand", "packages/http-client", "packages/react"])).toEqual(
+			["packages/react", "packages/zustand", "packages/http-client"],
+		);
 	});
 
 	test("плагин jsdoc независим и публикуется после React и Zustand", () => {
@@ -29,8 +27,13 @@ describe("orderForPublish", () => {
 
 	test("clsx и React публикуются раньше Router", () => {
 		expect(
-			orderForPublish(["packages/router", "packages/openapi", "packages/clsx", "packages/react"]),
-		).toEqual(["packages/react", "packages/clsx", "packages/router", "packages/openapi"]);
+			orderForPublish([
+				"packages/router",
+				"packages/http-client",
+				"packages/clsx",
+				"packages/react",
+			]),
+		).toEqual(["packages/react", "packages/clsx", "packages/router", "packages/http-client"]);
 	});
 
 	test("порядок остальных пакетов сохраняется", () => {
@@ -56,12 +59,12 @@ describe("publishReleased", () => {
 		expect(calls[0]?.cmd).toEqual(["npm", "publish", "--access", "public"]);
 	});
 
-	test("только openapi не затрагивает react и zustand", async () => {
+	test("только http-client не затрагивает react и zustand", async () => {
 		const { calls, run } = recorder();
 
-		await publishReleased(["packages/openapi"], run);
+		await publishReleased(["packages/http-client"], run);
 
-		expect(calls.map((call) => call.cwd)).toEqual(["packages/openapi"]);
+		expect(calls.map((call) => call.cwd)).toEqual(["packages/http-client"]);
 	});
 
 	test("ошибка публикации останавливает последующие", async () => {
